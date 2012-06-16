@@ -1070,8 +1070,19 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 		
 		if( Event == CBNETProtocol :: EID_WHISPER && m_GHost->m_CurrentGame )
 		{
+			bool Success = false;
+			QueuedSpoofAdd SpoofAdd;
+			SpoofAdd.server = m_Server;
+			SpoofAdd.name = User;
+			SpoofAdd.sendMessage = false;
+			SpoofAdd.failMessage = string( );
+			
 			if( Message == "s" || Message == "sc" || Message == "spoof" || Message == "check" || Message == "spoofcheck" )
-				m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, true );
+			{
+				Success = true;
+				SpoofAdd.sendMessage = true;
+			}
+			
 			else if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos )
 			{
 				// look for messages like "entered a Warcraft III The Frozen Throne game called XYZ"
@@ -1085,10 +1096,17 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					vector<string> Tokens = UTIL_Tokenize( Message, ' ' );
 
 					if( Tokens.size( ) >= 3 )
-						m_GHost->m_CurrentGame->AddToSpoofed( m_Server, Tokens[2], false );
+						SpoofAdd.name = Tokens[2];
 				}
-				else
-					m_GHost->m_CurrentGame->AddToSpoofed( m_Server, User, false );
+				
+				Success = true;
+			}
+			
+			if( Success )
+			{
+				boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
+				m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
+				spoofLock.unlock( );
 			}
 		}
 		
@@ -1152,10 +1170,18 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// this is because when the game is rehosted, players who joined recently will be in the previous game according to battle.net
 				// note: if the game is rehosted more than once it is possible (but unlikely) for a false positive because only two game names are checked
 
-				if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) != string :: npos || Message.find( m_GHost->m_CurrentGame->GetLastGameName( ) ) != string :: npos )
-					m_GHost->m_CurrentGame->AddToSpoofed( m_Server, UserName, false );
-				else
-					m_GHost->m_CurrentGame->SendAllChat( m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName ) );
+				QueuedSpoofAdd SpoofAdd;
+				SpoofAdd.server = m_Server;
+				SpoofAdd.name = UserName;
+				SpoofAdd.sendMessage = false;
+				SpoofAdd.failMessage = string( );
+
+				if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) == string :: npos && Message.find( m_GHost->m_CurrentGame->GetLastGameName( ) ) == string :: npos )
+					SpoofAdd.failMessage = m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName );
+				
+				boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
+				m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
+				spoofLock.unlock( );
 			}
 		}
 		
