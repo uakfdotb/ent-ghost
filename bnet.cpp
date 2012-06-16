@@ -195,8 +195,12 @@ CBNET :: ~CBNET( )
 
 	lock.unlock( );
 
+	boost::mutex::scoped_lock bansLock( m_BansMutex );
+	
         for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 		delete *i;
+	
+	bansLock.unlock( );
 }
 
 BYTEARRAY CBNET :: GetUniqueName( )
@@ -503,6 +507,8 @@ bool CBNET :: Update( void *fd, void *send_fd )
 	{
 		// CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (" + UTIL_ToString( m_Bans.size( ) ) + " -> " + UTIL_ToString( m_CallableBanList->GetResult( ).size( ) ) + " bans)" );
 
+		boost::mutex::scoped_lock lock( m_BansMutex );
+		
 		while( !m_Bans.empty( ) )
 		{
 			CDBBan *LastBan = m_Bans.back( );
@@ -511,6 +517,8 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		}
 
 		m_Bans = m_CallableBanList->GetResult( );
+		lock.unlock( );
+		
 		m_GHost->m_DB->RecoverCallable( m_CallableBanList );
 		delete m_CallableBanList;
 		m_CallableBanList = NULL;
@@ -2471,11 +2479,15 @@ CDBBan *CBNET :: IsBannedName( string name, string context )
 
 	// todotodo: optimize this - maybe use a map?
 
+	boost::mutex::scoped_lock bansLock( m_BansMutex );
+	
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
 		if( (*i)->GetName( ) == name && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
 			return *i;
 	}
+	
+	bansLock.unlock( );
 
 	return NULL;
 }
@@ -2485,11 +2497,15 @@ CDBBan *CBNET :: IsBannedIP( string ip, string context )
 	transform( context.begin( ), context.end( ), context.begin( ), (int(*)(int))tolower );
 	// todotodo: optimize this - maybe use a map?
 
+	boost::mutex::scoped_lock bansLock( m_BansMutex );
+	
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
 		if( (*i)->GetIP( ) == ip && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
 			return *i;
 	}
+	
+	bansLock.unlock( );
 
 	return NULL;
 }
@@ -2503,7 +2519,10 @@ void CBNET :: AddAdmin( string name )
 void CBNET :: AddBan( string name, string ip, string gamename, string admin, string reason )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
+	
+	boost::mutex::scoped_lock lock( m_BansMutex );
 	m_Bans.push_back( new CDBBan( m_Server, name, ip, "N/A", gamename, admin, reason, "", "ttr.cloud" ) );
+	lock.unlock( );
 }
 
 void CBNET :: RemoveAdmin( string name )
@@ -2524,6 +2543,8 @@ void CBNET :: RemoveBan( string name, string context )
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	transform( context.begin( ), context.end( ), context.begin( ), (int(*)(int))tolower );
 
+	boost::mutex::scoped_lock lock( m_BansMutex );
+	
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); )
 	{
 		if( (*i)->GetName( ) == name && ( context == "ttr.cloud" || context == "" || context == (*i)->GetContext( ) ) )
@@ -2531,6 +2552,8 @@ void CBNET :: RemoveBan( string name, string context )
 		else
                         ++i;
 	}
+	
+	lock.unlock( );
 }
 
 void CBNET :: HoldFriends( CBaseGame *game )
