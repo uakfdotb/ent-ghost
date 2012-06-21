@@ -1418,26 +1418,31 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
                         else if( Command == "kick" && !Payload.empty( ) )
 			{
-				CGamePlayer *LastMatch = NULL;
-				uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
-
-				if( Matches == 0 )
-					SendAllChat( m_GHost->m_Language->UnableToKickNoMatchesFound( Payload ) );
-				else if( Matches == 1 )
+				if( m_AdminCheck || m_RootAdminCheck || !m_GameLoaded )
 				{
-					LastMatch->SetDeleteMe( true );
-					LastMatch->SetLeftReason( m_GHost->m_Language->WasKickedByPlayer( User ) );
+					CGamePlayer *LastMatch = NULL;
+					uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
 
-					if( !m_GameLoading && !m_GameLoaded )
-						LastMatch->SetLeftCode( PLAYERLEAVE_LOBBY );
+					if( Matches == 0 )
+						SendAllChat( m_GHost->m_Language->UnableToKickNoMatchesFound( Payload ) );
+					else if( Matches == 1 )
+					{
+						LastMatch->SetDeleteMe( true );
+						LastMatch->SetLeftReason( m_GHost->m_Language->WasKickedByPlayer( User ) );
+
+						if( !m_GameLoading && !m_GameLoaded )
+							LastMatch->SetLeftCode( PLAYERLEAVE_LOBBY );
+						else
+							LastMatch->SetLeftCode( PLAYERLEAVE_LOST );
+
+						if( !m_GameLoading && !m_GameLoaded )
+							OpenSlot( GetSIDFromPID( LastMatch->GetPID( ) ), false );
+					}
 					else
-						LastMatch->SetLeftCode( PLAYERLEAVE_LOST );
-
-					if( !m_GameLoading && !m_GameLoaded )
-						OpenSlot( GetSIDFromPID( LastMatch->GetPID( ) ), false );
+						SendAllChat( m_GHost->m_Language->UnableToKickFoundMoreThanOneMatch( Payload ) );
 				}
 				else
-					SendAllChat( m_GHost->m_Language->UnableToKickFoundMoreThanOneMatch( Payload ) );
+					SendAllChat( "Error: you cannot kick players in game. Please use the !votekick or !ban commands." );
 			}
 
 			//

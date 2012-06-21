@@ -55,20 +55,39 @@ CPotentialPlayer :: ~CPotentialPlayer( )
 	delete m_IncomingGarenaUser;
 }
 
+BYTEARRAY CPotentialPlayer :: GetGarenaIP( )
+{
+	if( m_IncomingGarenaUser == NULL ) {
+		return UTIL_CreateByteArray( (uint32_t) 0, true );
+	} else {
+		return UTIL_CreateByteArray( m_IncomingGarenaUser->GetIP( ), true );
+	}
+}
+
 BYTEARRAY CPotentialPlayer :: GetExternalIP( )
 {
 	unsigned char Zeros[] = { 0, 0, 0, 0 };
 
-	if( m_Socket )
-		return m_Socket->GetIP( );
+	if( m_Socket ) {
+		if( m_IncomingGarenaUser != NULL )
+			return GetGarenaIP( );
+		else
+			return m_Socket->GetIP( );
+	}
 
 	return UTIL_CreateByteArray( Zeros, 4 );
 }
 
 string CPotentialPlayer :: GetExternalIPString( )
 {
-	if( m_Socket )
-		return m_Socket->GetIPString( );
+	if( m_Socket ) {
+		if( m_IncomingGarenaUser != NULL ) {
+			BYTEARRAY GarenaIP = GetGarenaIP( );
+			return UTIL_ToString(GarenaIP[0]) + "." + UTIL_ToString(GarenaIP[1]) + "." + UTIL_ToString(GarenaIP[2]) + "." + UTIL_ToString(GarenaIP[3]);
+		} else {
+			return m_Socket->GetIPString( );
+		}
+	}
 
 	return string( );
 }

@@ -65,10 +65,12 @@ public:
 	virtual bool GetError( )						{ return m_Error; }
 	virtual string GetErrorString( )				{ return m_ErrorString; }
 	virtual CIncomingJoinPlayer *GetJoinPlayer( )	{ return m_IncomingJoinPlayer; }
+	virtual BYTEARRAY GetGarenaIP( );
 	virtual CIncomingGarenaUser *GetGarenaUser( )	{ return m_IncomingGarenaUser; }
 
 	virtual void SetSocket( CTCPSocket *nSocket )	{ m_Socket = nSocket; }
 	virtual void SetDeleteMe( bool nDeleteMe )		{ m_DeleteMe = nDeleteMe; }
+	virtual void SetGarenaUser( CIncomingGarenaUser *nIncomingGarenaUser ) { m_IncomingGarenaUser = nIncomingGarenaUser; }
 
 	// processing functions
 

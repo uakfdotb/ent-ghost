@@ -2189,6 +2189,11 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joined the game" );
 	CGamePlayer *Player = new CGamePlayer( potential, m_SaveGame ? EnforcePID : GetNewPID( ), JoinedRealm, joinPlayer->GetName( ), joinPlayer->GetInternalIP( ), Reserved );
 
+	if( potential->GetGarenaUser( ) != NULL ) {
+		Player->SetGarenaUser( potential->GetGarenaUser( ) );
+		potential->SetGarenaUser( NULL );
+	}
+
 	// consider LAN players to have already spoof checked since they can't
 	// since so many people have trouble with this feature we now use the JoinedRealm to determine LAN status
 
@@ -2869,7 +2874,7 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 
 bool CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 {
-	if( !m_GameLoaded || action->GetLength( ) > 1027 )
+	if( ( !m_GameLoaded && !m_GameLoading ) || action->GetLength( ) > 1027 )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] warning: blocked invalid action packet" );
 
@@ -2880,6 +2885,11 @@ bool CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *actio
 
 		delete action;
 		return false;
+	}
+	
+	else if( m_GameLoading )
+	{
+		CONSOLE_Print( "[GAME: " + m_GameName + "] warning: action packet during loading from " + player->GetName( ) );
 	}
 
 	m_Actions.push( action );
