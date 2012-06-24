@@ -133,6 +133,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_HoldClan = nHoldClan;
 	m_PublicCommands = nPublicCommands;
 	m_LastInviteCreation = false;
+	m_ServerReconnectCount = 0;
 }
 
 CBNET :: ~CBNET( )
@@ -650,6 +651,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			m_Socket->DoSend( (fd_set *)send_fd );
 			m_LastNullTime = GetTime( );
 			m_LastOutPacketTicks = GetTicks( );
+			m_ServerReconnectCount = 0;
 
 			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
 			
@@ -685,6 +687,14 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		if( !m_GHost->m_BindAddress.empty( ) )
 			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempting to bind to address [" + m_GHost->m_BindAddress + "]" );
 
+		// clear the cached IP address if we've disconnected several times
+		// although resolving is blocking, it's not a big deal because games are anyway in separate threads
+		if( m_ServerReconnectCount > 10 )
+		{
+			m_ServerReconnectCount = 0;
+			m_ServerIP = string( );
+		}
+
 		if( m_ServerIP.empty( ) )
 		{
 			m_Socket->Connect( m_GHost->m_BindAddress, m_Server, 6112 );
@@ -701,6 +711,8 @@ bool CBNET :: Update( void *fd, void *send_fd )
 
 			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] using cached server IP address " + m_ServerIP );
 			m_Socket->Connect( m_GHost->m_BindAddress, m_ServerIP, 6112 );
+			
+			m_ServerReconnectCount++;
 		}
 
 		m_WaitingToConnect = false;
