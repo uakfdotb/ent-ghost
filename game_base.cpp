@@ -1825,6 +1825,7 @@ void CBaseGame :: EventPlayerDisconnectConnectionClosed( CGamePlayer *player )
 		return;
 	}
 
+	m_GHost->DenyIP( player->GetExternalIPString( ), 60000, "connection closed" );
 	player->SetDeleteMe( true );
 	player->SetLeftReason( m_GHost->m_Language->HasLostConnectionClosedByRemoteHost( ) );
 	player->SetLeftCode( PLAYERLEAVE_DISCONNECT );

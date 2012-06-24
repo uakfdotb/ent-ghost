@@ -1418,7 +1418,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
                         else if( Command == "kick" && !Payload.empty( ) )
 			{
-				if( m_AdminCheck || m_RootAdminCheck || !m_GameLoaded )
+				if( AdminCheck || RootAdminCheck || !m_GameLoaded )
 				{
 					CGamePlayer *LastMatch = NULL;
 					uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
@@ -2194,9 +2194,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			StatsUser = Payload;
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, "castlefight" ) ) );
+			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, "civwars" ) ) );
 		else
-			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, "castlefight" ) ) );
+			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, "civwars" ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
