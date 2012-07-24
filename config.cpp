@@ -20,6 +20,7 @@
 
 #include "ghost.h"
 #include "config.h"
+#include "util.h"
 
 #include <stdlib.h>
 

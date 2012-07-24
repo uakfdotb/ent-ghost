@@ -687,17 +687,17 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	
 	// handle saygames vector
 	
+	boost::mutex::scoped_lock lock( m_SayGamesMutex );
+	
 	if( !m_DoSayGames.empty( ) )
 	{
-		boost::mutex::scoped_lock lock( m_SayGamesMutex );
-		
 		for( vector<string> :: iterator i = m_DoSayGames.begin( ); i != m_DoSayGames.end( ); ++i )
 			SendAllChat( "ANNOUNCEMENT: " + *i );
 		
 		m_DoSayGames.clear( );
-		
-		lock.unlock( );
 	}
+	
+	lock.unlock( );
 	
 	// handle add to spoofed vector
 	

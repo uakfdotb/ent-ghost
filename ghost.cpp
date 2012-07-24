@@ -42,6 +42,7 @@
 #include "game_admin.h"
 
 #include <signal.h>
+#include <execinfo.h> //to generate stack trace-like thing on exception
 #include <stdlib.h>
 
 #ifdef WIN32
@@ -169,6 +170,20 @@ void SignalCatcher( int s )
 		exit( 1 );
 }
 
+void handler()
+{
+    void *trace_elems[20];
+    int trace_elem_count(backtrace( trace_elems, 20 ));
+    char **stack_syms(backtrace_symbols( trace_elems, trace_elem_count ));
+    for ( int i = 0 ; i < trace_elem_count ; ++i )
+    {
+        std::cout << stack_syms[i] << "\n";
+    }
+    free( stack_syms );
+
+    exit(1);
+}
+
 void CONSOLE_Print( string message )
 {
 	cout << message << endl;
@@ -286,6 +301,7 @@ int main( int argc, char **argv )
 
 	// signal( SIGABRT, SignalCatcher );
 	signal( SIGINT, SignalCatcher );
+	std::set_terminate( handler ); //to generate stack trace on fail
 
 #ifndef WIN32
 	// disable SIGPIPE since some systems like OS X don't define MSG_NOSIGNAL

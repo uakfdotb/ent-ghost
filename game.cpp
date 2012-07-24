@@ -78,8 +78,13 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 	}
 	else if( m_Map->GetMapType( ) == "dota" )
 	{
-		m_Stats = new CStatsDOTA( this );
+		m_Stats = new CStatsDOTA( this, "dota" );
 		m_MapType = "dota";
+	}
+	else if( m_Map->GetMapType( ) == "lod" )
+	{
+		m_Stats = new CStatsDOTA( this, "lod" );
+		m_MapType = "lod";
 	}
 
     m_Guess = 0;
@@ -589,7 +594,13 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	CGamePlayer *Player = CBaseGame :: EventPlayerJoined( potential, joinPlayer );
 	
 	if( Player && m_Map->GetMapPath( ).find( "DotA v" ) != string :: npos )
-		m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ) ) ) );
+	{
+		if( m_MapType == "lod" )
+			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), "lod" ) ) );
+		else
+			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), "dota" ) ) );
+	
+	}
 	
 	return Player;
 }
@@ -634,7 +645,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 			if( m_GameLoading ) {
 				m_AutoBans.push_back( player->GetName( ) );
 			} else {
-				if( m_MapType == "dota" ) {
+				if( m_MapType == "dota" || m_MapType == "lod" ) {
 					char sid, team;
 					uint32_t CountSentinel = 0;
 					uint32_t CountScourge = 0;
@@ -2080,9 +2091,28 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			StatsUser = Payload;
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser ) ) );
+			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, "dota" ) ) );
 		else
-			m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser ) ) );
+			m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, "dota" ) ) );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
+	// !STATSLOD
+	//
+
+        else if( ( Command == "statslod" || Command == "sl" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	{
+		string StatsUser = User;
+
+		if( !Payload.empty( ) )
+			StatsUser = Payload;
+
+		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, "lod" ) ) );
+		else
+			m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, "lod" ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}

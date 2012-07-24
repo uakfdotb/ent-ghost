@@ -2153,7 +2153,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			// check for potential abuse
 
 			if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
-				m_PairedDPSChecks.push_back( PairedDPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser ) ) );
+				m_PairedDPSChecks.push_back( PairedDPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, "dota" ) ) );
 		}
 				
 		//

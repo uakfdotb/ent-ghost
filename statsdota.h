@@ -34,9 +34,10 @@ private:
 	uint32_t m_Winner;
 	uint32_t m_Min;
 	uint32_t m_Sec;
+	string m_SaveType;
 
 public:
-	CStatsDOTA( CBaseGame *nGame );
+	CStatsDOTA( CBaseGame *nGame, string nSaveType );
 	virtual ~CStatsDOTA( );
 
 	virtual bool ProcessAction( CIncomingAction *Action );

@@ -1019,7 +1019,7 @@ CDBGamePlayerSummary *CGHostDBSQLite :: GamePlayerSummaryCheck( string name )
 	return GamePlayerSummary;
 }
 
-uint32_t CGHostDBSQLite :: DotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec )
+uint32_t CGHostDBSQLite :: DotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec, string saveType )
 {
 	uint32_t RowID = 0;
 	sqlite3_stmt *Statement;
@@ -1047,7 +1047,7 @@ uint32_t CGHostDBSQLite :: DotAGameAdd( uint32_t gameid, uint32_t winner, uint32
 	return RowID;
 }
 
-uint32_t CGHostDBSQLite :: DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills )
+uint32_t CGHostDBSQLite :: DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills, string saveType )
 {
 	uint32_t RowID = 0;
 	sqlite3_stmt *Statement;
@@ -1116,7 +1116,7 @@ uint32_t CGHostDBSQLite :: DotAPlayerCount( string name )
 	return Count;
 }
 
-CDBDotAPlayerSummary *CGHostDBSQLite :: DotAPlayerSummaryCheck( string name )
+CDBDotAPlayerSummary *CGHostDBSQLite :: DotAPlayerSummaryCheck( string name, string saveType )
 {
 	if( DotAPlayerCount( name ) == 0 )
 		return NULL;
@@ -1583,26 +1583,26 @@ CCallableGamePlayerSummaryCheck *CGHostDBSQLite :: ThreadedGamePlayerSummaryChec
 	return Callable;
 }
 
-CCallableDotAGameAdd *CGHostDBSQLite :: ThreadedDotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec )
+CCallableDotAGameAdd *CGHostDBSQLite :: ThreadedDotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec, string saveType )
 {
-	CCallableDotAGameAdd *Callable = new CCallableDotAGameAdd( gameid, winner, min, sec );
-	Callable->SetResult( DotAGameAdd( gameid, winner, min, sec ) );
+	CCallableDotAGameAdd *Callable = new CCallableDotAGameAdd( gameid, winner, min, sec, saveType );
+	Callable->SetResult( DotAGameAdd( gameid, winner, min, sec, saveType ) );
 	Callable->SetReady( true );
 	return Callable;
 }
 
-CCallableDotAPlayerAdd *CGHostDBSQLite :: ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills )
+CCallableDotAPlayerAdd *CGHostDBSQLite :: ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills, string saveType )
 {
-	CCallableDotAPlayerAdd *Callable = new CCallableDotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills );
-	Callable->SetResult( DotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills ) );
+	CCallableDotAPlayerAdd *Callable = new CCallableDotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills, saveType );
+	Callable->SetResult( DotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills, saveType ) );
 	Callable->SetReady( true );
 	return Callable;
 }
 
-CCallableDotAPlayerSummaryCheck *CGHostDBSQLite :: ThreadedDotAPlayerSummaryCheck( string name )
+CCallableDotAPlayerSummaryCheck *CGHostDBSQLite :: ThreadedDotAPlayerSummaryCheck( string name, string saveType )
 {
-	CCallableDotAPlayerSummaryCheck *Callable = new CCallableDotAPlayerSummaryCheck( name );
-	Callable->SetResult( DotAPlayerSummaryCheck( name ) );
+	CCallableDotAPlayerSummaryCheck *Callable = new CCallableDotAPlayerSummaryCheck( name, saveType );
+	Callable->SetResult( DotAPlayerSummaryCheck( name, saveType ) );
 	Callable->SetReady( true );
 	return Callable;
 }
