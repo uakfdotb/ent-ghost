@@ -93,7 +93,8 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		
 		// match making settings for tier 2
 		m_MatchMaking = true;
-		m_MinimumScore = 
+		m_MinimumScore = 1300;
+		m_MaximumScore = 99999;
 	}
 
     m_Guess = 0;
@@ -598,17 +599,19 @@ bool CGame :: Update( void *fd, void *send_fd )
 	return CBaseGame :: Update( fd, send_fd );
 }
 
-CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
+CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double *score )
 {
-	CGamePlayer *Player = CBaseGame :: EventPlayerJoined( potential, joinPlayer );
+	CGamePlayer *Player = CBaseGame :: EventPlayerJoined( potential, joinPlayer, score );
 	
-	if( Player && m_Map->GetMapPath( ).find( "DotA v" ) != string :: npos )
+	// show player statistics for DotA
+	// but if this is high ranked game, only show if they actually joined game
+	
+	if( Player && m_Map->GetMapPath( ).find( "DotA v" ) != string :: npos && ( m_MapType != "dota2" || score != NULL ) )
 	{
 		if( m_MapType == "lod" )
 			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), "lod" ) ) );
 		else
 			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), "dota" ) ) );
-	
 	}
 	
 	return Player;

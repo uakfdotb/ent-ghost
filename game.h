@@ -81,7 +81,7 @@ public:
 	virtual ~CGame( );
 
 	virtual bool Update( void *fd, void *send_fd );
-	virtual CGamePlayer *EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
+	virtual CGamePlayer *EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double *score );
 	virtual void EventPlayerDeleted( CGamePlayer *player );
 	virtual bool EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
 	virtual bool EventPlayerBotCommand( CGamePlayer *player, string command, string payload );

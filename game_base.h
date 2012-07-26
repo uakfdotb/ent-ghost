@@ -225,8 +225,7 @@ public:
 	virtual void EventPlayerDisconnectPlayerError( CGamePlayer *player );
 	virtual void EventPlayerDisconnectSocketError( CGamePlayer *player );
 	virtual void EventPlayerDisconnectConnectionClosed( CGamePlayer *player );
-	virtual CGamePlayer *EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
-	virtual void EventPlayerJoinedWithScore( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double score );
+	virtual CGamePlayer *EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double *score );
 	virtual void EventPlayerLeft( CGamePlayer *player, uint32_t reason );
 	virtual void EventPlayerLoaded( CGamePlayer *player );
 	virtual bool EventPlayerAction( CGamePlayer *player, CIncomingAction *action );

@@ -188,7 +188,7 @@ void CPotentialPlayer :: ProcessPackets( )
 				m_IncomingJoinPlayer = m_Protocol->RECEIVE_W3GS_REQJOIN( Packet->GetData( ) );
 
 				if( m_IncomingJoinPlayer )
-					m_Game->EventPlayerJoined( this, m_IncomingJoinPlayer );
+					m_Game->EventPlayerJoined( this, m_IncomingJoinPlayer, NULL );
 
 				// don't continue looping because there may be more packets waiting and this parent class doesn't handle them
 				// EventPlayerJoined creates the new player, NULLs the socket, and sets the delete flag on this object so it'll be deleted shortly

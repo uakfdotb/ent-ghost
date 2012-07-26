@@ -290,7 +290,7 @@ void CAdminGame :: SendWelcomeMessage( CGamePlayer *player )
 	SendChat( player, "Commands: reload, say, saygame, saygames, unban, unhost, w" );
 }
 
-CGamePlayer *CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
+CGamePlayer *CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double *score )
 {
 	uint32_t Time = GetTime( );
 
@@ -316,7 +316,7 @@ CGamePlayer *CAdminGame :: EventPlayerJoined( CPotentialPlayer *potential, CInco
 		}
 	}
 
-	CGamePlayer *Player = CBaseGame :: EventPlayerJoined( potential, joinPlayer );
+	CGamePlayer *Player = CBaseGame :: EventPlayerJoined( potential, joinPlayer, score );
 	return Player;
 }
 

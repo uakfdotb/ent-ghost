@@ -60,7 +60,7 @@ public:
 	virtual bool Update( void *fd, void *send_fd );
 	virtual void SendAdminChat( string message );
 	virtual void SendWelcomeMessage( CGamePlayer *player );
-	virtual CGamePlayer *EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer );
+	virtual CGamePlayer *EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double *score );
 	virtual bool EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
 };
 
