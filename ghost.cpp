@@ -109,6 +109,7 @@ string gLogFile;
 uint32_t gLogMethod;
 ofstream *gLog = NULL;
 CGHost *gGHost = NULL;
+boost::mutex PrintMutex;
 
 uint32_t GetTime( )
 {
@@ -186,6 +187,7 @@ void handler()
 
 void CONSOLE_Print( string message )
 {
+	boost::mutex::scoped_lock printLock( PrintMutex );
 	cout << message << endl;
 
 	// logging
@@ -224,6 +226,8 @@ void CONSOLE_Print( string message )
 			}
 		}
 	}
+	
+	printLock.unlock( );
 }
 
 void DEBUG_Print( string message )
