@@ -86,6 +86,15 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_Stats = new CStatsDOTA( this, "lod" );
 		m_MapType = "lod";
 	}
+	else if( m_Map->GetMapType( ) == "dota2" )
+	{
+		m_Stats = new CStatsDOTA( this, "dota2" );
+		m_MapType = "dota2";
+		
+		// match making settings for tier 2
+		m_MatchMaking = true;
+		m_MinimumScore = 
+	}
 
     m_Guess = 0;
 }
