@@ -963,62 +963,6 @@ uint32_t CGHostDBSQLite :: GamePlayerCount( string name )
 	return Count;
 }
 
-CDBGamePlayerSummary *CGHostDBSQLite :: GamePlayerSummaryCheck( string name )
-{
-	if( GamePlayerCount( name ) == 0 )
-		return NULL;
-
-	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	CDBGamePlayerSummary *GamePlayerSummary = NULL;
-	sqlite3_stmt *Statement;
-	m_DB->Prepare( "SELECT MIN(datetime), MAX(datetime), COUNT(*), MIN(loadingtime), AVG(loadingtime), MAX(loadingtime), MIN(left/CAST(duration AS REAL))*100, AVG(left/CAST(duration AS REAL))*100, MAX(left/CAST(duration AS REAL))*100, MIN(duration), AVG(duration), MAX(duration) FROM gameplayers LEFT JOIN games ON games.id=gameid WHERE name=?", (void **)&Statement );
-
-	if( Statement )
-	{
-		sqlite3_bind_text( Statement, 1, name.c_str( ), -1, SQLITE_TRANSIENT );
-		int RC = m_DB->Step( Statement );
-
-		if( RC == SQLITE_ROW )
-		{
-			if( sqlite3_column_count( (sqlite3_stmt *)Statement ) == 12 )
-			{
-				char *First = (char *)sqlite3_column_text( (sqlite3_stmt *)Statement, 0 );
-				char *Last = (char *)sqlite3_column_text( (sqlite3_stmt *)Statement, 1 );
-				string FirstGameDateTime;
-				string LastGameDateTime;
-
-				if( First )
-					FirstGameDateTime = First;
-
-				if( Last )
-					LastGameDateTime = Last;
-
-				uint32_t TotalGames = sqlite3_column_int( (sqlite3_stmt *)Statement, 2 );
-				uint32_t MinLoadingTime = sqlite3_column_int( (sqlite3_stmt *)Statement, 3 );
-				uint32_t AvgLoadingTime = sqlite3_column_int( (sqlite3_stmt *)Statement, 4 );
-				uint32_t MaxLoadingTime = sqlite3_column_int( (sqlite3_stmt *)Statement, 5 );
-				uint32_t MinLeftPercent = sqlite3_column_int( (sqlite3_stmt *)Statement, 6 );
-				uint32_t AvgLeftPercent = sqlite3_column_int( (sqlite3_stmt *)Statement, 7 );
-				uint32_t MaxLeftPercent = sqlite3_column_int( (sqlite3_stmt *)Statement, 8 );
-				uint32_t MinDuration = sqlite3_column_int( (sqlite3_stmt *)Statement, 9 );
-				uint32_t AvgDuration = sqlite3_column_int( (sqlite3_stmt *)Statement, 10 );
-				uint32_t MaxDuration = sqlite3_column_int( (sqlite3_stmt *)Statement, 11 );
-				GamePlayerSummary = new CDBGamePlayerSummary( string( ), name, FirstGameDateTime, LastGameDateTime, TotalGames, MinLoadingTime, AvgLoadingTime, MaxLoadingTime, MinLeftPercent, AvgLeftPercent, MaxLeftPercent, MinDuration, AvgDuration, MaxDuration );
-			}
-			else
-				CONSOLE_Print( "[SQLITE3] error checking gameplayersummary [" + name + "] - row doesn't have 12 columns" );
-		}
-		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error checking gameplayersummary [" + name + "] - " + m_DB->GetError( ) );
-
-		m_DB->Finalize( Statement );
-	}
-	else
-		CONSOLE_Print( "[SQLITE3] prepare error checking gameplayersummary [" + name + "] - " + m_DB->GetError( ) );
-
-	return GamePlayerSummary;
-}
-
 uint32_t CGHostDBSQLite :: DotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec, string saveType )
 {
 	uint32_t RowID = 0;
@@ -1114,96 +1058,6 @@ uint32_t CGHostDBSQLite :: DotAPlayerCount( string name )
 		CONSOLE_Print( "[SQLITE3] prepare error counting dotaplayers [" + name + "] - " + m_DB->GetError( ) );
 
 	return Count;
-}
-
-CDBDotAPlayerSummary *CGHostDBSQLite :: DotAPlayerSummaryCheck( string name, string saveType )
-{
-	if( DotAPlayerCount( name ) == 0 )
-		return NULL;
-
-	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	CDBDotAPlayerSummary *DotAPlayerSummary = NULL;
-	sqlite3_stmt *Statement;
-	m_DB->Prepare( "SELECT COUNT(dotaplayers.id), SUM(kills), SUM(deaths), SUM(creepkills), SUM(creepdenies), SUM(assists), SUM(neutralkills), SUM(towerkills), SUM(raxkills), SUM(courierkills) FROM gameplayers LEFT JOIN games ON games.id=gameplayers.gameid LEFT JOIN dotaplayers ON dotaplayers.gameid=games.id AND dotaplayers.colour=gameplayers.colour WHERE name=?", (void **)&Statement );
-
-	if( Statement )
-	{
-		sqlite3_bind_text( Statement, 1, name.c_str( ), -1, SQLITE_TRANSIENT );
-		int RC = m_DB->Step( Statement );
-
-		if( RC == SQLITE_ROW )
-		{
-			if( sqlite3_column_count( (sqlite3_stmt *)Statement ) == 10 )
-			{
-				uint32_t TotalGames = sqlite3_column_int( (sqlite3_stmt *)Statement, 0 );
-				uint32_t TotalWins = 0;
-				uint32_t TotalLosses = 0;
-				uint32_t TotalKills = sqlite3_column_int( (sqlite3_stmt *)Statement, 1 );
-				uint32_t TotalDeaths = sqlite3_column_int( (sqlite3_stmt *)Statement, 2 );
-				uint32_t TotalCreepKills = sqlite3_column_int( (sqlite3_stmt *)Statement, 3 );
-				uint32_t TotalCreepDenies = sqlite3_column_int( (sqlite3_stmt *)Statement, 4 );
-				uint32_t TotalAssists = sqlite3_column_int( (sqlite3_stmt *)Statement, 5 );
-				uint32_t TotalNeutralKills = sqlite3_column_int( (sqlite3_stmt *)Statement, 6 );
-				uint32_t TotalTowerKills = sqlite3_column_int( (sqlite3_stmt *)Statement, 7 );
-				uint32_t TotalRaxKills = sqlite3_column_int( (sqlite3_stmt *)Statement, 8 );
-				uint32_t TotalCourierKills = sqlite3_column_int( (sqlite3_stmt *)Statement, 9 );
-
-				// calculate total wins
-
-				sqlite3_stmt *Statement2;
-				m_DB->Prepare( "SELECT COUNT(*) FROM gameplayers LEFT JOIN games ON games.id=gameplayers.gameid LEFT JOIN dotaplayers ON dotaplayers.gameid=games.id AND dotaplayers.colour=gameplayers.colour LEFT JOIN dotagames ON games.id=dotagames.gameid WHERE name=? AND ((winner=1 AND dotaplayers.newcolour>=1 AND dotaplayers.newcolour<=5) OR (winner=2 AND dotaplayers.newcolour>=7 AND dotaplayers.newcolour<=11))", (void **)&Statement2 );
-
-				if( Statement2 )
-				{
-					sqlite3_bind_text( Statement2, 1, name.c_str( ), -1, SQLITE_TRANSIENT );
-					int RC2 = m_DB->Step( Statement2 );
-
-					if( RC2 == SQLITE_ROW )
-						TotalWins = sqlite3_column_int( Statement2, 0 );
-					else if( RC2 == SQLITE_ERROR )
-						CONSOLE_Print( "[SQLITE3] error counting dotaplayersummary wins [" + name + "] - " + m_DB->GetError( ) );
-
-					m_DB->Finalize( Statement2 );
-				}
-				else
-					CONSOLE_Print( "[SQLITE3] prepare error counting dotaplayersummary wins [" + name + "] - " + m_DB->GetError( ) );
-
-				// calculate total losses
-
-				sqlite3_stmt *Statement3;
-				m_DB->Prepare( "SELECT COUNT(*) FROM gameplayers LEFT JOIN games ON games.id=gameplayers.gameid LEFT JOIN dotaplayers ON dotaplayers.gameid=games.id AND dotaplayers.colour=gameplayers.colour LEFT JOIN dotagames ON games.id=dotagames.gameid WHERE name=? AND ((winner=2 AND dotaplayers.newcolour>=1 AND dotaplayers.newcolour<=5) OR (winner=1 AND dotaplayers.newcolour>=7 AND dotaplayers.newcolour<=11))", (void **)&Statement3 );
-
-				if( Statement3 )
-				{
-					sqlite3_bind_text( Statement3, 1, name.c_str( ), -1, SQLITE_TRANSIENT );
-					int RC3 = m_DB->Step( Statement3 );
-
-					if( RC3 == SQLITE_ROW )
-						TotalLosses = sqlite3_column_int( Statement3, 0 );
-					else if( RC3 == SQLITE_ERROR )
-						CONSOLE_Print( "[SQLITE3] error counting dotaplayersummary losses [" + name + "] - " + m_DB->GetError( ) );
-
-					m_DB->Finalize( Statement3 );
-				}
-				else
-					CONSOLE_Print( "[SQLITE3] prepare error counting dotaplayersummary losses [" + name + "] - " + m_DB->GetError( ) );
-
-				// done
-
-				DotAPlayerSummary = new CDBDotAPlayerSummary( string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, TotalCreepKills, TotalCreepDenies, TotalAssists, TotalNeutralKills, TotalTowerKills, TotalRaxKills, TotalCourierKills, 1337 );
-			}
-			else
-				CONSOLE_Print( "[SQLITE3] error checking dotaplayersummary [" + name + "] - row doesn't have 7 columns" );
-		}
-		else if( RC == SQLITE_ERROR )
-			CONSOLE_Print( "[SQLITE3] error checking dotaplayersummary [" + name + "] - " + m_DB->GetError( ) );
-
-		m_DB->Finalize( Statement );
-	}
-	else
-		CONSOLE_Print( "[SQLITE3] prepare error checking dotaplayersummary [" + name + "] - " + m_DB->GetError( ) );
-
-	return DotAPlayerSummary;
 }
 
 string CGHostDBSQLite :: FromCheck( uint32_t ip )
@@ -1575,14 +1429,6 @@ CCallableGamePlayerAdd *CGHostDBSQLite :: ThreadedGamePlayerAdd( uint32_t gameid
 	return Callable;
 }
 
-CCallableGamePlayerSummaryCheck *CGHostDBSQLite :: ThreadedGamePlayerSummaryCheck( string name )
-{
-	CCallableGamePlayerSummaryCheck *Callable = new CCallableGamePlayerSummaryCheck( name );
-	Callable->SetResult( GamePlayerSummaryCheck( name ) );
-	Callable->SetReady( true );
-	return Callable;
-}
-
 CCallableDotAGameAdd *CGHostDBSQLite :: ThreadedDotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec, string saveType )
 {
 	CCallableDotAGameAdd *Callable = new CCallableDotAGameAdd( gameid, winner, min, sec, saveType );
@@ -1595,14 +1441,6 @@ CCallableDotAPlayerAdd *CGHostDBSQLite :: ThreadedDotAPlayerAdd( uint32_t gameid
 {
 	CCallableDotAPlayerAdd *Callable = new CCallableDotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills, saveType );
 	Callable->SetResult( DotAPlayerAdd( gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills, saveType ) );
-	Callable->SetReady( true );
-	return Callable;
-}
-
-CCallableDotAPlayerSummaryCheck *CGHostDBSQLite :: ThreadedDotAPlayerSummaryCheck( string name, string saveType )
-{
-	CCallableDotAPlayerSummaryCheck *Callable = new CCallableDotAPlayerSummaryCheck( name, saveType );
-	Callable->SetResult( DotAPlayerSummaryCheck( name, saveType ) );
 	Callable->SetReady( true );
 	return Callable;
 }

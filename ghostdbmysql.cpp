@@ -346,14 +346,14 @@ CCallableGamePlayerAdd *CGHostDBMySQL :: ThreadedGamePlayerAdd( uint32_t gameid,
 	return Callable;
 }
 
-CCallableGamePlayerSummaryCheck *CGHostDBMySQL :: ThreadedGamePlayerSummaryCheck( string name )
+CCallableGamePlayerSummaryCheck *CGHostDBMySQL :: ThreadedGamePlayerSummaryCheck( string name, string realm )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableGamePlayerSummaryCheck *Callable = new CMySQLCallableGamePlayerSummaryCheck( name, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableGamePlayerSummaryCheck *Callable = new CMySQLCallableGamePlayerSummaryCheck( name, realm, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
@@ -398,66 +398,66 @@ CCallableDotAPlayerAdd *CGHostDBMySQL :: ThreadedDotAPlayerAdd( uint32_t gameid,
 	return Callable;
 }
 
-CCallableDotAPlayerSummaryCheck *CGHostDBMySQL :: ThreadedDotAPlayerSummaryCheck( string name, string saveType )
+CCallableDotAPlayerSummaryCheck *CGHostDBMySQL :: ThreadedDotAPlayerSummaryCheck( string name, string realm, string saveType )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableDotAPlayerSummaryCheck *Callable = new CMySQLCallableDotAPlayerSummaryCheck( name, saveType, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableDotAPlayerSummaryCheck *Callable = new CMySQLCallableDotAPlayerSummaryCheck( name, realm, saveType, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
 }
 
-CCallableTreePlayerSummaryCheck *CGHostDBMySQL :: ThreadedTreePlayerSummaryCheck( string name )
+CCallableTreePlayerSummaryCheck *CGHostDBMySQL :: ThreadedTreePlayerSummaryCheck( string name, string realm )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableTreePlayerSummaryCheck *Callable = new CMySQLCallableTreePlayerSummaryCheck( name, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableTreePlayerSummaryCheck *Callable = new CMySQLCallableTreePlayerSummaryCheck( name, realm, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
 }
 
-CCallableSnipePlayerSummaryCheck *CGHostDBMySQL :: ThreadedSnipePlayerSummaryCheck( string name )
+CCallableSnipePlayerSummaryCheck *CGHostDBMySQL :: ThreadedSnipePlayerSummaryCheck( string name, string realm )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableSnipePlayerSummaryCheck *Callable = new CMySQLCallableSnipePlayerSummaryCheck( name, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableSnipePlayerSummaryCheck *Callable = new CMySQLCallableSnipePlayerSummaryCheck( name, realm, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
 }
 
-CCallableShipsPlayerSummaryCheck *CGHostDBMySQL :: ThreadedShipsPlayerSummaryCheck( string name )
+CCallableShipsPlayerSummaryCheck *CGHostDBMySQL :: ThreadedShipsPlayerSummaryCheck( string name, string realm )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableShipsPlayerSummaryCheck *Callable = new CMySQLCallableShipsPlayerSummaryCheck( name, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableShipsPlayerSummaryCheck *Callable = new CMySQLCallableShipsPlayerSummaryCheck( name, realm, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
 }
 
-CCallableW3MMDPlayerSummaryCheck *CGHostDBMySQL :: ThreadedW3MMDPlayerSummaryCheck( string name, string category )
+CCallableW3MMDPlayerSummaryCheck *CGHostDBMySQL :: ThreadedW3MMDPlayerSummaryCheck( string name, string realm, string category )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableW3MMDPlayerSummaryCheck *Callable = new CMySQLCallableW3MMDPlayerSummaryCheck( name, category, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableW3MMDPlayerSummaryCheck *Callable = new CMySQLCallableW3MMDPlayerSummaryCheck( name, realm, category, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
@@ -1033,12 +1033,16 @@ uint32_t MySQLGamePlayerAdd( void *conn, string *error, uint32_t botid, uint32_t
 	return RowID;
 }
 
-CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name )
+CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	string EscName = MySQLEscapeString( conn, name );
+	string EscRealm = MySQLEscapeString( conn, realm );
 	CDBGamePlayerSummary *GamePlayerSummary = NULL;
-	string Query = "SELECT MIN(DATE(datetime)), MAX(DATE(datetime)), COUNT(*), MIN(loadingtime), AVG(loadingtime), MAX(loadingtime), MIN(`left`/duration)*100, AVG(`left`/duration)*100, MAX(`left`/duration)*100, MIN(duration), AVG(duration), MAX(duration) FROM gameplayers LEFT JOIN games ON games.id=gameid WHERE LOWER(name)='" + EscName + "'";
+	string Query = "SELECT MIN(DATE(datetime)), MAX(DATE(datetime)), COUNT(*), MIN(loadingtime), AVG(loadingtime), MAX(loadingtime), MIN(`left`/duration)*100, AVG(`left`/duration)*100, MAX(`left`/duration)*100, MIN(duration), AVG(duration), MAX(duration) FROM gameplayers LEFT JOIN games ON games.id=gameid WHERE name='" + EscName + "'";
+	
+	if( !realm.empty( ) )
+		Query += " AND spoofedrealm = '" + EscRealm + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1064,7 +1068,7 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 				uint32_t MinDuration = UTIL_ToUInt32( Row[9] );
 				uint32_t AvgDuration = UTIL_ToUInt32( Row[10] );
 				uint32_t MaxDuration = UTIL_ToUInt32( Row[11] );
-				GamePlayerSummary = new CDBGamePlayerSummary( string( ), name, FirstGameDateTime, LastGameDateTime, TotalGames, MinLoadingTime, AvgLoadingTime, MaxLoadingTime, MinLeftPercent, AvgLeftPercent, MaxLeftPercent, MinDuration, AvgDuration, MaxDuration );
+				GamePlayerSummary = new CDBGamePlayerSummary( realm, name, FirstGameDateTime, LastGameDateTime, TotalGames, MinLoadingTime, AvgLoadingTime, MaxLoadingTime, MinLeftPercent, AvgLeftPercent, MaxLeftPercent, MinDuration, AvgDuration, MaxDuration );
 			}
 			else
 				*error = "error checking gameplayersummary [" + name + "] - row doesn't have 12 columns";
@@ -1344,6 +1348,8 @@ uint32_t MySQLDotAGameAdd( void *conn, string *error, uint32_t botid, uint32_t g
 	
 	if( saveType == "lod" )
 		table = "lodgames";
+	else if( saveType == "dota2" )
+		table = "dota2games";
 	
 	string Query = "INSERT INTO " + table + " ( botid, gameid, winner, min, sec ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( winner ) + ", " + UTIL_ToString( min ) + ", " + UTIL_ToString( sec ) + " )";
 
@@ -1370,6 +1376,8 @@ uint32_t MySQLDotAPlayerAdd( void *conn, string *error, uint32_t botid, uint32_t
 	
 	if( saveType == "lod" )
 		table = "lodplayers";
+	else if( saveType == "dota2" )
+		table = "dota2players";
 	
 	string Query = "INSERT INTO " + table + " ( botid, gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( colour ) + ", " + UTIL_ToString( kills ) + ", " + UTIL_ToString( deaths ) + ", " + UTIL_ToString( creepkills ) + ", " + UTIL_ToString( creepdenies ) + ", " + UTIL_ToString( assists ) + ", " + UTIL_ToString( gold ) + ", " + UTIL_ToString( neutralkills ) + ", '" + EscItem1 + "', '" + EscItem2 + "', '" + EscItem3 + "', '" + EscItem4 + "', '" + EscItem5 + "', '" + EscItem6 + "', '" + EscHero + "', " + UTIL_ToString( newcolour ) + ", " + UTIL_ToString( towerkills ) + ", " + UTIL_ToString( raxkills ) + ", " + UTIL_ToString( courierkills ) + " )";
 
@@ -1381,18 +1389,24 @@ uint32_t MySQLDotAPlayerAdd( void *conn, string *error, uint32_t botid, uint32_t
 	return RowID;
 }
 
-CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string saveType )
+CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm, string saveType )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	string EscName = MySQLEscapeString( conn, name );
+	string EscRealm = MySQLEscapeString( conn, realm );
 	
 	string table = "dota_elo_scores";
 	
 	if( saveType == "lod" )
 		table = "lod_elo_scores";
+	else if( saveType == "dota2" )
+		table = "dota2_elo_scores";
 	
 	CDBDotAPlayerSummary *DotAPlayerSummary = NULL;
 	string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(kills), 0), IFNULL(SUM(deaths), 0), IFNULL(SUM(creepkills), 0), IFNULL(SUM(creepdenies), 0), IFNULL(SUM(assists), 0), IFNULL(SUM(neutralkills), 0), IFNULL(SUM(towerkills), 0), IFNULL(SUM(raxkills), 0), IFNULL(SUM(courierkills), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM " + table + " WHERE name='" + EscName + "'";
+	
+	if( !realm.empty( ) )
+		Query += " AND server = '" + EscRealm + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1425,7 +1439,7 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 
 					// done
 
-					DotAPlayerSummary = new CDBDotAPlayerSummary( string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, TotalCreepKills, TotalCreepDenies, TotalAssists, TotalNeutralKills, TotalTowerKills, TotalRaxKills, TotalCourierKills, Score );
+					DotAPlayerSummary = new CDBDotAPlayerSummary( realm, name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, TotalCreepKills, TotalCreepDenies, TotalAssists, TotalNeutralKills, TotalTowerKills, TotalRaxKills, TotalCourierKills, Score );
 				}
 			}
 			else
@@ -1440,12 +1454,16 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 	return DotAPlayerSummary;
 }
 
-CDBTreePlayerSummary *MySQLTreePlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name )
+CDBTreePlayerSummary *MySQLTreePlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	string EscName = MySQLEscapeString( conn, name );
+	string EscRealm = MySQLEscapeString( conn, realm );
 	CDBTreePlayerSummary *TreePlayerSummary = NULL;
 	string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(intstats0), 0), IFNULL(SUM(intstats1), 0), IFNULL(SUM(intstats2), 0), IFNULL(SUM(intstats3), 0), IFNULL(SUM(intstats4), 0), IFNULL(SUM(intstats5), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM w3mmd_elo_scores WHERE name='" + EscName + "' AND category = 'treetag'";
+	
+	if( !realm.empty( ) )
+		Query += " AND server = '" + EscRealm + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1476,7 +1494,7 @@ CDBTreePlayerSummary *MySQLTreePlayerSummaryCheck( void *conn, string *error, ui
 
 					// done
 
-					TreePlayerSummary = new CDBTreePlayerSummary( string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalTKs, TotalDeaths, TotalSaves, TotalEntGames, TotalInfernalGames, Score );
+					TreePlayerSummary = new CDBTreePlayerSummary( realm, name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalTKs, TotalDeaths, TotalSaves, TotalEntGames, TotalInfernalGames, Score );
 				}
 			}
 
@@ -1489,12 +1507,16 @@ CDBTreePlayerSummary *MySQLTreePlayerSummaryCheck( void *conn, string *error, ui
 	return TreePlayerSummary;
 }
 
-CDBShipsPlayerSummary *MySQLShipsPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name )
+CDBShipsPlayerSummary *MySQLShipsPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	string EscName = MySQLEscapeString( conn, name );
+	string EscRealm = MySQLEscapeString( conn, realm );
 	CDBShipsPlayerSummary *ShipsPlayerSummary = NULL;
 	string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(intstats0), 0), IFNULL(SUM(intstats1), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM w3mmd_elo_scores WHERE name='" + EscName + "' AND category = 'battleships'";
+	
+	if( !realm.empty( ) )
+		Query += " AND server = '" + EscRealm + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1520,7 +1542,7 @@ CDBShipsPlayerSummary *MySQLShipsPlayerSummaryCheck( void *conn, string *error, 
 					
 					// done
 
-					ShipsPlayerSummary = new CDBShipsPlayerSummary( string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, Score );
+					ShipsPlayerSummary = new CDBShipsPlayerSummary( realm, name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, Score );
 				}
 			}
 
@@ -1533,12 +1555,16 @@ CDBShipsPlayerSummary *MySQLShipsPlayerSummaryCheck( void *conn, string *error, 
 	return ShipsPlayerSummary;
 }
 
-CDBSnipePlayerSummary *MySQLSnipePlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name )
+CDBSnipePlayerSummary *MySQLSnipePlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	string EscName = MySQLEscapeString( conn, name );
+	string EscRealm = MySQLEscapeString( conn, realm );
 	CDBSnipePlayerSummary *SnipePlayerSummary = NULL;
 	string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(intstats0), 0), IFNULL(SUM(intstats1), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM w3mmd_elo_scores WHERE name='" + EscName + "' AND category = 'elitesnipers'";
+	
+	if( !realm.empty( ) )
+		Query += " AND server = '" + EscRealm + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1564,7 +1590,7 @@ CDBSnipePlayerSummary *MySQLSnipePlayerSummaryCheck( void *conn, string *error, 
 					
 					// done
 
-					SnipePlayerSummary = new CDBSnipePlayerSummary( string( ), name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, Score );
+					SnipePlayerSummary = new CDBSnipePlayerSummary( realm, name, TotalGames, TotalWins, TotalLosses, TotalKills, TotalDeaths, Score );
 				}
 			}
 
@@ -1577,13 +1603,17 @@ CDBSnipePlayerSummary *MySQLSnipePlayerSummaryCheck( void *conn, string *error, 
 	return SnipePlayerSummary;
 }
 
-CDBW3MMDPlayerSummary *MySQLW3MMDPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string category )
+CDBW3MMDPlayerSummary *MySQLW3MMDPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm, string category )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	string EscName = MySQLEscapeString( conn, name );
+	string EscRealm = MySQLEscapeString( conn, realm );
 	string EscCategory = MySQLEscapeString( conn, category );
 	CDBW3MMDPlayerSummary *W3MMDPlayerSummary = NULL;
 	string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM w3mmd_elo_scores WHERE name='" + EscName + "' AND category = '" + EscCategory + "'";
+	
+	if( !realm.empty( ) )
+		Query += " AND server = '" + EscRealm + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1607,7 +1637,7 @@ CDBW3MMDPlayerSummary *MySQLW3MMDPlayerSummaryCheck( void *conn, string *error, 
 					
 					// done
 
-					W3MMDPlayerSummary = new CDBW3MMDPlayerSummary( string( ), name, category, TotalGames, TotalWins, TotalLosses, Score );
+					W3MMDPlayerSummary = new CDBW3MMDPlayerSummary( realm, name, category, TotalGames, TotalWins, TotalLosses, Score );
 				}
 			}
 
@@ -1644,7 +1674,13 @@ double MySQLScoreCheck( void *conn, string *error, uint32_t botid, string catego
 	string EscName = MySQLEscapeString( conn, name );
 	string EscServer = MySQLEscapeString( conn, server );
 	double Score = -100000.0;
+	
 	string Query = "SELECT score FROM scores WHERE category='" + EscCategory + "' AND name='" + EscName + "' AND server='" + EscServer + "'";
+	
+	if( category == "dota2" ) // dota2 checks normal DotA stats
+		Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 30";
+	else if( category == "castlefight2" ) // castlefight2 checks castlefight stats
+		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='castlefight' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 30";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1987,7 +2023,7 @@ void CMySQLCallableGamePlayerSummaryCheck :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLGamePlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name );
+		m_Result = MySQLGamePlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name, m_Realm );
 
 	Close( );
 }
@@ -2027,7 +2063,7 @@ void CMySQLCallableDotAPlayerSummaryCheck :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLDotAPlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name, m_SaveType );
+		m_Result = MySQLDotAPlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name, m_Realm, m_SaveType );
 
 	Close( );
 }
@@ -2037,7 +2073,7 @@ void CMySQLCallableTreePlayerSummaryCheck :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLTreePlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name );
+		m_Result = MySQLTreePlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name, m_Realm );
 
 	Close( );
 }
@@ -2047,7 +2083,7 @@ void CMySQLCallableSnipePlayerSummaryCheck :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLSnipePlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name );
+		m_Result = MySQLSnipePlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name, m_Realm );
 
 	Close( );
 }
@@ -2057,7 +2093,7 @@ void CMySQLCallableShipsPlayerSummaryCheck :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLShipsPlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name );
+		m_Result = MySQLShipsPlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name, m_Realm );
 
 	Close( );
 }
@@ -2067,7 +2103,7 @@ void CMySQLCallableW3MMDPlayerSummaryCheck :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLW3MMDPlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name, m_Category );
+		m_Result = MySQLW3MMDPlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name, m_Realm, m_Category );
 
 	Close( );
 }

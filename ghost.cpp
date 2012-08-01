@@ -1135,7 +1135,7 @@ bool CGHost :: Update( long usecBlock )
 		{
 			if( m_AutoHostMap->GetValid( ) )
 			{
-				string GameName = m_AutoHostGameName + " #" + UTIL_ToString( m_HostCounter );
+				string GameName = m_AutoHostGameName + " #" + UTIL_ToString( m_HostCounter % 100 );
 
 				if( GameName.size( ) <= 31 )
 				{

@@ -90,6 +90,7 @@ public:
 	virtual void SaveGameData( );
     virtual uint32_t GetGuess() {return m_Guess;}
     virtual void SetGuess( uint32_t nGuess )     { m_Guess = nGuess; }
+    virtual void GetStatsUser( string *statsUser, string *statsRealm );
 
 };
 

@@ -604,6 +604,8 @@ bool CBNET :: Update( void *fd, void *send_fd )
 
 		if( m_LastOutPacketSize < 10 )
 			WaitTicks = 1200;
+		else if( m_LastOutPacketSize < 30 )
+			WaitTicks = 3500;
 		else if( m_LastOutPacketSize < 100 )
 			WaitTicks = 3700;
 		else
@@ -2136,7 +2138,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			// check for potential abuse
 
 			if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
-				m_PairedGPSChecks.push_back( PairedGPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser ) ) );
+				m_PairedGPSChecks.push_back( PairedGPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser, string( ) ) ) );
 		}
 
 		//
@@ -2153,7 +2155,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			// check for potential abuse
 
 			if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
-				m_PairedDPSChecks.push_back( PairedDPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, "dota" ) ) );
+				m_PairedDPSChecks.push_back( PairedDPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, string( ), "dota" ) ) );
 		}
 				
 		//

@@ -103,16 +103,16 @@ public:
 	virtual string GameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add );
 	virtual uint32_t GamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour );
 	virtual uint32_t GamePlayerCount( string name );
-	virtual CDBGamePlayerSummary *GamePlayerSummaryCheck( string name );
+	virtual CDBGamePlayerSummary *GamePlayerSummaryCheck( string name, string realm );
 	virtual CDBVampPlayerSummary *VampPlayerSummaryCheck( string name );
 	virtual uint32_t DotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec, string saveType );
 	virtual uint32_t DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills, string saveType );
 	virtual uint32_t DotAPlayerCount( string name );
-	virtual CDBDotAPlayerSummary *DotAPlayerSummaryCheck( string name, string saveType );
-	virtual CDBTreePlayerSummary *TreePlayerSummaryCheck( string name );
-	virtual CDBShipsPlayerSummary *ShipsPlayerSummaryCheck( string name );
-	virtual CDBSnipePlayerSummary *SnipePlayerSummaryCheck( string name );
-	virtual CDBW3MMDPlayerSummary *W3MMDPlayerSummaryCheck( string name, string category );
+	virtual CDBDotAPlayerSummary *DotAPlayerSummaryCheck( string name, string realm, string saveType );
+	virtual CDBTreePlayerSummary *TreePlayerSummaryCheck( string name, string realm );
+	virtual CDBShipsPlayerSummary *ShipsPlayerSummaryCheck( string name, string realm );
+	virtual CDBSnipePlayerSummary *SnipePlayerSummaryCheck( string name, string realm );
+	virtual CDBW3MMDPlayerSummary *W3MMDPlayerSummaryCheck( string name, string realm, string category );
 	virtual string FromCheck( uint32_t ip );
 	virtual bool FromAdd( uint32_t ip1, uint32_t ip2, string country );
 	virtual bool DownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
@@ -139,15 +139,15 @@ public:
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual CCallableGameUpdate *ThreadedGameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add );
 	virtual CCallableGamePlayerAdd *ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour );
-	virtual CCallableGamePlayerSummaryCheck *ThreadedGamePlayerSummaryCheck( string name );
+	virtual CCallableGamePlayerSummaryCheck *ThreadedGamePlayerSummaryCheck( string name, string realm );
 	virtual CCallableVampPlayerSummaryCheck *ThreadedVampPlayerSummaryCheck( string name );
 	virtual CCallableDotAGameAdd *ThreadedDotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec, string saveType );
 	virtual CCallableDotAPlayerAdd *ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills, string saveType );
-	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name, string saveType );
-	virtual CCallableTreePlayerSummaryCheck *ThreadedTreePlayerSummaryCheck( string name );
-	virtual CCallableShipsPlayerSummaryCheck *ThreadedShipsPlayerSummaryCheck( string name );
-	virtual CCallableSnipePlayerSummaryCheck *ThreadedSnipePlayerSummaryCheck( string name );
-	virtual CCallableW3MMDPlayerSummaryCheck *ThreadedW3MMDPlayerSummaryCheck( string name, string category );
+	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name, string realm, string saveType );
+	virtual CCallableTreePlayerSummaryCheck *ThreadedTreePlayerSummaryCheck( string name, string realm );
+	virtual CCallableShipsPlayerSummaryCheck *ThreadedShipsPlayerSummaryCheck( string name, string realm );
+	virtual CCallableSnipePlayerSummaryCheck *ThreadedSnipePlayerSummaryCheck( string name, string realm );
+	virtual CCallableW3MMDPlayerSummaryCheck *ThreadedW3MMDPlayerSummaryCheck( string name, string realm, string category );
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 	virtual CCallableScoreCheck *ThreadedScoreCheck( string category, string name, string server );
 	virtual CCallableConnectCheck *ThreadedConnectCheck( string name, uint32_t sessionkey );
@@ -463,13 +463,15 @@ class CCallableGamePlayerSummaryCheck : virtual public CBaseCallable
 {
 protected:
 	string m_Name;
+	string m_Realm;
 	CDBGamePlayerSummary *m_Result;
 
 public:
-	CCallableGamePlayerSummaryCheck( string nName ) : CBaseCallable( ), m_Name( nName ), m_Result( NULL ) { }
+	CCallableGamePlayerSummaryCheck( string nName, string nRealm ) : CBaseCallable( ), m_Name( nName ), m_Realm( nRealm ), m_Result( NULL ) { }
 	virtual ~CCallableGamePlayerSummaryCheck( );
 
 	virtual string GetName( )								{ return m_Name; }
+	virtual string GetRealm( )								{ return m_Realm; }
 	virtual CDBGamePlayerSummary *GetResult( )				{ return m_Result; }
 	virtual void SetResult( CDBGamePlayerSummary *nResult )	{ m_Result = nResult; }
 };
@@ -547,14 +549,16 @@ class CCallableDotAPlayerSummaryCheck : virtual public CBaseCallable
 {
 protected:
 	string m_Name;
+	string m_Realm;
 	CDBDotAPlayerSummary *m_Result;
 	string m_SaveType;
 
 public:
-	CCallableDotAPlayerSummaryCheck( string nName, string nSaveType ) : CBaseCallable( ), m_Name( nName ), m_SaveType( nSaveType ), m_Result( NULL ) { }
+	CCallableDotAPlayerSummaryCheck( string nName, string nRealm, string nSaveType ) : CBaseCallable( ), m_Name( nName ), m_Realm( nRealm ), m_SaveType( nSaveType ), m_Result( NULL ) { }
 	virtual ~CCallableDotAPlayerSummaryCheck( );
 
 	virtual string GetName( )								{ return m_Name; }
+	virtual string GetRealm( )								{ return m_Realm; }
 	virtual string GetSaveType( )							{ return m_SaveType; }
 	virtual CDBDotAPlayerSummary *GetResult( )				{ return m_Result; }
 	virtual void SetResult( CDBDotAPlayerSummary *nResult )	{ m_Result = nResult; }
@@ -564,13 +568,15 @@ class CCallableTreePlayerSummaryCheck : virtual public CBaseCallable
 {
 protected:
 	string m_Name;
+	string m_Realm;
 	CDBTreePlayerSummary *m_Result;
 
 public:
-	CCallableTreePlayerSummaryCheck( string nName ) : CBaseCallable( ), m_Name( nName ), m_Result( NULL ) { }
+	CCallableTreePlayerSummaryCheck( string nName, string nRealm ) : CBaseCallable( ), m_Name( nName ), m_Realm( nRealm ), m_Result( NULL ) { }
 	virtual ~CCallableTreePlayerSummaryCheck( );
 
 	virtual string GetName( )								{ return m_Name; }
+	virtual string GetRealm( )								{ return m_Realm; }
 	virtual CDBTreePlayerSummary *GetResult( )				{ return m_Result; }
 	virtual void SetResult( CDBTreePlayerSummary *nResult )	{ m_Result = nResult; }
 };
@@ -579,13 +585,15 @@ class CCallableShipsPlayerSummaryCheck : virtual public CBaseCallable
 {
 protected:
 	string m_Name;
+	string m_Realm;
 	CDBShipsPlayerSummary *m_Result;
 
 public:
-	CCallableShipsPlayerSummaryCheck( string nName ) : CBaseCallable( ), m_Name( nName ), m_Result( NULL ) { }
+	CCallableShipsPlayerSummaryCheck( string nName, string nRealm ) : CBaseCallable( ), m_Name( nName ), m_Realm( nRealm ), m_Result( NULL ) { }
 	virtual ~CCallableShipsPlayerSummaryCheck( );
 
 	virtual string GetName( )								{ return m_Name; }
+	virtual string GetRealm( )								{ return m_Realm; }
 	virtual CDBShipsPlayerSummary *GetResult( )				{ return m_Result; }
 	virtual void SetResult( CDBShipsPlayerSummary *nResult )	{ m_Result = nResult; }
 };
@@ -594,13 +602,15 @@ class CCallableSnipePlayerSummaryCheck : virtual public CBaseCallable
 {
 protected:
 	string m_Name;
+	string m_Realm;
 	CDBSnipePlayerSummary *m_Result;
 
 public:
-	CCallableSnipePlayerSummaryCheck( string nName ) : CBaseCallable( ), m_Name( nName ), m_Result( NULL ) { }
+	CCallableSnipePlayerSummaryCheck( string nName, string nRealm ) : CBaseCallable( ), m_Name( nName ), m_Realm( nRealm ), m_Result( NULL ) { }
 	virtual ~CCallableSnipePlayerSummaryCheck( );
 
 	virtual string GetName( )								{ return m_Name; }
+	virtual string GetRealm( )								{ return m_Realm; }
 	virtual CDBSnipePlayerSummary *GetResult( )				{ return m_Result; }
 	virtual void SetResult( CDBSnipePlayerSummary *nResult )	{ m_Result = nResult; }
 };
@@ -609,14 +619,16 @@ class CCallableW3MMDPlayerSummaryCheck : virtual public CBaseCallable
 {
 protected:
 	string m_Name;
+	string m_Realm;
 	string m_Category;
 	CDBW3MMDPlayerSummary *m_Result;
 
 public:
-	CCallableW3MMDPlayerSummaryCheck( string nName, string nCategory ) : CBaseCallable( ), m_Name( nName ), m_Category( nCategory ), m_Result( NULL ) { }
+	CCallableW3MMDPlayerSummaryCheck( string nName, string nRealm, string nCategory ) : CBaseCallable( ), m_Name( nName ), m_Realm( nRealm ), m_Category( nCategory ), m_Result( NULL ) { }
 	virtual ~CCallableW3MMDPlayerSummaryCheck( );
 
 	virtual string GetName( )								{ return m_Name; }
+	virtual string GetRealm( )								{ return m_Realm; }
 	virtual string GetCategory( )							{ return m_Category; }
 	virtual CDBW3MMDPlayerSummary *GetResult( )				{ return m_Result; }
 	virtual void SetResult( CDBW3MMDPlayerSummary *nResult )	{ m_Result = nResult; }

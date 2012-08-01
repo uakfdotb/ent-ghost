@@ -1865,7 +1865,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	
 	// check if the new player's score is within the limits
 
-	if( score != NULL && *score > -99999.0 && ( *score < m_MinimumScore || *score > m_MaximumScore ) )
+	if( score != NULL && ( *score < m_MinimumScore || *score > m_MaximumScore ) )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but has a rating [" + UTIL_ToString( *score, 2 ) + "] outside the limits [" + UTIL_ToString( m_MinimumScore, 2 ) + "] to [" + UTIL_ToString( m_MaximumScore, 2 ) + "]" );
 		potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
@@ -2023,7 +2023,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 		}
 	}
 
-	if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS && score != NULL )
+	if( m_MatchMaking && m_AutoStartPlayers != 0 && !m_Map->GetMapMatchMakingCategory( ).empty( ) && m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS && score == NULL )
 	{
 		// matchmaking is enabled
 		// start a database query to determine the player's score
@@ -2460,6 +2460,9 @@ bool CBaseGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *actio
 		player->SetLeftReason( "Invalid action packet" );
 		player->SetLeftCode( PLAYERLEAVE_LOST );
 		player->SetAutoban( true );
+
+		if( !m_GameLoading && !m_GameLoaded )
+			OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 
 		delete action;
 		return false;

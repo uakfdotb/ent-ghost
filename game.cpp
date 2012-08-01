@@ -96,6 +96,18 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_MinimumScore = 1300;
 		m_MaximumScore = 99999;
 	}
+	else if( m_Map->GetMapType( ) == "castlefight2" )
+	{
+		m_Stats = new CStatsW3MMD( this, "castlefight2" );
+		m_MapType = "castlefight2";
+		
+		// match making settings for tier 2
+		m_MatchMaking = true;
+		m_MinimumScore = 1300;
+		m_MaximumScore = 99999;
+	}
+	
+	CONSOLE_Print( m_MapType + "/" + m_Map->GetMapType( ) );
 
     m_Guess = 0;
 }
@@ -251,29 +263,33 @@ bool CGame :: Update( void *fd, void *send_fd )
 		if( i->second->GetReady( ) )
 		{
 			CDBGamePlayerSummary *GamePlayerSummary = i->second->GetResult( );
+			string StatsName = i->second->GetName( );
+			
+			if( !i->second->GetRealm( ).empty( ) )
+				StatsName += "@" + i->second->GetRealm( );
 
 			if( GamePlayerSummary )
 			{
 				if( i->first.empty( ) )
-					SendAllChat( m_GHost->m_Language->HasPlayedGamesWithThisBot( i->second->GetName( ), GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ) );
+					SendAllChat( m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsName, GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ) );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, m_GHost->m_Language->HasPlayedGamesWithThisBot( i->second->GetName( ), GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ) );
+						SendChat( Player, m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsName, GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ) );
 				}
 			}
 			else
 			{
 				if( i->first.empty( ) )
-					SendAllChat( m_GHost->m_Language->HasntPlayedGamesWithThisBot( i->second->GetName( ) ) );
+					SendAllChat( m_GHost->m_Language->HasntPlayedGamesWithThisBot( StatsName ) );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, m_GHost->m_Language->HasntPlayedGamesWithThisBot( i->second->GetName( ) ) );
+						SendChat( Player, m_GHost->m_Language->HasntPlayedGamesWithThisBot( StatsName ) );
 				}
 			}
 
@@ -290,32 +306,21 @@ bool CGame :: Update( void *fd, void *send_fd )
 		if( i->second->GetReady( ) )
 		{
 			CDBDotAPlayerSummary *DotAPlayerSummary = i->second->GetResult( );
+			string StatsName = i->second->GetName( );
+			
+			if( !i->second->GetRealm( ).empty( ) )
+				StatsName += "@" + i->second->GetRealm( );
 
 			if( DotAPlayerSummary )
 			{
-				string Summary = m_GHost->m_Language->HasPlayedDotAGamesWithThisBot(	i->second->GetName( ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalTowerKills( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalRaxKills( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetTotalCourierKills( ) ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgKills( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgDeaths( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgCreepKills( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgCreepDenies( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgAssists( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgNeutralKills( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgTowerKills( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgRaxKills( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetAvgCourierKills( ), 2 ),
-																						UTIL_ToString( DotAPlayerSummary->GetScore( ), 2 ) );
+				string DotaCategory = "DotA";
+				
+				if( i->second->GetSaveType( ) == "lod" )
+					DotaCategory = "DotA LoD";
+				else if( i->second->GetSaveType( ) == "dota2" )
+					DotaCategory = "high-ranked DotA";
+				
+				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ) + " " + DotaCategory + " games here (ELO: " + UTIL_ToString( DotAPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ) + ". Hero K/D/A: " + UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ) + " (" + UTIL_ToString( DotAPlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgDeaths( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgAssists( ), 2 ) + "). Creep K/D/N: " + UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ) + " (" + UTIL_ToString( DotAPlayerSummary->GetAvgCreepKills( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgCreepDenies( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgNeutralKills( ), 2 ) + "). T/R/C: " + UTIL_ToString( DotAPlayerSummary->GetTotalTowerKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalRaxKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalCourierKills( ) ) + ".";
 
 				if( i->first.empty( ) )
 					SendAllChat( Summary );
@@ -330,13 +335,13 @@ bool CGame :: Update( void *fd, void *send_fd )
 			else
 			{
 				if( i->first.empty( ) )
-					SendAllChat( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( i->second->GetName( ) ) );
+					SendAllChat( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( StatsName ) );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( i->second->GetName( ) ) );
+						SendChat( Player, m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( StatsName ) );
 				}
 			}
 
@@ -431,10 +436,14 @@ bool CGame :: Update( void *fd, void *send_fd )
 		if( i->second->GetReady( ) )
 		{
 			CDBTreePlayerSummary *TreePlayerSummary = i->second->GetResult( );
+			string StatsName = i->second->GetName( );
+			
+			if( !i->second->GetRealm( ).empty( ) )
+				StatsName += "@" + i->second->GetRealm( );
 
 			if( TreePlayerSummary )
 			{
-                string Summary = "[" + i->second->GetName( ) + "] has played " + UTIL_ToString( TreePlayerSummary->GetTotalGames( ) ) + " tree tag games here (ELO: " + UTIL_ToString( TreePlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( TreePlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalLosses( ) ) + ". E/I: " + UTIL_ToString( TreePlayerSummary->GetTotalEntGames( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalInfernalGames( ) ) + " K/D/S/TK: " + UTIL_ToString( TreePlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalDeaths( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalSaves( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalTKs( ) ) + " (" + UTIL_ToString( TreePlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgDeaths( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgSaves( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgTKs( ), 2 ) + ").";
+                string Summary = "[" + StatsName + "] has played " + UTIL_ToString( TreePlayerSummary->GetTotalGames( ) ) + " tree tag games here (ELO: " + UTIL_ToString( TreePlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( TreePlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalLosses( ) ) + ". E/I: " + UTIL_ToString( TreePlayerSummary->GetTotalEntGames( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalInfernalGames( ) ) + " K/D/S/TK: " + UTIL_ToString( TreePlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalDeaths( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalSaves( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalTKs( ) ) + " (" + UTIL_ToString( TreePlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgDeaths( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgSaves( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgTKs( ), 2 ) + ").";
 
 				if( i->first.empty( ) )
 					SendAllChat( Summary );
@@ -449,13 +458,13 @@ bool CGame :: Update( void *fd, void *send_fd )
 			else
 			{
 				if( i->first.empty( ) )
-					SendAllChat( m_GHost->m_Language->HasntPlayedTreeGamesWithThisBot( i->second->GetName( ) ) );
+					SendAllChat( m_GHost->m_Language->HasntPlayedTreeGamesWithThisBot( StatsName ) );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, m_GHost->m_Language->HasntPlayedTreeGamesWithThisBot( i->second->GetName( ) ) );
+						SendChat( Player, m_GHost->m_Language->HasntPlayedTreeGamesWithThisBot( StatsName ) );
 				}
 			}
 
@@ -472,10 +481,14 @@ bool CGame :: Update( void *fd, void *send_fd )
 		if( i->second->GetReady( ) )
 		{
 			CDBSnipePlayerSummary *SnipePlayerSummary = i->second->GetResult( );
+			string StatsName = i->second->GetName( );
+			
+			if( !i->second->GetRealm( ).empty( ) )
+				StatsName += "@" + i->second->GetRealm( );
 
 			if( SnipePlayerSummary )
 			{
-				string Summary = "[" + i->second->GetName( ) + "] has played " + UTIL_ToString( SnipePlayerSummary->GetTotalGames( ) ) + " sniper games here (ELO: " + UTIL_ToString( SnipePlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( SnipePlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( SnipePlayerSummary->GetTotalLosses( ) ) + ". K/D: " + UTIL_ToString( SnipePlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( SnipePlayerSummary->GetTotalDeaths( ) ) + " (" + UTIL_ToString( SnipePlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( SnipePlayerSummary->GetAvgDeaths( ), 2 ) + ").";
+				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( SnipePlayerSummary->GetTotalGames( ) ) + " sniper games here (ELO: " + UTIL_ToString( SnipePlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( SnipePlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( SnipePlayerSummary->GetTotalLosses( ) ) + ". K/D: " + UTIL_ToString( SnipePlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( SnipePlayerSummary->GetTotalDeaths( ) ) + " (" + UTIL_ToString( SnipePlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( SnipePlayerSummary->GetAvgDeaths( ), 2 ) + ").";
 
 				if( i->first.empty( ) )
 					SendAllChat( Summary );
@@ -490,13 +503,13 @@ bool CGame :: Update( void *fd, void *send_fd )
 			else
 			{
 				if( i->first.empty( ) )
-					SendAllChat( "[" + i->second->GetName( ) + "] hasn't played any sniper games here." );
+					SendAllChat( "[" + StatsName + "] hasn't played any sniper games here." );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, "[" + i->second->GetName( ) + "] hasn't played any sniper games here." );
+						SendChat( Player, "[" + StatsName + "] hasn't played any sniper games here." );
 				}
 			}
 
@@ -513,10 +526,14 @@ bool CGame :: Update( void *fd, void *send_fd )
 		if( i->second->GetReady( ) )
 		{
 			CDBShipsPlayerSummary *ShipsPlayerSummary = i->second->GetResult( );
+			string StatsName = i->second->GetName( );
+			
+			if( !i->second->GetRealm( ).empty( ) )
+				StatsName += "@" + i->second->GetRealm( );
 
 			if( ShipsPlayerSummary )
 			{
-				string Summary = "[" + i->second->GetName( ) + "] has played " + UTIL_ToString( ShipsPlayerSummary->GetTotalGames( ) ) + " battleships games here (ELO: " + UTIL_ToString( ShipsPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( ShipsPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( ShipsPlayerSummary->GetTotalLosses( ) ) + ". K/D: " + UTIL_ToString( ShipsPlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( ShipsPlayerSummary->GetTotalDeaths( ) ) + " (" + UTIL_ToString( ShipsPlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( ShipsPlayerSummary->GetAvgDeaths( ), 2 ) + ").";
+				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( ShipsPlayerSummary->GetTotalGames( ) ) + " battleships games here (ELO: " + UTIL_ToString( ShipsPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( ShipsPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( ShipsPlayerSummary->GetTotalLosses( ) ) + ". K/D: " + UTIL_ToString( ShipsPlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( ShipsPlayerSummary->GetTotalDeaths( ) ) + " (" + UTIL_ToString( ShipsPlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( ShipsPlayerSummary->GetAvgDeaths( ), 2 ) + ").";
 
 				if( i->first.empty( ) )
 					SendAllChat( Summary );
@@ -531,13 +548,13 @@ bool CGame :: Update( void *fd, void *send_fd )
 			else
 			{
 				if( i->first.empty( ) )
-					SendAllChat( "[" + i->second->GetName( ) + "] hasn't played any battleships games here." );
+					SendAllChat( "[" + StatsName + "] hasn't played any battleships games here." );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, "[" + i->second->GetName( ) + "] hasn't played any battleships games here." );
+						SendChat( Player, "[" + StatsName + "] hasn't played any battleships games here." );
 				}
 			}
 
@@ -554,6 +571,10 @@ bool CGame :: Update( void *fd, void *send_fd )
 		if( i->second->GetReady( ) )
 		{
 			CDBW3MMDPlayerSummary *W3MMDPlayerSummary = i->second->GetResult( );
+			string StatsName = i->second->GetName( );
+			
+			if( !i->second->GetRealm( ).empty( ) )
+				StatsName += "@" + i->second->GetRealm( );
 
 			if( W3MMDPlayerSummary )
 			{
@@ -562,8 +583,9 @@ bool CGame :: Update( void *fd, void *send_fd )
 				
 				if( Category == "civwars" ) CategoryName = "civilization wars";
 				else if(Category == "castlefight" ) CategoryName = "castle fight";
+				else if(Category == "castlefight2" ) CategoryName = "high-ranked CF";
 				
-				string Summary = "[" + i->second->GetName( ) + "] has played " + UTIL_ToString( W3MMDPlayerSummary->GetTotalGames( ) ) + " " + CategoryName + " games here (ELO: " + UTIL_ToString( W3MMDPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( W3MMDPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( W3MMDPlayerSummary->GetTotalLosses( ) ) + ".";
+				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( W3MMDPlayerSummary->GetTotalGames( ) ) + " " + CategoryName + " games here (ELO: " + UTIL_ToString( W3MMDPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( W3MMDPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( W3MMDPlayerSummary->GetTotalLosses( ) ) + ".";
 
 				if( i->first.empty( ) )
 					SendAllChat( Summary );
@@ -578,13 +600,13 @@ bool CGame :: Update( void *fd, void *send_fd )
 			else
 			{
 				if( i->first.empty( ) )
-					SendAllChat( "[" + i->second->GetName( ) + "] hasn't played any games of the specified type here." );
+					SendAllChat( "[" + StatsName + "] hasn't played any games of the specified type here." );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, "[" + i->second->GetName( ) + "] hasn't played any games of the specified type here." );
+						SendChat( Player, "[" + StatsName + "] hasn't played any games of the specified type here." );
 				}
 			}
 
@@ -609,9 +631,15 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	if( Player && m_Map->GetMapPath( ).find( "DotA v" ) != string :: npos && ( m_MapType != "dota2" || score != NULL ) )
 	{
 		if( m_MapType == "lod" )
-			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), "lod" ) ) );
+			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "lod" ) ) );
+		else if( m_MapType == "dota2" )
+			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "dota2" ) ) );
 		else
-			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), "dota" ) ) );
+			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "dota" ) ) );
+	}
+	else if( Player && m_MapType == "castlefight2" && score != NULL )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "castlefight2" ) ) );
 	}
 	
 	return Player;
@@ -657,7 +685,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 			if( m_GameLoading ) {
 				m_AutoBans.push_back( player->GetName( ) );
 			} else {
-				if( m_MapType == "dota" || m_MapType == "lod" ) {
+				if( m_MapType == "dota" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "castlefight2" ) {
 					char sid, team;
 					uint32_t CountSentinel = 0;
 					uint32_t CountScourge = 0;
@@ -2082,11 +2110,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 		if( !Payload.empty( ) )
 			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedGPSChecks.push_back( PairedGPSCheck( string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser ) ) );
+			m_PairedGPSChecks.push_back( PairedGPSCheck( string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 		else
-			m_PairedGPSChecks.push_back( PairedGPSCheck( User, m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser ) ) );
+			m_PairedGPSChecks.push_back( PairedGPSCheck( User, m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 
 		player->SetStatsSentTime( GetTime( ) );
 	}
@@ -2101,11 +2132,36 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 		if( !Payload.empty( ) )
 			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, "dota" ) ) );
+			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "dota" ) ) );
 		else
-			m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, "dota" ) ) );
+			m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "dota" ) ) );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
+	// !STATSDOTAHR
+	//
+
+        else if( ( Command == "statsdotahr" || Command == "sdhr" || Command == "statsdota2" || Command == "sd2" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	{
+		string StatsUser = User;
+
+		if( !Payload.empty( ) )
+			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
+
+		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "dota2" ) ) );
+		else
+			m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "dota2" ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
@@ -2120,30 +2176,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 		if( !Payload.empty( ) )
 			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, "lod" ) ) );
+			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "lod" ) ) );
 		else
-			m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, "lod" ) ) );
-
-		player->SetStatsDotASentTime( GetTime( ) );
-	}
-
-	//
-	// !VAMPSTATS
-	//
-
-	else if( false && ( Command == "vampstats" || Command == "vs" || Command == "statsvamp" || Command == "sv" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
-	{
-		string StatsUser = User;
-
-		if( !Payload.empty( ) )
-			StatsUser = Payload;
-
-		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedVPSChecks.push_back( PairedVPSCheck( string( ), m_GHost->m_DB->ThreadedVampPlayerSummaryCheck( StatsUser ) ) );
-		else
-			m_PairedVPSChecks.push_back( PairedVPSCheck( User, m_GHost->m_DB->ThreadedVampPlayerSummaryCheck( StatsUser ) ) );
+			m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "lod" ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
@@ -2158,11 +2198,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 		if( !Payload.empty( ) )
 			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedTPSChecks.push_back( PairedTPSCheck( string( ), m_GHost->m_DB->ThreadedTreePlayerSummaryCheck( StatsUser ) ) );
+			m_PairedTPSChecks.push_back( PairedTPSCheck( string( ), m_GHost->m_DB->ThreadedTreePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 		else
-			m_PairedTPSChecks.push_back( PairedTPSCheck( User, m_GHost->m_DB->ThreadedTreePlayerSummaryCheck( StatsUser ) ) );
+			m_PairedTPSChecks.push_back( PairedTPSCheck( User, m_GHost->m_DB->ThreadedTreePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
@@ -2177,11 +2220,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 		if( !Payload.empty( ) )
 			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedSPSChecks.push_back( PairedSPSCheck( string( ), m_GHost->m_DB->ThreadedSnipePlayerSummaryCheck( StatsUser ) ) );
+			m_PairedSPSChecks.push_back( PairedSPSCheck( string( ), m_GHost->m_DB->ThreadedSnipePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 		else
-			m_PairedSPSChecks.push_back( PairedSPSCheck( User, m_GHost->m_DB->ThreadedSnipePlayerSummaryCheck( StatsUser ) ) );
+			m_PairedSPSChecks.push_back( PairedSPSCheck( User, m_GHost->m_DB->ThreadedSnipePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
@@ -2196,11 +2242,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 		if( !Payload.empty( ) )
 			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedBPSChecks.push_back( PairedBPSCheck( string( ), m_GHost->m_DB->ThreadedShipsPlayerSummaryCheck( StatsUser ) ) );
+			m_PairedBPSChecks.push_back( PairedBPSCheck( string( ), m_GHost->m_DB->ThreadedShipsPlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 		else
-			m_PairedBPSChecks.push_back( PairedBPSCheck( User, m_GHost->m_DB->ThreadedShipsPlayerSummaryCheck( StatsUser ) ) );
+			m_PairedBPSChecks.push_back( PairedBPSCheck( User, m_GHost->m_DB->ThreadedShipsPlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
@@ -2215,11 +2264,36 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 		if( !Payload.empty( ) )
 			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, "castlefight" ) ) );
+			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "castlefight" ) ) );
 		else
-			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, "castlefight" ) ) );
+			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "castlefight" ) ) );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
+	// !CASTLESTATSHR
+	//
+
+	else if( (Command == "castlestatshr" || Command == "cfstatshr" || Command == "cfshr" || Command == "cfs2" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	{
+		string StatsUser = User;
+
+		if( !Payload.empty( ) )
+			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
+
+		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "castlefight2" ) ) );
+		else
+			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "castlefight2" ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
@@ -2234,11 +2308,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 		if( !Payload.empty( ) )
 			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, "civwars" ) ) );
+			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "civwars" ) ) );
 		else
-			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, "civwars" ) ) );
+			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "civwars" ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
@@ -2541,4 +2618,43 @@ bool CGame :: IsAutoBanned( string name )
 	}
 
 	return false;
+}
+
+void CGame :: GetStatsUser( string *statsUser, string *statsRealm )
+{
+	// first set realm based on @ if any
+	size_t index = (*statsUser).rfind( '@' );
+	
+	if( index != string::npos && (*statsUser).size( ) >= index )
+	{
+		*statsRealm = (*statsUser).substr( index + 1 );
+		*statsUser = (*statsUser).substr( 0, index );
+		
+		// realm to lowercase
+		transform( (*statsRealm).begin( ), (*statsRealm).end( ), (*statsRealm).begin( ), (int(*)(int))tolower );
+		
+		if( *statsRealm == "uswest" )
+			*statsRealm = "uswest.battle.net";
+		else if( *statsRealm == "useast" )
+			*statsRealm = "useast.battle.net";
+		else if( *statsRealm == "europe" )
+			*statsRealm = "europe.battle.net";
+		else if( *statsRealm == "asia" )
+			*statsRealm = "asia.battle.net";
+		else if( *statsRealm == "ec" )
+			*statsRealm = "entconnect.battle.net";
+		else if( *statsRealm == "gclient" )
+			*statsRealm = "cloud.ghostclient.com";
+	}
+	
+	else {
+		CGamePlayer *player = NULL;
+		uint32_t Matches = GetPlayerFromNamePartial( *statsUser, &player );
+	
+		if( Matches == 1 )
+		{
+			*statsUser = player->GetName( );
+			*statsRealm = player->GetJoinedRealm( );
+		}
+	}
 }

@@ -132,7 +132,7 @@ uint32_t CGHostDB :: GamePlayerCount( string name )
 	return 0;
 }
 
-CDBGamePlayerSummary *CGHostDB :: GamePlayerSummaryCheck( string name )
+CDBGamePlayerSummary *CGHostDB :: GamePlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
 }
@@ -157,27 +157,27 @@ uint32_t CGHostDB :: DotAPlayerCount( string name )
 	return 0;
 }
 
-CDBDotAPlayerSummary *CGHostDB :: DotAPlayerSummaryCheck( string name, string saveType )
+CDBDotAPlayerSummary *CGHostDB :: DotAPlayerSummaryCheck( string name, string realm, string saveType )
 {
 	return NULL;
 }
 
-CDBTreePlayerSummary *CGHostDB :: TreePlayerSummaryCheck( string name )
+CDBTreePlayerSummary *CGHostDB :: TreePlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
 }
 
-CDBShipsPlayerSummary *CGHostDB :: ShipsPlayerSummaryCheck( string name )
+CDBShipsPlayerSummary *CGHostDB :: ShipsPlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
 }
 
-CDBSnipePlayerSummary *CGHostDB :: SnipePlayerSummaryCheck( string name )
+CDBSnipePlayerSummary *CGHostDB :: SnipePlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
 }
 
-CDBW3MMDPlayerSummary *CGHostDB :: W3MMDPlayerSummaryCheck( string name, string category )
+CDBW3MMDPlayerSummary *CGHostDB :: W3MMDPlayerSummaryCheck( string name, string realm, string category )
 {
 	return NULL;
 }
@@ -297,7 +297,7 @@ CCallableGamePlayerAdd *CGHostDB :: ThreadedGamePlayerAdd( uint32_t gameid, stri
 	return NULL;
 }
 
-CCallableGamePlayerSummaryCheck *CGHostDB :: ThreadedGamePlayerSummaryCheck( string name )
+CCallableGamePlayerSummaryCheck *CGHostDB :: ThreadedGamePlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
 }
@@ -317,27 +317,27 @@ CCallableDotAPlayerAdd *CGHostDB :: ThreadedDotAPlayerAdd( uint32_t gameid, uint
 	return NULL;
 }
 
-CCallableDotAPlayerSummaryCheck *CGHostDB :: ThreadedDotAPlayerSummaryCheck( string name, string saveType )
+CCallableDotAPlayerSummaryCheck *CGHostDB :: ThreadedDotAPlayerSummaryCheck( string name, string realm, string saveType )
 {
 	return NULL;
 }
 
-CCallableTreePlayerSummaryCheck *CGHostDB :: ThreadedTreePlayerSummaryCheck( string name )
+CCallableTreePlayerSummaryCheck *CGHostDB :: ThreadedTreePlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
 }
 
-CCallableShipsPlayerSummaryCheck *CGHostDB :: ThreadedShipsPlayerSummaryCheck( string name )
+CCallableShipsPlayerSummaryCheck *CGHostDB :: ThreadedShipsPlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
 }
 
-CCallableSnipePlayerSummaryCheck *CGHostDB :: ThreadedSnipePlayerSummaryCheck( string name )
+CCallableSnipePlayerSummaryCheck *CGHostDB :: ThreadedSnipePlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
 }
 
-CCallableW3MMDPlayerSummaryCheck *CGHostDB :: ThreadedW3MMDPlayerSummaryCheck( string name, string category )
+CCallableW3MMDPlayerSummaryCheck *CGHostDB :: ThreadedW3MMDPlayerSummaryCheck( string name, string realm, string category )
 {
 	return NULL;
 }
