@@ -609,7 +609,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		else if( m_LastOutPacketSize < 100 )
 			WaitTicks = 3700;
 		else
-			WaitTicks = 6000;
+			WaitTicks = 4300;
 
 		boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
 		
