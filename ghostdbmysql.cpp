@@ -502,6 +502,19 @@ CCallableScoreCheck *CGHostDBMySQL :: ThreadedScoreCheck( string category, strin
 	return Callable;
 }
 
+CCallableLeagueCheck *CGHostDBMySQL :: ThreadedLeagueCheck( string category, string name, string server )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableLeagueCheck *Callable = new CMySQLCallableLeagueCheck( category, name, server, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
 CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
 {
 	void *Connection = GetIdleConnection( );
@@ -1350,6 +1363,8 @@ uint32_t MySQLDotAGameAdd( void *conn, string *error, uint32_t botid, uint32_t g
 		table = "lodgames";
 	else if( saveType == "dota2" )
 		table = "dota2games";
+	else if( saveType == "eihl" )
+		table = "eihlgames";
 	
 	string Query = "INSERT INTO " + table + " ( botid, gameid, winner, min, sec ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( winner ) + ", " + UTIL_ToString( min ) + ", " + UTIL_ToString( sec ) + " )";
 
@@ -1378,6 +1393,8 @@ uint32_t MySQLDotAPlayerAdd( void *conn, string *error, uint32_t botid, uint32_t
 		table = "lodplayers";
 	else if( saveType == "dota2" )
 		table = "dota2players";
+	else if( saveType == "eihl" )
+		table = "eihlplayers";
 	
 	string Query = "INSERT INTO " + table + " ( botid, gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( colour ) + ", " + UTIL_ToString( kills ) + ", " + UTIL_ToString( deaths ) + ", " + UTIL_ToString( creepkills ) + ", " + UTIL_ToString( creepdenies ) + ", " + UTIL_ToString( assists ) + ", " + UTIL_ToString( gold ) + ", " + UTIL_ToString( neutralkills ) + ", '" + EscItem1 + "', '" + EscItem2 + "', '" + EscItem3 + "', '" + EscItem4 + "', '" + EscItem5 + "', '" + EscItem6 + "', '" + EscHero + "', " + UTIL_ToString( newcolour ) + ", " + UTIL_ToString( towerkills ) + ", " + UTIL_ToString( raxkills ) + ", " + UTIL_ToString( courierkills ) + " )";
 
@@ -1401,6 +1418,8 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 		table = "lod_elo_scores";
 	else if( saveType == "dota2" )
 		table = "dota2_elo_scores";
+	else if( saveType == "eihl" )
+		table = "eihl_elo_scores";
 	
 	CDBDotAPlayerSummary *DotAPlayerSummary = NULL;
 	string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(kills), 0), IFNULL(SUM(deaths), 0), IFNULL(SUM(creepkills), 0), IFNULL(SUM(creepdenies), 0), IFNULL(SUM(assists), 0), IFNULL(SUM(neutralkills), 0), IFNULL(SUM(towerkills), 0), IFNULL(SUM(raxkills), 0), IFNULL(SUM(courierkills), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM " + table + " WHERE name='" + EscName + "'";
@@ -1680,7 +1699,7 @@ double MySQLScoreCheck( void *conn, string *error, uint32_t botid, string catego
 	if( category == "dota2" ) // dota2 checks normal DotA stats
 		Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 30";
 	else if( category == "castlefight2" ) // castlefight2 checks castlefight stats
-		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='castlefight' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 30";
+		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='castlefight' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 20";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1704,6 +1723,40 @@ double MySQLScoreCheck( void *conn, string *error, uint32_t botid, string catego
 	}
 
 	return Score;
+}
+
+uint32_t MySQLLeagueCheck( void *conn, string *error, uint32_t botid, string category, string name, string server )
+{
+	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
+	string EscCategory = MySQLEscapeString( conn, category );
+	string EscName = MySQLEscapeString( conn, name );
+	string EscServer = MySQLEscapeString( conn, server );
+	uint32_t SID = 255;
+	
+	string Query = "SELECT k FROM league_status WHERE category='" + EscCategory + "' AND v='" + EscName + "'";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			if( Row.size( ) == 1 )
+				SID = UTIL_ToUInt32( Row[0] );
+			/* else
+				*error = "error checking score [" + category + " : " + name + " : " + server + "] - row doesn't have 1 column"; */
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+
+	return SID;
 }
 
 bool MySQLConnectCheck( void *conn, string *error, uint32_t botid, string name, uint32_t sessionkey )
@@ -2124,6 +2177,16 @@ void CMySQLCallableScoreCheck :: operator( )( )
 
 	if( m_Error.empty( ) )
 		m_Result = MySQLScoreCheck( m_Connection, &m_Error, m_SQLBotID, m_Category, m_Name, m_Server );
+
+	Close( );
+}
+
+void CMySQLCallableLeagueCheck :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		m_Result = MySQLLeagueCheck( m_Connection, &m_Error, m_SQLBotID, m_Category, m_Name, m_Server );
 
 	Close( );
 }

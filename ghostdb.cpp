@@ -352,6 +352,11 @@ CCallableScoreCheck *CGHostDB :: ThreadedScoreCheck( string category, string nam
 	return NULL;
 }
 
+CCallableLeagueCheck *CGHostDB :: ThreadedLeagueCheck( string category, string name, string server )
+{
+	return NULL;
+}
+
 CCallableConnectCheck *CGHostDB :: ThreadedConnectCheck( string name, uint32_t sessionkey )
 {
 	return NULL;
@@ -513,6 +518,11 @@ CCallableDownloadAdd :: ~CCallableDownloadAdd( )
 }
 
 CCallableScoreCheck :: ~CCallableScoreCheck( )
+{
+
+}
+
+CCallableLeagueCheck :: ~CCallableLeagueCheck( )
 {
 
 }

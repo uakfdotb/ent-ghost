@@ -39,6 +39,7 @@ class CIncomingAction;
 class CIncomingChatPlayer;
 class CIncomingMapSize;
 class CCallableScoreCheck;
+class CCallableLeagueCheck;
 class CCallableConnectCheck;
 struct QueuedSpoofAdd;
 
@@ -54,6 +55,7 @@ protected:
 	vector<CPotentialPlayer *> m_Potentials;		// vector of potential players (connections that haven't sent a W3GS_REQJOIN packet yet)
 	vector<CGamePlayer *> m_Players;				// vector of players
 	vector<CCallableScoreCheck *> m_ScoreChecks;
+	vector<CCallableLeagueCheck *> m_LeagueChecks;
 	vector<CCallableConnectCheck *> m_ConnectChecks;	// session validation for entconnect system
 	queue<CIncomingAction *> m_Actions;				// queue of actions to be sent
 	vector<string> m_Reserved;						// vector of player names with reserved slots (from the !hold command)
@@ -132,6 +134,7 @@ protected:
     uint32_t m_DatabaseID;                          // the ID number from the database, which we'll use to save replay
 	int m_DoDelete;									// notifies thread to exit
 	uint32_t m_LastReconnectHandleTime;				// last time we tried to handle GProxy reconnects
+	bool m_League;									// whether or not this is a league game
 
 public:
 	vector<string> m_DoSayGames;					// vector of strings we should announce to the current game

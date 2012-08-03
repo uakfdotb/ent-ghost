@@ -103,8 +103,15 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		
 		// match making settings for tier 2
 		m_MatchMaking = true;
-		m_MinimumScore = 1300;
+		m_MinimumScore = 1150;
 		m_MaximumScore = 99999;
+	}
+	else if( m_Map->GetMapType( ) == "eihl" )
+	{
+		m_Stats = new CStatsDOTA( this, "eihl" );
+		m_MapType = "eihl";
+		
+		m_League = true; 
 	}
 	
 	CONSOLE_Print( m_MapType + "/" + m_Map->GetMapType( ) );
@@ -319,6 +326,8 @@ bool CGame :: Update( void *fd, void *send_fd )
 					DotaCategory = "DotA LoD";
 				else if( i->second->GetSaveType( ) == "dota2" )
 					DotaCategory = "high-ranked DotA";
+				else if( i->second->GetSaveType( ) == "eihl" )
+					DotaCategory = "DotA EIHL";
 				
 				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ) + " " + DotaCategory + " games here (ELO: " + UTIL_ToString( DotAPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ) + ". Hero K/D/A: " + UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ) + " (" + UTIL_ToString( DotAPlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgDeaths( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgAssists( ), 2 ) + "). Creep K/D/N: " + UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ) + " (" + UTIL_ToString( DotAPlayerSummary->GetAvgCreepKills( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgCreepDenies( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgNeutralKills( ), 2 ) + "). T/R/C: " + UTIL_ToString( DotAPlayerSummary->GetTotalTowerKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalRaxKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalCourierKills( ) ) + ".";
 
@@ -443,7 +452,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 
 			if( TreePlayerSummary )
 			{
-                string Summary = "[" + StatsName + "] has played " + UTIL_ToString( TreePlayerSummary->GetTotalGames( ) ) + " tree tag games here (ELO: " + UTIL_ToString( TreePlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( TreePlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalLosses( ) ) + ". E/I: " + UTIL_ToString( TreePlayerSummary->GetTotalEntGames( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalInfernalGames( ) ) + " K/D/S/TK: " + UTIL_ToString( TreePlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalDeaths( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalSaves( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalTKs( ) ) + " (" + UTIL_ToString( TreePlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgDeaths( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgSaves( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgTKs( ), 2 ) + ").";
+                string Summary = "[" + StatsName + "] has played " + UTIL_ToString( TreePlayerSummary->GetTotalGames( ) ) + " tree tag games here (ELO: " + UTIL_ToString( TreePlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( TreePlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalLosses( ) ) + ". E/I: " + UTIL_ToString( TreePlayerSummary->GetTotalEntGames( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalInfernalGames( ) ) + ". K/D/S/TK: " + UTIL_ToString( TreePlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalDeaths( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalSaves( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalTKs( ) ) + " (" + UTIL_ToString( TreePlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgDeaths( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgSaves( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgTKs( ), 2 ) + ").";
 
 				if( i->first.empty( ) )
 					SendAllChat( Summary );
@@ -582,8 +591,9 @@ bool CGame :: Update( void *fd, void *send_fd )
 				string CategoryName = "unknown";
 				
 				if( Category == "civwars" ) CategoryName = "civilization wars";
-				else if(Category == "castlefight" ) CategoryName = "castle fight";
-				else if(Category == "castlefight2" ) CategoryName = "high-ranked CF";
+				else if( Category == "castlefight" ) CategoryName = "castle fight";
+				else if( Category == "castlefight2" ) CategoryName = "high-ranked CF";
+				else if( Category == "legionmega" ) CategoryName = "Legion TD Mega";
 				
 				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( W3MMDPlayerSummary->GetTotalGames( ) ) + " " + CategoryName + " games here (ELO: " + UTIL_ToString( W3MMDPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( W3MMDPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( W3MMDPlayerSummary->GetTotalLosses( ) ) + ".";
 
@@ -634,6 +644,8 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "lod" ) ) );
 		else if( m_MapType == "dota2" )
 			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "dota2" ) ) );
+		else if( m_MapType == "eihl" )
+			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "eihl" ) ) );
 		else
 			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "dota" ) ) );
 	}
@@ -2101,28 +2113,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		SendChat( player, m_GHost->m_Language->CheckedPlayer( User, player->GetNumPings( ) > 0 ? UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "ms" : "N/A", m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( player->GetExternalIP( ), true ) ), AdminCheck || RootAdminCheck ? "Yes" : "No", IsOwner( User ) ? "Yes" : "No", player->GetSpoofed( ) ? "Yes" : "No", player->GetSpoofedRealm( ).empty( ) ? "N/A" : player->GetSpoofedRealm( ), player->GetReserved( ) ? "Yes" : "No" ) );
 
 	//
-	// !STATS
-	//
-
-        else if( (Command == "s" || Command == "stats") && GetTime( ) - player->GetStatsSentTime( ) >= 5 )
-	{
-		string StatsUser = User;
-
-		if( !Payload.empty( ) )
-			StatsUser = Payload;
-		
-		string StatsRealm = "";
-		GetStatsUser( &StatsUser, &StatsRealm );
-
-		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedGPSChecks.push_back( PairedGPSCheck( string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
-		else
-			m_PairedGPSChecks.push_back( PairedGPSCheck( User, m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
-
-		player->SetStatsSentTime( GetTime( ) );
-	}
-
-	//
 	// !STATSDOTA
 	//
 
@@ -2162,6 +2152,28 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "dota2" ) ) );
 		else
 			m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "dota2" ) ) );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
+	// !IHSTATS
+	//
+
+        else if( ( Command == "statsih" || Command == "ihstats" || Command == "ihs" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	{
+		string StatsUser = User;
+
+		if( !Payload.empty( ) )
+			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
+
+		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "eihl" ) ) );
+		else
+			m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "eihl" ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
@@ -2316,6 +2328,28 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "civwars" ) ) );
 		else
 			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "civwars" ) ) );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
+	// !legionstats
+	//
+
+	else if( (Command == "legionstats" || Command == "legiontdstats" || Command == "lms" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	{
+		string StatsUser = User;
+
+		if( !Payload.empty( ) )
+			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
+
+		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega" ) ) );
+		else
+			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega" ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
