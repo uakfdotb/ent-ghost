@@ -133,7 +133,11 @@ CGame :: ~CGame( )
 			if( EndTime - LeftTime > 300 )
 			{
 				string CustomReason = "autoban: left at " + UTIL_ToString( LeftTime ) + "/" + UTIL_ToString( EndTime );
-				m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
+				
+				if( m_MapType == "eihl" )
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-eihl", CustomReason, 3600 * 12, "ttr.cloud" ));
+				else
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
 			}
 		}
 	}
@@ -697,7 +701,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 			if( m_GameLoading ) {
 				m_AutoBans.push_back( player->GetName( ) );
 			} else {
-				if( m_MapType == "dota" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "castlefight2" ) {
+				if( m_MapType == "dota" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "castlefight2" || m_MapType == "eihl" ) {
 					char sid, team;
 					uint32_t CountSentinel = 0;
 					uint32_t CountScourge = 0;
@@ -1354,7 +1358,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !FAKEPLAYER
 			//
 
-                        else if( Command == "fakeplayer" && !m_CountDownStarted && ( AdminCheck || RootAdminCheck ) )
+                        else if( Command == "fakeplayer" && !m_CountDownStarted )
 			{
 				if( m_FakePlayerPID == 255 )
 					CreateFakePlayer( );
