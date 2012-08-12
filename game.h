@@ -73,6 +73,8 @@ protected:
 	
     string m_MapType;							// recorded map type after game starts because map is deleted
 	vector<string> m_AutoBans;
+	uint32_t m_ForfeitTime;						// time that players forfeited, or 0 if not forfeited
+	uint32_t m_ForfeitTeam;						// id of team that forfeited
 	
 	bool IsAutoBanned( string name );
 
