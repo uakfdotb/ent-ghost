@@ -866,37 +866,15 @@ class CDBGamePlayerSummary
 private:
 	string m_Server;
 	string m_Name;
-	string m_FirstGameDateTime;		// datetime of first game played
-	string m_LastGameDateTime;		// datetime of last game played
 	uint32_t m_TotalGames;			// total number of games played
-	uint32_t m_MinLoadingTime;		// minimum loading time in milliseconds (this could be skewed because different maps have different load times)
-	uint32_t m_AvgLoadingTime;		// average loading time in milliseconds (this could be skewed because different maps have different load times)
-	uint32_t m_MaxLoadingTime;		// maximum loading time in milliseconds (this could be skewed because different maps have different load times)
-	uint32_t m_MinLeftPercent;		// minimum time at which the player left the game expressed as a percentage of the game duration (0-100)
-	uint32_t m_AvgLeftPercent;		// average time at which the player left the game expressed as a percentage of the game duration (0-100)
-	uint32_t m_MaxLeftPercent;		// maximum time at which the player left the game expressed as a percentage of the game duration (0-100)
-	uint32_t m_MinDuration;			// minimum game duration in seconds
-	uint32_t m_AvgDuration;			// average game duration in seconds
-	uint32_t m_MaxDuration;			// maximum game duration in seconds
 
 public:
-	CDBGamePlayerSummary( string nServer, string nName, string nFirstGameDateTime, string nLastGameDateTime, uint32_t nTotalGames, uint32_t nMinLoadingTime, uint32_t nAvgLoadingTime, uint32_t nMaxLoadingTime, uint32_t nMinLeftPercent, uint32_t nAvgLeftPercent, uint32_t nMaxLeftPercent, uint32_t nMinDuration, uint32_t nAvgDuration, uint32_t nMaxDuration );
+	CDBGamePlayerSummary( string nServer, string nName, uint32_t nTotalGames );
 	~CDBGamePlayerSummary( );
 
 	string GetServer( )					{ return m_Server; }
 	string GetName( )					{ return m_Name; }
-	string GetFirstGameDateTime( )		{ return m_FirstGameDateTime; }
-	string GetLastGameDateTime( )		{ return m_LastGameDateTime; }
 	uint32_t GetTotalGames( )			{ return m_TotalGames; }
-	uint32_t GetMinLoadingTime( )		{ return m_MinLoadingTime; }
-	uint32_t GetAvgLoadingTime( )		{ return m_AvgLoadingTime; }
-	uint32_t GetMaxLoadingTime( )		{ return m_MaxLoadingTime; }
-	uint32_t GetMinLeftPercent( )		{ return m_MinLeftPercent; }
-	uint32_t GetAvgLeftPercent( )		{ return m_AvgLeftPercent; }
-	uint32_t GetMaxLeftPercent( )		{ return m_MaxLeftPercent; }
-	uint32_t GetMinDuration( )			{ return m_MinDuration; }
-	uint32_t GetAvgDuration( )			{ return m_AvgDuration; }
-	uint32_t GetMaxDuration( )			{ return m_MaxDuration; }
 };
 
 //

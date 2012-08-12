@@ -360,7 +360,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			CDBGamePlayerSummary *GamePlayerSummary = i->second->GetResult( );
 
 			if( GamePlayerSummary )
-				QueueChatCommand( m_GHost->m_Language->HasPlayedGamesWithThisBot( i->second->GetName( ), GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ), i->first, !i->first.empty( ) );
+				QueueChatCommand( "[" + i->second->GetName( ) + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot.", i->first, !i->first.empty( ) );
 			else
 				QueueChatCommand( m_GHost->m_Language->HasntPlayedGamesWithThisBot( i->second->GetName( ) ), i->first, !i->first.empty( ) );
 

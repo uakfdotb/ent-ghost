@@ -1052,7 +1052,7 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 	string EscName = MySQLEscapeString( conn, name );
 	string EscRealm = MySQLEscapeString( conn, realm );
 	CDBGamePlayerSummary *GamePlayerSummary = NULL;
-	string Query = "SELECT MIN(DATE(datetime)), MAX(DATE(datetime)), COUNT(*), MIN(loadingtime), AVG(loadingtime), MAX(loadingtime), MIN(`left`/duration)*100, AVG(`left`/duration)*100, MAX(`left`/duration)*100, MIN(duration), AVG(duration), MAX(duration) FROM gameplayers LEFT JOIN games ON games.id=gameid WHERE name='" + EscName + "'";
+	string Query = "SELECT COUNT(*) FROM gameplayers WHERE name='" + EscName + "'";
 	
 	if( !realm.empty( ) )
 		Query += " AND spoofedrealm = '" + EscRealm + "'";
@@ -1069,19 +1069,8 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 
 			if( Row.size( ) == 12 )
 			{
-				string FirstGameDateTime = Row[0];
-				string LastGameDateTime = Row[1];
-				uint32_t TotalGames = UTIL_ToUInt32( Row[2] );
-				uint32_t MinLoadingTime = UTIL_ToUInt32( Row[3] );
-				uint32_t AvgLoadingTime = UTIL_ToUInt32( Row[4] );
-				uint32_t MaxLoadingTime = UTIL_ToUInt32( Row[5] );
-				uint32_t MinLeftPercent = UTIL_ToUInt32( Row[6] );
-				uint32_t AvgLeftPercent = UTIL_ToUInt32( Row[7] );
-				uint32_t MaxLeftPercent = UTIL_ToUInt32( Row[8] );
-				uint32_t MinDuration = UTIL_ToUInt32( Row[9] );
-				uint32_t AvgDuration = UTIL_ToUInt32( Row[10] );
-				uint32_t MaxDuration = UTIL_ToUInt32( Row[11] );
-				GamePlayerSummary = new CDBGamePlayerSummary( realm, name, FirstGameDateTime, LastGameDateTime, TotalGames, MinLoadingTime, AvgLoadingTime, MaxLoadingTime, MinLeftPercent, AvgLeftPercent, MaxLeftPercent, MinDuration, AvgDuration, MaxDuration );
+				uint32_t TotalGames = UTIL_ToUInt32( Row[0] );
+				GamePlayerSummary = new CDBGamePlayerSummary( realm, name, TotalGames );
 			}
 			else
 				*error = "error checking gameplayersummary [" + name + "] - row doesn't have 12 columns";

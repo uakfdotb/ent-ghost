@@ -282,25 +282,25 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( GamePlayerSummary )
 			{
 				if( i->first.empty( ) )
-					SendAllChat( m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsName, GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ) );
+					SendAllChat( "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot." );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsName, GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ) );
+						SendChat( Player, "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot." );
 				}
 			}
 			else
 			{
 				if( i->first.empty( ) )
-					SendAllChat( m_GHost->m_Language->HasntPlayedGamesWithThisBot( StatsName ) );
+					SendAllChat( "[" + StatsName + "] hasn't played any games on this bot." );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, m_GHost->m_Language->HasntPlayedGamesWithThisBot( StatsName ) );
+						SendChat( Player, "[" + StatsName + "] hasn't played any games on this bot." );
 				}
 			}
 
@@ -2366,7 +2366,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	}
 
 	//
-	// !legionstats
+	// !LEGIONSTATS
 	//
 
 	else if( (Command == "legionstats" || Command == "legiontdstats" || Command == "lms" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
@@ -2383,6 +2383,28 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega" ) ) );
 		else
 			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega" ) ) );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
+	// !STATS
+	//
+
+	else if( Command == "stats" && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	{
+		string StatsUser = User;
+
+		if( !Payload.empty( ) )
+			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
+
+		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+			m_PairedGPSChecks.push_back( PairedGPSCheck( string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
+		else
+			m_PairedGPSChecks.push_back( PairedGPSCheck( User, m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
