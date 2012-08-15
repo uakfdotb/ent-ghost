@@ -1163,7 +1163,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 		boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
 		
-		if( m_GHost->m_CurrentGame && m_GHost->m_CurrentGame->GetPlayerFromName( UserName, true ) )
+		if( m_GHost->m_CurrentGame )
 		{
 			string FailMessage;
 			
