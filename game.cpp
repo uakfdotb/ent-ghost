@@ -2686,29 +2686,45 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			
 			// whether or not all players on the team of the player who typed the command forfeited
 			bool AllVoted = true;
+			int numVoted = 0;
+			int numTotal = 0;
 
 			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
 			{
-				if( *i && !(*i)->GetLeftMessageSent( ) && !(*i)->GetForfeitVote( ) )
+				if( *i && !(*i)->GetLeftMessageSent( ) )
 				{
 					char sid = GetSIDFromPID( (*i)->GetPID( ) );
 					
 					if( sid != 255 && m_Slots[sid].GetTeam( ) == playerTeam )
-						AllVoted = false;
+					{
+						numTotal++;
+						
+						if( !(*i)->GetForfeitVote( ) )
+							AllVoted = false;
+						else
+							numVoted++;
+					}
 				}
 			}
+			
+			m_ForfeitTeam = playerTeam;
+			
+			string ForfeitTeamString = "Sentinel";
+			if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge";
 			
 			if( AllVoted )
 			{
 				m_Stats->SetWinner( playerTeam + 1 );
 				m_ForfeitTime = GetTime( );
-				m_ForfeitTeam = playerTeam;
-				
-				string ForfeitTeamString = "Sentinel";
-				if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge";
 				
 				SendAllChat( "The " + ForfeitTeamString + " has forfeited" );
 				SendAllChat( "Wait ten seconds before leaving or stats will not be properly recorded!" );
+			}
+			
+			else
+			{
+				SendAllChat( "[" + player->GetName( ) + "] has voted to forfeit." );
+				SendAllChat( UTIL_ToString( numVoted ) + "/" + UTIL_ToString( numTotal ) + " players on the " + ForfeitTeamString + " have voted to forfeit." );
 			}
 		}
 	}
