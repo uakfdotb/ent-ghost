@@ -146,7 +146,6 @@ CGame :: ~CGame( )
 	
 	if( m_CallableGameAdd && m_CallableGameAdd->GetReady( ) )
 	{
-        m_DatabaseID = m_CallableGameAdd->GetResult();
 		if( m_CallableGameAdd->GetResult( ) > 0 )
 		{
 			CONSOLE_Print( "[GAME: " + m_GameName + "] saving player/stats data to database" );
@@ -2714,7 +2713,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			
 			if( AllVoted )
 			{
-				m_Stats->SetWinner( playerTeam + 1 );
+				m_Stats->SetWinner( ( playerTeam + 1 ) % 2 + 1 );
 				m_ForfeitTime = GetTime( );
 				
 				SendAllChat( "The " + ForfeitTeamString + " has forfeited" );
@@ -2747,6 +2746,9 @@ void CGame :: EventGameStarted( )
 
 bool CGame :: IsGameDataSaved( )
 {
+	if( m_CallableGameAdd && m_CallableGameAdd->GetReady( ) )
+		m_DatabaseID = m_CallableGameAdd->GetResult();
+	
 	return m_CallableGameAdd && m_CallableGameAdd->GetReady( );
 }
 

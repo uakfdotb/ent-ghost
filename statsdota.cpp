@@ -108,9 +108,47 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								CGamePlayer *Victim = m_Game->GetPlayerFromColour( VictimColour );
 
 								if( Killer && Victim )
+								{
+									if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
+									{
+										if ((ValueInt <= 5 && VictimColour <= 5) || (ValueInt >= 7 && VictimColour >= 7))
+										{
+											// He denied a team-mate, don't count that.
+										}
+										else
+										{
+											// A legit kill, lets count that.
+						
+											if (!m_Players[ValueInt])
+												m_Players[ValueInt] = new CDBDotAPlayer( );
+
+											if (ValueInt != VictimColour)
+												m_Players[ValueInt]->SetKills( m_Players[ValueInt]->GetKills() + 1 );
+										}
+									}
+								
+									if( ( VictimColour >= 1 && VictimColour <= 5 ) || ( VictimColour >= 7 && VictimColour <= 11 ) )
+									{
+										if (!m_Players[VictimColour])
+											m_Players[VictimColour] = new CDBDotAPlayer( );
+										
+										m_Players[VictimColour]->SetDeaths( m_Players[VictimColour]->GetDeaths() + 1 );
+									}
+									
 									CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] player [" + Killer->GetName( ) + "] killed player [" + Victim->GetName( ) + "]" );
+								}
+								
 								else if( Victim )
 								{
+									
+									if( ( VictimColour >= 1 && VictimColour <= 5 ) || ( VictimColour >= 7 && VictimColour <= 11 ) )
+									{
+										if (!m_Players[VictimColour])
+											m_Players[VictimColour] = new CDBDotAPlayer( );
+			
+										m_Players[VictimColour]->SetDeaths( m_Players[VictimColour]->GetDeaths() + 1 );
+									}
+									
 									if( ValueInt == 0 )
 										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Sentinel killed player [" + Victim->GetName( ) + "]" );
 									else if( ValueInt == 6 )
@@ -257,6 +295,69 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							else if( KeyString.size( ) >= 2 && KeyString.substr( 0, 2 ) == "CK" )
 							{
 								// a player disconnected
+							}
+							else if( KeyString.size( ) >= 3 && KeyString.substr( 0, 3 ) == "CSK" )
+							{       
+								// creep kill value recieved (aprox every 3 - 4)
+								string PlayerID = KeyString.substr( 3 );
+								uint32_t ID = UTIL_ToUInt32( PlayerID );
+								
+								if( ( ID >= 1 && ID <= 5 ) || ( ID >= 7 && ID <= 11 ) )
+								{
+									if (!m_Players[ID])
+										m_Players[ID] = new CDBDotAPlayer( );
+													
+									m_Players[ID]->SetCreepKills(ValueInt);
+								}
+							}
+							else if( KeyString.size( ) >= 3 && KeyString.substr( 0, 3 ) == "CSD" )
+							{
+								// creep denie value recieved (aprox every 3 - 4)
+								string PlayerID = KeyString.substr( 3 );
+								uint32_t ID = UTIL_ToUInt32( PlayerID );
+								
+								if( ( ID >= 1 && ID <= 5 ) || ( ID >= 7 && ID <= 11 ) )
+								{
+									
+									if (!m_Players[ID])
+										m_Players[ID] = new CDBDotAPlayer( );
+								
+									m_Players[ID]->SetCreepDenies(ValueInt);
+								}
+							}
+							else if( KeyString.size( ) >= 2 && KeyString.substr( 0, 2 ) == "NK" )
+							{
+								// creep denie value recieved (aprox every 3 - 4)
+								string PlayerID = KeyString.substr( 2 );
+								uint32_t ID = UTIL_ToUInt32( PlayerID );
+								
+								if( ( ID >= 1 && ID <= 5 ) || ( ID >= 7 && ID <= 11 ) )
+								{
+									if (!m_Players[ID])
+										m_Players[ID] = new CDBDotAPlayer( );
+											
+									m_Players[ID]->SetNeutralKills(ValueInt);
+								}
+							}
+							else if( KeyString.size( ) >= 7 && KeyString.substr( 0, 6 ) == "Assist" )
+							{
+								string AssistString = KeyString.substr( 6 );
+								uint32_t Assist = UTIL_ToUInt32(AssistString);
+								
+								CGamePlayer *Player = m_Game->GetPlayerFromColour( Assist );
+								CGamePlayer *Victim = m_Game->GetPlayerFromColour( ValueInt );
+
+								if (Player && Victim)
+								{
+									if( ( Assist >= 1 && Assist <= 5 ) || ( Assist >= 7 && Assist <= 11 ) )
+									{
+										if (!m_Players[Assist])
+											m_Players[Assist] = new CDBDotAPlayer( );
+
+										m_Players[Assist]->SetAssists( m_Players[Assist]->GetAssists() + 1 );
+									}
+									//CONSOLE_Print( "[OBSERVER: " + m_Game->GetGameName( ) + "] Assist detected on team " + UTIL_ToString(Player->GetTeam()) + " by: " + Player->GetName() );
+								}
 							}
 						}
 						else if( DataString == "Global" )
