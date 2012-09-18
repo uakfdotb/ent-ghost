@@ -1067,13 +1067,13 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 		{
 			vector<string> Row = MySQLFetchRow( Result );
 
-			if( Row.size( ) == 12 )
+			if( Row.size( ) == 1 )
 			{
 				uint32_t TotalGames = UTIL_ToUInt32( Row[0] );
 				GamePlayerSummary = new CDBGamePlayerSummary( realm, name, TotalGames );
 			}
 			else
-				*error = "error checking gameplayersummary [" + name + "] - row doesn't have 12 columns";
+				*error = "error checking gameplayersummary [" + name + "] - row doesn't have 1 column";
 
 			mysql_free_result( Result );
 		}
