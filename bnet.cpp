@@ -653,7 +653,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			m_Socket->DoSend( (fd_set *)send_fd );
 			m_LastNullTime = GetTime( );
 			m_LastOutPacketTicks = GetTicks( );
-			m_ServerReconnectCount = 0;
 
 			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
 			
@@ -908,6 +907,8 @@ void CBNET :: ProcessPackets( )
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] cd keys accepted" );
 					m_BNCSUtil->HELP_SID_AUTH_ACCOUNTLOGON( );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_ACCOUNTLOGON( m_BNCSUtil->GetClientKey( ), m_UserName ) );
+					
+					m_ServerReconnectCount = 0;
 				}
 				else
 				{
