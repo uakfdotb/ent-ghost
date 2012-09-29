@@ -93,7 +93,7 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		
 		// match making settings for tier 2
 		m_MatchMaking = true;
-		m_MinimumScore = 1300;
+		m_MinimumScore = 1150;
 		m_MaximumScore = 99999;
 	}
 	else if( m_Map->GetMapType( ) == "castlefight2" )
@@ -103,7 +103,17 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		
 		// match making settings for tier 2
 		m_MatchMaking = true;
-		m_MinimumScore = 1150;
+		m_MinimumScore = 1100;
+		m_MaximumScore = 99999;
+	}
+	else if( m_Map->GetMapType( ) == "legionmega2" )
+	{
+		m_Stats = new CStatsW3MMD( this, "legionmega2" );
+		m_MapType = "legionmega2";
+		
+		// match making settings for tier 2
+		m_MatchMaking = true;
+		m_MinimumScore = 1100;
 		m_MaximumScore = 99999;
 	}
 	else if( m_Map->GetMapType( ) == "eihl" )
@@ -596,6 +606,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				if( Category == "civwars" ) CategoryName = "civilization wars";
 				else if( Category == "castlefight" ) CategoryName = "castle fight";
 				else if( Category == "castlefight2" ) CategoryName = "high-ranked CF";
+				else if( Category == "legionmega2" ) CategoryName = "high-ranked Legion TD";
 				else if( Category == "legionmega" ) CategoryName = "Legion TD Mega";
 				
 				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( W3MMDPlayerSummary->GetTotalGames( ) ) + " " + CategoryName + " games here (ELO: " + UTIL_ToString( W3MMDPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( W3MMDPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( W3MMDPlayerSummary->GetTotalLosses( ) ) + ".";
@@ -685,6 +696,10 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "castlefight2" ) ) );
 	}
+	else if( Player && m_MapType == "legionmega2" && score != NULL )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega2" ) ) );
+	}
 	
 	return Player;
 }
@@ -729,7 +744,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 			if( m_GameLoading ) {
 				m_AutoBans.push_back( player->GetName( ) );
 			} else {
-				if( m_MapType == "dota" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "castlefight2" || m_MapType == "eihl" ) {
+				if( m_MapType == "dota" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "castlefight2" || m_MapType == "eihl" || m_MapType == "legionmega2" ) {
 					char sid, team;
 					uint32_t CountSentinel = 0;
 					uint32_t CountScourge = 0;
@@ -1815,35 +1830,40 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( Command == "pub" && !Payload.empty( ) && !m_CountDownStarted && !m_SaveGame )
 			{
-				if( Payload.length() < 31 )
+				if( Payload.find_first_of( "#" ) == string :: npos )
 				{
-					CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]" );
-					SendAllChat( m_GHost->m_Language->TryingToRehostAsPublicGame( Payload ) );
-					m_GameState = GAME_PUBLIC;
-					m_LastGameName = m_GameName;
-					m_GameName = Payload;
-					m_HostCounter = m_GHost->m_HostCounter++;
-					m_RefreshError = false;
-					m_RefreshRehosted = true;
-
-					for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+					if( Payload.length() < 31 )
 					{
-						// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
-						// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
-						// we assume this won't happen very often since the only downside is a potential false positive
+						CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]" );
+						SendAllChat( m_GHost->m_Language->TryingToRehostAsPublicGame( Payload ) );
+						m_GameState = GAME_PUBLIC;
+						m_LastGameName = m_GameName;
+						m_GameName = Payload;
+						m_HostCounter = m_GHost->m_HostCounter++;
+						m_RefreshError = false;
+						m_RefreshRehosted = true;
 
-						(*i)->UnqueueGameRefreshes( );
-						(*i)->QueueGameUncreate( );
-						(*i)->QueueEnterChat( );
+						for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+						{
+							// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
+							// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
+							// we assume this won't happen very often since the only downside is a potential false positive
 
-						// the game creation message will be sent on the next refresh
+							(*i)->UnqueueGameRefreshes( );
+							(*i)->QueueGameUncreate( );
+							(*i)->QueueEnterChat( );
+
+							// the game creation message will be sent on the next refresh
+						}
+
+						m_CreationTime = GetTime( );
+						m_LastRefreshTime = GetTime( );
 					}
-
-					m_CreationTime = GetTime( );
-					m_LastRefreshTime = GetTime( );
+					else
+						SendAllChat( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ) );
 				}
 				else
-					SendAllChat( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ) );
+					SendAllChat( "Unable to create game [" + Payload + "]. The game name contains invalid characters." );
 			}
 			//
 			// !REFRESH (turn on or off refresh messages)
@@ -2382,6 +2402,28 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega" ) ) );
 		else
 			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega" ) ) );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
+	// !LEGIONSTATSHR
+	//
+
+	else if( (Command == "legionstatshr" || Command == "lmshr" || Command == "lhr" || Command == "ls2" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	{
+		string StatsUser = User;
+
+		if( !Payload.empty( ) )
+			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
+
+		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega2" ) ) );
+		else
+			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega2" ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}

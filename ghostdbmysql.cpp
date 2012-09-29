@@ -1686,9 +1686,11 @@ double MySQLScoreCheck( void *conn, string *error, uint32_t botid, string catego
 	string Query = "SELECT score FROM scores WHERE category='" + EscCategory + "' AND name='" + EscName + "' AND server='" + EscServer + "'";
 	
 	if( category == "dota2" ) // dota2 checks normal DotA stats
-		Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 30";
+		Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 20";
 	else if( category == "castlefight2" ) // castlefight2 checks castlefight stats
-		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='castlefight' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 20";
+		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='castlefight' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 15";
+	else if( category == "legionmega2" ) // legionmega2 checks legion mega stats
+		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 15";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
