@@ -402,7 +402,7 @@ bool CGamePlayer :: Update( void *fd )
 	}
 	
 	// unmute player
-	if( GetMuted( ) && GetTicks( ) - m_MutedTicks > 15000 )
+	if( GetMuted( ) && ( GetTicks( ) - m_MutedTicks > 60000 || ( m_MutedAuto && GetTicks( ) - m_MutedTicks > 15000 ) ) )
 	{
 		SetMuted( false );
 		m_Game->SendAllChat( "[" + m_Name + "] has been automatically unmuted. (Don't spam or you'll be muted again!)" );
@@ -592,8 +592,36 @@ void CGamePlayer :: ProcessPackets( )
 					if( !GetMuted( ) && RecentCount >= 7 )
 					{
 						SetMuted( true );
+						m_MutedAuto = true;
 						m_Game->SendAllChat( "[" + m_Name + "] has been automatically muted for spamming. (You will be unmuted momentarily, but please do not spam again!)" );
 						m_MuteMessages.clear( );
+					}
+					
+					//now check for flamers
+					if( m_Game->m_GHost->FlameCheck( ChatPlayer->GetMessage( ) ) )
+						m_FlameMessages.push_back( GetTicks( ) );
+					
+						if( m_FlameMessages.size( ) > 10 )
+							m_FlameMessages.erase( m_FlameMessages.begin( ) );
+					
+						RecentCount = 0;
+
+						for( unsigned int i = 0; i < m_FlameMessages.size( ); ++i )
+						{
+							if( GetTicks( ) - m_FlameMessages[i] < 40000 )
+								RecentCount++;
+						}
+					
+						if( RecentCount >= 4 )
+						{
+							m_Game->SendAllChat( "Use !ignore <playername> to ignore players (for example, if they are flaming); partial names work. Don't flame back!" );
+							m_FlameMessages.clear( );
+						}
+						else if( RecentCount >= 3 )
+						{
+		                    SendAllChat( "[Calm] has refilled [" + GetName() + "]'s cookie jar. [" + GetName() + "] now has three cookies (try !eat)!");
+		                    SetCookies(3);
+						}
 					}
 				}
 				

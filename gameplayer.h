@@ -135,6 +135,8 @@ private:
 	bool m_Autoban;								// whether or not this player should be consider for autobanning
 	vector<uint32_t> m_MuteMessages;			// times player sent messages to determine if we should automute
 	uint32_t m_MutedTicks;
+	vector<uint32_t> m_FlameMessages;			// times player sent messages to determine flame level
+	bool m_MutedAuto;							// whether or not mute was automatic mute
 	bool m_LeftMessageSent;						// if the playerleave message has been sent or not
 	bool m_GProxy;								// if the player is using GProxy++
 	bool m_GProxyDisconnectNoticeSent;			// if a disconnection notice has been sent or not when using GProxy++
@@ -223,7 +225,7 @@ public:
 	void SetKickVote( bool nKickVote )												{ m_KickVote = nKickVote; }
 	void SetForfeitVote( bool nForfeitVote )										{ m_ForfeitVote = nForfeitVote; }
 	void SetStartVote( bool nStartVote )											{ m_StartVote = nStartVote; }
-	void SetMuted( bool nMuted )													{ m_Muted = nMuted; m_MutedTicks = GetTicks( ); }
+	void SetMuted( bool nMuted )													{ m_Muted = nMuted; m_MutedTicks = GetTicks( ); m_MutedAuto = false; }
 	void SetAutoban( bool nAutoban )												{ m_Autoban = nAutoban; }
 	void SetLeftMessageSent( bool nLeftMessageSent )								{ m_LeftMessageSent = nLeftMessageSent; }
 	void SetGProxyDisconnectNoticeSent( bool nGProxyDisconnectNoticeSent )			{ m_GProxyDisconnectNoticeSent = nGProxyDisconnectNoticeSent; }
