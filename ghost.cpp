@@ -742,6 +742,30 @@ CGHost :: CGHost( CConfig *CFG )
 
 		phrasein.close( );
 	}
+	
+	m_FlameTriggers.push_back("cunt");
+	m_FlameTriggers.push_back("bitch");
+	m_FlameTriggers.push_back("whore");
+	m_FlameTriggers.push_back("retard");
+	m_FlameTriggers.push_back("nigger");
+	m_FlameTriggers.push_back("dumb");
+	m_FlameTriggers.push_back("fuck you");
+	m_FlameTriggers.push_back("you suck");
+	m_FlameTriggers.push_back("u suck");
+	m_FlameTriggers.push_back("fucking noob");
+	m_FlameTriggers.push_back("stupid");
+	m_FlameTriggers.push_back("noob as fuck");
+	m_FlameTriggers.push_back("idiot");
+	m_FlameTriggers.push_back("moron");
+	m_FlameTriggers.push_back("shithead");
+	m_FlameTriggers.push_back("assfuck");
+	m_FlameTriggers.push_back("asshole");
+	m_FlameTriggers.push_back("is shit");
+	m_FlameTriggers.push_back("are shit");
+	m_FlameTriggers.push_back("pussy");
+	m_FlameTriggers.push_back("loser");
+	m_FlameTriggers.push_back("fucking bad");
+	m_FlameTriggers.push_back("raizen");
 }
 
 CGHost :: ~CGHost( )
@@ -1924,4 +1948,17 @@ bool CGHost :: CheckDeny( string ip ) {
 			return false;
 		}
 	}
+}
+
+bool CGHost :: FlameCheck( string message )
+{
+	transform( message.begin( ), message.end( ), message.begin( ), (int(*)(int))tolower );
+	
+	for( int i = 0; i < m_FlameTriggers.size(); i++ )
+	{
+		if( message.find( m_FlameTriggers[i] ) != string :: npos )
+			return true;
+	}
+	
+	return false;
 }
