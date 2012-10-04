@@ -35,7 +35,7 @@
 // CPotentialPlayer
 //
 
-CPotentialPlayer :: CPotentialPlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket ) : m_Protocol( nProtocol ), m_Game( nGame ), m_Socket( nSocket ), m_DeleteMe( false ), m_Error( false ), m_IncomingJoinPlayer( NULL ), m_IncomingGarenaUser( NULL ), m_ConnectionState( 0 ), m_ConnectionTime( GetTicks( ) )
+CPotentialPlayer :: CPotentialPlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket ) : m_Protocol( nProtocol ), m_Game( nGame ), m_Socket( nSocket ), m_DeleteMe( false ), m_Error( false ), m_IncomingJoinPlayer( NULL ), m_IncomingGarenaUser( NULL ), m_ConnectionState( 0 ), m_ConnectionTime( GetTicks( ) ), m_Banned( false )
 {
 
 }
@@ -105,7 +105,7 @@ bool CPotentialPlayer :: Update( void *fd )
 	ProcessPackets( );
 	
 	// make sure we don't keep this socket open forever (disconnect after five seconds)
-	if( m_ConnectionState == 0 && GetTicks( ) - m_ConnectionTime > 5000 )
+	if( m_ConnectionState == 0 && GetTicks( ) - m_ConnectionTime > 5000 && !m_Banned )
 	{
 		CONSOLE_Print( "[DENY] Kicking player: REQJOIN not received within five seconds" );
 		m_DeleteMe = true;
@@ -187,7 +187,7 @@ void CPotentialPlayer :: ProcessPackets( )
 				delete m_IncomingJoinPlayer;
 				m_IncomingJoinPlayer = m_Protocol->RECEIVE_W3GS_REQJOIN( Packet->GetData( ) );
 
-				if( m_IncomingJoinPlayer )
+				if( m_IncomingJoinPlayer && !m_Banned )
 					m_Game->EventPlayerJoined( this, m_IncomingJoinPlayer, NULL );
 
 				// don't continue looping because there may be more packets waiting and this parent class doesn't handle them
@@ -599,6 +599,7 @@ void CGamePlayer :: ProcessPackets( )
 					
 					//now check for flamers
 					if( m_Game->m_GHost->FlameCheck( ChatPlayer->GetMessage( ) ) )
+					{
 						m_FlameMessages.push_back( GetTicks( ) );
 					
 						if( m_FlameMessages.size( ) > 10 )
@@ -619,8 +620,8 @@ void CGamePlayer :: ProcessPackets( )
 						}
 						else if( RecentCount >= 3 )
 						{
-		                    SendAllChat( "[Calm] has refilled [" + GetName() + "]'s cookie jar. [" + GetName() + "] now has three cookies (try !eat)!");
-		                    SetCookies(3);
+		                	m_Game->SendAllChat( "[Calm] has refilled [" + GetName() + "]'s cookie jar. [" + GetName() + "] now has three cookies (try !eat)!");
+		                	SetCookies(3);
 						}
 					}
 				}

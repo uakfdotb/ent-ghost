@@ -155,6 +155,9 @@ CBaseGame :: ~CBaseGame( )
 
 	for( vector<CPotentialPlayer *> :: iterator i = m_Potentials.begin( ); i != m_Potentials.end( ); ++i )
 		delete *i;
+	
+	for( map<uint32_t, CPotentialPlayer *> :: iterator i = m_BannedPlayers.begin( ); i != m_BannedPlayers.end( ); ++i )
+		delete i->second;
 
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 		delete *i;
@@ -388,6 +391,15 @@ unsigned int CBaseGame :: SetFD( void *fd, void *send_fd, int *nfds )
 			++NumFDs;
 		}
 	}
+	
+	for( map<uint32_t, CPotentialPlayer *> :: iterator i = m_BannedPlayers.begin( ); i != m_BannedPlayers.end( ); ++i )
+	{
+		if( i->second->GetSocket( ) )
+		{
+			i->second->GetSocket( )->SetFD( (fd_set *)fd, (fd_set *)send_fd, nfds );
+			++NumFDs;
+		}
+	}
 
 	return NumFDs;
 }
@@ -500,6 +512,31 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		}
 		else
 			++i;
+	}
+	
+	for( map<uint32_t, CPotentialPlayer *> :: iterator i = m_BannedPlayers.begin( ); i != m_BannedPlayers.end( ); )
+	{
+		if( i->second->Update( fd ) )
+		{
+			// flush the socket (e.g. in case a rejection message is queued)
+
+			if( i->second->GetSocket( ) )
+				i->second->GetSocket( )->DoSend( (fd_set *)send_fd );
+
+			delete i->second;
+			m_BannedPlayers.erase( i++ );
+		}
+		else
+		{
+			CONSOLE_Print( "bannnnn ... " + UTIL_ToString( GetTicks( ) - i->first ) );
+			if( GetTicks( ) - i->first > 6000 )
+			{
+				CONSOLE_Print( "deleting banned player..!" );
+				i->second->SetDeleteMe( true );
+			}
+			
+			i++;
+		}
 	}
 
 	// create the virtual host player
@@ -1261,6 +1298,12 @@ void CBaseGame :: UpdatePost( void *send_fd )
 		if( (*i)->GetSocket( ) )
 			(*i)->GetSocket( )->DoSend( (fd_set *)send_fd );
 	}
+	
+	for( map<uint32_t, CPotentialPlayer *> :: iterator i = m_BannedPlayers.begin( ); i != m_BannedPlayers.end( ); ++i )
+	{
+		if( i->second->GetSocket( ) )
+			i->second->GetSocket( )->DoSend( (fd_set *)send_fd );
+	}
 }
 
 void CBaseGame :: Send( CGamePlayer *player, BYTEARRAY data )
@@ -1631,6 +1674,31 @@ void CBaseGame :: SendEndMessage( )
 	}
 }
 
+void CBaseGame :: SendBannedInfo( CPotentialPlayer *player, CDBBan *Ban )
+{
+	// send slot info to the banned player
+	
+	vector<CGameSlot> Slots = m_Map->GetSlots( );
+	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 2, player->GetSocket( )->GetPort( ), player->GetExternalIP( ), Slots, m_RandomSeed, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
+	
+	BYTEARRAY IP;
+	IP.push_back( 0 );
+	IP.push_back( 0 );
+	IP.push_back( 0 );
+	IP.push_back( 0 );
+	
+	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( 1, m_VirtualHostName, IP, IP ) );
+	
+	// send a map check packet to the new player
+	
+	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_MAPCHECK( m_Map->GetMapPath( ), m_Map->GetMapSize( ), m_Map->GetMapInfo( ), m_Map->GetMapCRC( ), m_Map->GetMapSHA1( ) ) );
+	
+	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "Sorry, but you are currently banned." ) );
+	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Admin: " + Ban->GetAdmin( ) ) );
+	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Reason: " + Ban->GetReason( ) ) );
+	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "You will be automatically kicked in a few seconds." ) );
+}
+
 void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 {
 	CONSOLE_Print( "[GAME: " + m_GameName + "] deleting player [" + player->GetName( ) + "]: " + player->GetLeftReason( ) );
@@ -1979,13 +2047,17 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 							SendAllChat( m_GHost->m_Language->UserWasBannedOnByBecause( Ban->GetServer( ), Ban->GetName( ), Ban->GetDate( ), Ban->GetAdmin( ), Ban->GetReason( ) ) );
 							m_IgnoredNames.insert( joinPlayer->GetName( ) );
 						}
-
-						// let banned players "join" the game with an arbitrary PID then immediately close the connection
-						// this causes them to be kicked back to the chat channel on battle.net
-
-						vector<CGameSlot> Slots = m_Map->GetSlots( );
-						potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
+						
+						// let banned players "join" the game with virtual slots
+						// they will be given the admin and reason associated with their ban, and then kicked after a few seconds
+						
+						CPotentialPlayer *potentialCopy = new CPotentialPlayer( m_Protocol, this, potential->GetSocket( ) );
+						potentialCopy->SetBanned( );
+						potential->SetSocket( NULL );
 						potential->SetDeleteMe( true );
+						
+						m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
+						SendBannedInfo( potentialCopy, Ban );
 						return NULL;
 					}
 
@@ -2007,13 +2079,17 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 						SendAllChat( m_GHost->m_Language->UserWasBannedOnByBecause( Ban->GetServer( ), Ban->GetName( ), Ban->GetDate( ), Ban->GetAdmin( ), Ban->GetReason( ) ) );
 						m_IgnoredNames.insert( joinPlayer->GetName( ) );
 					}
-
-					// let banned players "join" the game with an arbitrary PID then immediately close the connection
-					// this causes them to be kicked back to the chat channel on battle.net
-
-					vector<CGameSlot> Slots = m_Map->GetSlots( );
-					potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
+						
+					// let banned players "join" the game with virtual slots
+					// they will be given the admin and reason associated with their ban, and then kicked after a few seconds
+					
+					CPotentialPlayer *potentialCopy = new CPotentialPlayer( m_Protocol, this, potential->GetSocket( ) );
+					potentialCopy->SetBanned( );
+					potential->SetSocket( NULL );
 					potential->SetDeleteMe( true );
+					
+					m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
+					SendBannedInfo( potentialCopy, Ban );
 					return NULL;
 				}
 
@@ -2042,13 +2118,17 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 				SendAllChat( m_GHost->m_Language->UserWasBannedOnByBecause( Ban->GetServer( ), Ban->GetName( ), Ban->GetDate( ), Ban->GetAdmin( ), Ban->GetReason( ) ) );
 				m_IgnoredNames.insert( joinPlayer->GetName( ) );
 			}
-
-			// let banned players "join" the game with an arbitrary PID then immediately close the connection
-			// this causes them to be kicked back to the chat channel on battle.net
-
-			vector<CGameSlot> Slots = m_Map->GetSlots( );
-			potential->Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, potential->GetSocket( )->GetPort( ), potential->GetExternalIP( ), Slots, 0, m_Map->GetMapLayoutStyle( ), m_Map->GetMapNumPlayers( ) ) );
+			
+			// let banned players "join" the game with virtual slots
+			// they will be given the admin and reason associated with their ban, and then kicked after a few seconds
+			
+			CPotentialPlayer *potentialCopy = new CPotentialPlayer( m_Protocol, this, potential->GetSocket( ) );
+			potentialCopy->SetBanned( );
+			potential->SetSocket( NULL );
 			potential->SetDeleteMe( true );
+			
+			m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
+			SendBannedInfo( potentialCopy, Ban );
 			return NULL;
 		}
 	}
@@ -3225,6 +3305,13 @@ void CBaseGame :: EventGameStarted( )
 		delete *i;
 
 	m_Potentials.clear( );
+	
+	// delete any banned players that are still hanging around
+	
+	for( map<uint32_t, CPotentialPlayer *> :: iterator i = m_BannedPlayers.begin( ); i != m_BannedPlayers.end( ); ++i )
+		delete i->second;
+	
+	m_BannedPlayers.clear( );
 
 	// set initial values for replay
 

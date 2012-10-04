@@ -127,6 +127,7 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 	CONSOLE_Print( m_MapType + "/" + m_Map->GetMapType( ) );
 
     m_Guess = 0;
+    m_FirstLeaver = true;
 }
 
 CGame :: ~CGame( )
@@ -146,8 +147,12 @@ CGame :: ~CGame( )
 				
 				if( m_MapType == "eihl" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-eihl", CustomReason, 3600 * 12, "ttr.cloud" ));
-				else
+				else if( m_MapType == "dota" || m_MapType == "dota2" || m_MapType == "lod" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
+				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "civwars" )
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600, "ttr.cloud" ));
+				else
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 1800, "ttr.cloud" ));
 			}
 		}
 	}
@@ -738,16 +743,26 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				m_DBBanLast = *i;
 		}
 		
-		if( player->GetAutoban( ) )
+		if( player->GetAutoban( ) && m_GHost->m_AutoHostMaximumGames != 0 )
 		{
 			// ban if game is loading or if it's dota and player has left >= 4v4 situation
-			if( m_GameLoading ) {
+			if( m_GameLoading || ( m_FirstLeaver && m_GameTicks < 1000 * 60 * 3 ) ) {
 				m_AutoBans.push_back( player->GetName( ) );
+				m_FirstLeaver = false;
 			} else {
-				if( m_MapType == "dota" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "castlefight2" || m_MapType == "eihl" || m_MapType == "legionmega2" ) {
+				string BanType = "";
+				
+				if( m_MapType == "dota" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "eihl" )
+					BanType = "dota";
+				
+				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "civwars" )
+					BanType = "3v3";
+				
+				if( !BanType.empty( ) )
+				{
 					char sid, team;
-					uint32_t CountSentinel = 0;
-					uint32_t CountScourge = 0;
+					uint32_t CountAlly = 0;
+					uint32_t CountEnemy = 0;
 
 					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
 					{
@@ -757,18 +772,19 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 							if( sid != 255 )
 							{
 								team = m_Slots[sid].GetTeam( );
-								if( team == 0 )
-									CountSentinel++;
-								if( team == 1 )
-									CountScourge++;
+								if( team == Team )
+									CountAlly++;
+								else
+									CountEnemy++;
 							}			
 						}
 					}
 				
-					if( CountSentinel >= 4 && CountScourge >= 4 )
-					{
+					if( BanType == "dota" && CountAlly >= 4 && CountEnemy >= 4 )
 						m_AutoBans.push_back( player->GetName( ) );
-					}
+					
+					else if( BanType == "3v3" && CountAlly == 3 && CountEnemy >= 2 )
+						m_AutoBans.push_back( player->GetName( ) );
 				}
 			}
 		}
@@ -1643,7 +1659,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				{
                     uint32_t numCookies = LastMatch->GetCookies();
 
-                    if(numCookies < 5) {
+                    if(numCookies < 3) {
                         SendAllChat( "[" + User + "] has refilled [" + LastMatch->GetName() + "]'s cookie jar. [" + LastMatch->GetName() + "] now has three cookies (try !eat)!");
                         LastMatch->SetCookies(3);
                     } else  {

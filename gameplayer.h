@@ -49,6 +49,7 @@ protected:
 	string m_ErrorString;
 	CIncomingJoinPlayer *m_IncomingJoinPlayer;
 	CIncomingGarenaUser *m_IncomingGarenaUser;
+	bool m_Banned;
 
     uint32_t m_ConnectionState; // zero if no packets received (wait REQJOIN), one if only REQJOIN received (wait MAPSIZE), two otherwise
     uint32_t m_ConnectionTime;  // last time the player did something relating to connection state
@@ -71,6 +72,7 @@ public:
 	virtual void SetSocket( CTCPSocket *nSocket )	{ m_Socket = nSocket; }
 	virtual void SetDeleteMe( bool nDeleteMe )		{ m_DeleteMe = nDeleteMe; }
 	virtual void SetGarenaUser( CIncomingGarenaUser *nIncomingGarenaUser ) { m_IncomingGarenaUser = nIncomingGarenaUser; }
+	virtual void SetBanned( )						{ m_Banned = true; }
 
 	// processing functions
 

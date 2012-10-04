@@ -205,6 +205,7 @@ public:
 	
 	void DenyIP( string ip, uint32_t duration, string reason );
 	bool CheckDeny( string ip );
+	bool FlameCheck( string message );
 };
 
 struct DenyInfo {
