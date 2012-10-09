@@ -2723,7 +2723,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] passed with " + UTIL_ToString( Votes ) + "/" + UTIL_ToString( GetNumHumanPlayers( ) ) + " votes" );
 				SendAllChat( m_GHost->m_Language->VoteKickPassed( m_KickVotePlayer ) );
-				m_GHost->DenyIP( m_KickVotePlayer->GetExternalIPString( ), 15000, "votekick passed" );
+				m_GHost->DenyIP( Victim->GetExternalIPString( ), 15000, "votekick passed" );
 			}
 			else
 				SendAllChat( m_GHost->m_Language->ErrorVoteKickingPlayer( m_KickVotePlayer ) );
