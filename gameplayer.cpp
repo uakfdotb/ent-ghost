@@ -609,7 +609,7 @@ void CGamePlayer :: ProcessPackets( )
 
 						for( unsigned int i = 0; i < m_FlameMessages.size( ); ++i )
 						{
-							if( GetTicks( ) - m_FlameMessages[i] < 40000 )
+							if( GetTicks( ) - m_FlameMessages[i] < 80000 )
 								RecentCount++;
 						}
 					
