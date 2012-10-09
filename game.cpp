@@ -293,16 +293,16 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( !i->second->GetRealm( ).empty( ) )
 				StatsName += "@" + i->second->GetRealm( );
 
-			if( GamePlayerSummary )
+			if( GamePlayerSummary && GamePlayerSummary->GetTotalGames( ) > 0 )
 			{
 				if( i->first.empty( ) )
-					SendAllChat( "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot." );
+					SendAllChat( "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Average stay: " + UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) + " percent." );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot." );
+						SendChat( Player, "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Average stay: " + UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) + " percent." );
 				}
 			}
 			else
@@ -336,7 +336,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( !i->second->GetRealm( ).empty( ) )
 				StatsName += "@" + i->second->GetRealm( );
 
-			if( DotAPlayerSummary )
+			if( DotAPlayerSummary && DotAPlayerSummary->GetTotalGames( ) > 0 )
 			{
 				string DotaCategory = "DotA";
 				
@@ -386,7 +386,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 		{
 			CDBVampPlayerSummary *VampPlayerSummary = i->second->GetResult( );
 
-			if( VampPlayerSummary )
+			if( VampPlayerSummary && VampPlayerSummary->GetTotalGames( ) > 0 )
 			{
 				double MinCommandCenter = VampPlayerSummary->GetMinCommandCenter( ) / 60.0;
 				double AvgCommandCenter = VampPlayerSummary->GetAvgCommandCenter( ) / 60.0;
@@ -468,7 +468,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( !i->second->GetRealm( ).empty( ) )
 				StatsName += "@" + i->second->GetRealm( );
 
-			if( TreePlayerSummary )
+			if( TreePlayerSummary && TreePlayerSummary->GetTotalGames( ) > 0 )
 			{
                 string Summary = "[" + StatsName + "] has played " + UTIL_ToString( TreePlayerSummary->GetTotalGames( ) ) + " tree tag games here (ELO: " + UTIL_ToString( TreePlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( TreePlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalLosses( ) ) + ". E/I: " + UTIL_ToString( TreePlayerSummary->GetTotalEntGames( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalInfernalGames( ) ) + ". K/D/S/TK: " + UTIL_ToString( TreePlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalDeaths( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalSaves( ) ) + "/" + UTIL_ToString( TreePlayerSummary->GetTotalTKs( ) ) + " (" + UTIL_ToString( TreePlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgDeaths( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgSaves( ), 2 ) + "/" + UTIL_ToString( TreePlayerSummary->GetAvgTKs( ), 2 ) + ").";
 
@@ -513,7 +513,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( !i->second->GetRealm( ).empty( ) )
 				StatsName += "@" + i->second->GetRealm( );
 
-			if( SnipePlayerSummary )
+			if( SnipePlayerSummary && SnipePlayerSummary->GetTotalGames( ) > 0 )
 			{
 				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( SnipePlayerSummary->GetTotalGames( ) ) + " sniper games here (ELO: " + UTIL_ToString( SnipePlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( SnipePlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( SnipePlayerSummary->GetTotalLosses( ) ) + ". K/D: " + UTIL_ToString( SnipePlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( SnipePlayerSummary->GetTotalDeaths( ) ) + " (" + UTIL_ToString( SnipePlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( SnipePlayerSummary->GetAvgDeaths( ), 2 ) + ").";
 
@@ -558,7 +558,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( !i->second->GetRealm( ).empty( ) )
 				StatsName += "@" + i->second->GetRealm( );
 
-			if( ShipsPlayerSummary )
+			if( ShipsPlayerSummary && ShipsPlayerSummary->GetTotalGames( ) > 0 )
 			{
 				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( ShipsPlayerSummary->GetTotalGames( ) ) + " battleships games here (ELO: " + UTIL_ToString( ShipsPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( ShipsPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( ShipsPlayerSummary->GetTotalLosses( ) ) + ". K/D: " + UTIL_ToString( ShipsPlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( ShipsPlayerSummary->GetTotalDeaths( ) ) + " (" + UTIL_ToString( ShipsPlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( ShipsPlayerSummary->GetAvgDeaths( ), 2 ) + ").";
 
@@ -603,7 +603,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( !i->second->GetRealm( ).empty( ) )
 				StatsName += "@" + i->second->GetRealm( );
 
-			if( W3MMDPlayerSummary )
+			if( W3MMDPlayerSummary && W3MMDPlayerSummary->GetTotalGames( ) > 0 )
 			{
 				string Category = W3MMDPlayerSummary->GetCategory( );
 				string CategoryName = "unknown";
@@ -755,8 +755,11 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				if( m_MapType == "dota" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "eihl" )
 					BanType = "dota";
 				
-				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "civwars" )
+				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "civwars" )
 					BanType = "3v3";
+				
+				else if( m_MapType == "legionmega" || m_MapType == "legionmega2" )
+					BanType = "4v4";
 				
 				if( !BanType.empty( ) )
 				{
@@ -784,6 +787,9 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 						m_AutoBans.push_back( player->GetName( ) );
 					
 					else if( BanType == "3v3" && CountAlly == 3 && CountEnemy >= 2 )
+						m_AutoBans.push_back( player->GetName( ) );
+					
+					else if( BanType == "4v4" && CountAlly == 4 && CountEnemy >= 3 )
 						m_AutoBans.push_back( player->GetName( ) );
 				}
 			}
@@ -2649,7 +2655,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
                 {
                     if(m_StartedVoteStartTime == 0) { //need >minplayers or admin to START a votestart
                         if (GetNumHumanPlayers() < m_GHost->m_VoteStartMinPlayers && !votestartAuth) { //need at least eight players to votestart
-                            SendChat( player, "You cannot use !votestart until there " + UTIL_ToString(m_GHost->m_VoteStartMinPlayers) + " or more players!" );
+                            SendChat( player, "You cannot use !votestart until there are " + UTIL_ToString(m_GHost->m_VoteStartMinPlayers) + " or more players in the game!" );
                             return false;
                         }
                     
@@ -2717,6 +2723,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 				CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] passed with " + UTIL_ToString( Votes ) + "/" + UTIL_ToString( GetNumHumanPlayers( ) ) + " votes" );
 				SendAllChat( m_GHost->m_Language->VoteKickPassed( m_KickVotePlayer ) );
+				m_GHost->DenyIP( m_KickVotePlayer->GetExternalIPString( ), 15000, "votekick passed" );
 			}
 			else
 				SendAllChat( m_GHost->m_Language->ErrorVoteKickingPlayer( m_KickVotePlayer ) );

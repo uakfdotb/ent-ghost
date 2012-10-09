@@ -867,14 +867,16 @@ private:
 	string m_Server;
 	string m_Name;
 	uint32_t m_TotalGames;			// total number of games played
+	double m_LeftPercent;
 
 public:
-	CDBGamePlayerSummary( string nServer, string nName, uint32_t nTotalGames );
+	CDBGamePlayerSummary( string nServer, string nName, uint32_t nTotalGames, double nLeftPercent );
 	~CDBGamePlayerSummary( );
 
 	string GetServer( )					{ return m_Server; }
 	string GetName( )					{ return m_Name; }
 	uint32_t GetTotalGames( )			{ return m_TotalGames; }
+	double GetLeftPercent( )			{ return m_LeftPercent; }
 };
 
 //
