@@ -36,6 +36,7 @@ class CCallableBanCheck;
 class CCallableBanAdd;
 class CCallableBanRemove;
 class CCallableBanList;
+class CCallableBanListFast;
 class CCallableCommandList;
 class CCallableGameAdd;
 class CCallableGameUpdate;
@@ -65,6 +66,7 @@ class CDBTreePlayerSummary;
 class CDBShipsPlayerSummary;
 class CDBSnipePlayerSummary;
 class CDBW3MMDPlayerSummary;
+class CBNET;
 
 typedef pair<uint32_t,string> VarP;
 
@@ -95,10 +97,11 @@ public:
 	virtual vector<string> AdminList( string server );
 	virtual uint32_t BanCount( string server );
 	virtual CDBBan *BanCheck( string server, string user, string ip );
-	virtual bool BanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context );
+	virtual uint32_t BanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context );
 	virtual bool BanRemove( string server, string user, string context );
 	virtual bool BanRemove( string user, string context );
 	virtual vector<CDBBan *> BanList( string server );
+	virtual void BanListFast( CBNET *bnet );
 	virtual vector<string> CommandList(  );
 	virtual uint32_t GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual string GameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add );
@@ -136,6 +139,7 @@ public:
 	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user, string context );
 	virtual CCallableBanRemove *ThreadedBanRemove( string user, string context );
 	virtual CCallableBanList *ThreadedBanList( string server );
+	virtual CCallableBanListFast *ThreadedBanListFast( CBNET *bnet );
 	virtual CCallableCommandList *ThreadedCommandList( );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual CCallableGameUpdate *ThreadedGameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add );
@@ -330,7 +334,7 @@ protected:
 	string m_Reason;
 	uint32_t m_ExpireTime;
 	string m_Context;
-	bool m_Result;
+	uint32_t m_Result;
 
 public:
 	CCallableBanAdd( string nServer, string nUser, string nIP, string nGameName, string nAdmin, string nReason, uint32_t nExpireTime, string nContext ) : CBaseCallable( ), m_Server( nServer ), m_User( nUser ), m_IP( nIP ), m_GameName( nGameName ), m_Admin( nAdmin ), m_Reason( nReason ), m_ExpireTime( nExpireTime ), m_Context( nContext ), m_Result( false ) { }
@@ -344,8 +348,8 @@ public:
 	virtual string GetReason( )				{ return m_Reason; }
 	virtual uint32_t GetExpireTime( )		{ return m_ExpireTime; }
 	virtual string GetContext( )			{ return m_Context; }
-	virtual bool GetResult( )				{ return m_Result; }
-	virtual void SetResult( bool nResult )	{ m_Result = nResult; }
+	virtual uint32_t GetResult( )			{ return m_Result; }
+	virtual void SetResult( uint32_t nResult ) { m_Result = nResult; }
 };
 
 class CCallableBanRemove : virtual public CBaseCallable
@@ -392,6 +396,16 @@ public:
 
 	virtual vector<string> GetResult( )				{ return m_Result; }
 	virtual void SetResult( vector<string> nResult )	{ m_Result = nResult; }
+};
+
+class CCallableBanListFast : virtual public CBaseCallable
+{
+protected:
+	CBNET *m_Bnet;
+
+public:
+	CCallableBanListFast( CBNET *nBnet ) : CBaseCallable( ) { m_Bnet = nBnet; }
+	virtual ~CCallableBanListFast( );
 };
 
 class CCallableGameAdd : virtual public CBaseCallable
@@ -760,6 +774,7 @@ public:
 class CDBBan
 {
 private:
+	uint32_t m_Id;
 	string m_Server;
 	string m_Name;
 	string m_IP;
@@ -771,9 +786,10 @@ private:
 	string m_Context;
 
 public:
-	CDBBan( string nServer, string nName, string nIP, string nDate, string nGameName, string nAdmin, string nReason, string nExpireDate, string nContext );
+	CDBBan( uint32_t nId, string nServer, string nName, string nIP, string nDate, string nGameName, string nAdmin, string nReason, string nExpireDate, string nContext );
 	~CDBBan( );
 
+	uint32_t GetId( )		{ return m_Id; }
 	string GetServer( )		{ return m_Server; }
 	string GetName( )		{ return m_Name; }
 	string GetIP( )			{ return m_IP; }

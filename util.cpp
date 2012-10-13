@@ -355,6 +355,15 @@ uint32_t UTIL_ToUInt32( string &s )
 	return result;
 }
 
+uint64_t UTIL_ToUInt64( string &s )
+{
+	uint64_t result;
+	stringstream SS;
+	SS << s;
+	SS >> result;
+	return result;
+}
+
 int16_t UTIL_ToInt16( string &s )
 {
 	int16_t result;

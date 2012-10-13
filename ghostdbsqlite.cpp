@@ -741,7 +741,7 @@ CDBBan *CGHostDBSQLite :: BanCheck( string server, string user, string ip )
 			vector<string> *Row = m_DB->GetRow( );
 
 			if( Row->size( ) == 6 )
-				Ban = new CDBBan( server, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4], (*Row)[5], "unknown", "unknown" );
+				Ban = new CDBBan( 0, server, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4], (*Row)[5], "unknown", "unknown" );
 			else
 				CONSOLE_Print( "[SQLITE3] error checking ban [" + server + " : " + user + " : " + ip + "] - row doesn't have 6 columns" );
 		}
@@ -756,10 +756,10 @@ CDBBan *CGHostDBSQLite :: BanCheck( string server, string user, string ip )
 	return Ban;
 }
 
-bool CGHostDBSQLite :: BanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context )
+uint32_t CGHostDBSQLite :: BanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
-	bool Success = false;
+	uint32_t Success = false;
 	sqlite3_stmt *Statement;
 	m_DB->Prepare( "INSERT INTO bans ( server, name, ip, date, gamename, admin, reason ) VALUES ( ?, ?, ?, date('now'), ?, ?, ? )", (void **)&Statement );
 
@@ -854,7 +854,7 @@ vector<CDBBan *> CGHostDBSQLite :: BanList( string server )
 			vector<string> *Row = m_DB->GetRow( );
 
 			if( Row->size( ) == 6 )
-				BanList.push_back( new CDBBan( server, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4], (*Row)[5], "unknown", "unknown" ) );
+				BanList.push_back( new CDBBan( 0, server, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4], (*Row)[5], "unknown", "unknown" ) );
 
 			RC = m_DB->Step( Statement );
 		}

@@ -22,6 +22,7 @@
 #include "util.h"
 #include "config.h"
 #include "ghostdb.h"
+#include "bnet.h"
 
 //
 // CGHostDB
@@ -87,7 +88,7 @@ CDBBan *CGHostDB :: BanCheck( string server, string user, string ip )
 	return NULL;
 }
 
-bool CGHostDB :: BanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context )
+uint32_t CGHostDB :: BanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context )
 {
 	return false;
 }
@@ -105,6 +106,10 @@ bool CGHostDB :: BanRemove( string user, string context )
 vector<CDBBan *> CGHostDB :: BanList( string server )
 {
 	return vector<CDBBan *>( );
+}
+
+void CGHostDB :: BanListFast( CBNET *bnet )
+{
 }
 
 vector<string> CGHostDB :: CommandList( )
@@ -273,6 +278,11 @@ CCallableBanRemove *CGHostDB :: ThreadedBanRemove( string user, string context )
 }
 
 CCallableBanList *CGHostDB :: ThreadedBanList( string server )
+{
+	return NULL;
+}
+
+CCallableBanListFast *CGHostDB :: ThreadedBanListFast( CBNET *bnet )
 {
 	return NULL;
 }
@@ -447,6 +457,11 @@ CCallableBanList :: ~CCallableBanList( )
 	// don't delete anything in m_Result here, it's the caller's responsibility
 }
 
+CCallableBanListFast :: ~CCallableBanListFast( )
+{
+	// don't delete anything in m_Result here, it's the caller's responsibility
+}
+
 CCallableCommandList :: ~CCallableCommandList( )
 {
 	// don't delete anything in m_Result here, it's the caller's responsibility
@@ -546,7 +561,7 @@ CCallableW3MMDVarAdd :: ~CCallableW3MMDVarAdd( )
 // CDBBan
 //
 
-CDBBan :: CDBBan( string nServer, string nName, string nIP, string nDate, string nGameName, string nAdmin, string nReason, string nExpireDate, string nContext ) : m_Server( nServer ), m_Name( nName ), m_IP( nIP ), m_Date( nDate ), m_GameName( nGameName ), m_Admin( nAdmin ), m_Reason( nReason ), m_ExpireDate( nExpireDate ), m_Context( nContext )
+CDBBan :: CDBBan( uint32_t nId, string nServer, string nName, string nIP, string nDate, string nGameName, string nAdmin, string nReason, string nExpireDate, string nContext ) : m_Id( nId ), m_Server( nServer ), m_Name( nName ), m_IP( nIP ), m_Date( nDate ), m_GameName( nGameName ), m_Admin( nAdmin ), m_Reason( nReason ), m_ExpireDate( nExpireDate ), m_Context( nContext )
 {
 
 }

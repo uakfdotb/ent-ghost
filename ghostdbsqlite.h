@@ -219,7 +219,7 @@ public:
 	virtual vector<string> AdminList( string server );
 	virtual uint32_t BanCount( string server );
 	virtual CDBBan *BanCheck( string server, string user, string ip );
-	virtual bool BanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context );
+	virtual uint32_t BanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context );
 	virtual bool BanRemove( string server, string user, string context );
 	virtual bool BanRemove( string user, string context );
 	virtual vector<CDBBan *> BanList( string server );

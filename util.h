@@ -56,6 +56,7 @@ string UTIL_ToString( double d, int digits );
 string UTIL_ToHexString( uint32_t i );
 uint16_t UTIL_ToUInt16( string &s );
 uint32_t UTIL_ToUInt32( string &s );
+uint64_t UTIL_ToUInt64( string &s );
 int16_t UTIL_ToInt16( string &s );
 int32_t UTIL_ToInt32( string &s );
 double UTIL_ToDouble( string &s );

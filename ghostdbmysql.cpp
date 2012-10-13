@@ -23,6 +23,7 @@
 #include "ghost.h"
 #include "util.h"
 #include "config.h"
+#include "bnet.h"
 #include "ghostdb.h"
 #include "ghostdbmysql.h"
 
@@ -291,6 +292,19 @@ CCallableBanList *CGHostDBMySQL :: ThreadedBanList( string server )
 	CCallableBanList *Callable = new CMySQLCallableBanList( server, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
+	return Callable;
+}
+
+CCallableBanListFast *CGHostDBMySQL :: ThreadedBanListFast( CBNET *bnet )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+		++m_NumConnections;
+
+	CCallableBanListFast *Callable = new CMySQLCallableBanListFast( bnet, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CreateThread( Callable );
+	++m_OutstandingCallables;
 	return Callable;
 }
 
@@ -784,9 +798,9 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 	string Query;
 
 	if( ip.empty( ) )
-		Query = "SELECT name, ip, DATE(date), gamename, admin, reason, expiredate, context FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
+		Query = "SELECT id, name, ip, DATE(date), gamename, admin, reason, expiredate, context FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
 	else
-		Query = "SELECT name, ip, DATE(date), gamename, admin, reason, expiredate, context FROM bans WHERE (server='" + EscServer + "' AND name='" + EscUser + "') OR ip='" + EscIP + "'";
+		Query = "SELECT id, name, ip, DATE(date), gamename, admin, reason, expiredate, context FROM bans WHERE (server='" + EscServer + "' AND name='" + EscUser + "') OR ip='" + EscIP + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -798,10 +812,10 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 		{
 			vector<string> Row = MySQLFetchRow( Result );
 
-			if( Row.size( ) == 8 )
-				Ban = new CDBBan( server, Row[0], Row[1], Row[2], Row[3], Row[4], Row[5], Row[6], Row[7] );
+			if( Row.size( ) == 9 )
+				Ban = new CDBBan( UTIL_ToUInt32( Row[0] ), server, Row[1], Row[2], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8] );
 			/* else
-				*error = "error checking ban [" + server + " : " + user + "] - row doesn't have 6 columns"; */
+				*error = "error checking ban [" + server + " : " + user + "] - row doesn't have 9 columns"; */
 
 			mysql_free_result( Result );
 		}
@@ -812,7 +826,7 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 	return Ban;
 }
 
-bool MySQLBanAdd( void *conn, string *error, uint32_t botid, string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context )
+uint32_t MySQLBanAdd( void *conn, string *error, uint32_t botid, string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	transform( admin.begin( ), admin.end( ), admin.begin( ), (int(*)(int))tolower );
@@ -824,15 +838,15 @@ bool MySQLBanAdd( void *conn, string *error, uint32_t botid, string server, stri
 	string EscAdmin = MySQLEscapeString( conn, admin );
 	string EscReason = MySQLEscapeString( conn, reason );
 	string EscContext = MySQLEscapeString( conn, context );
-	bool Success = false;
+	uint32_t RowID = 0;
 	string Query = "INSERT INTO bans ( botid, server, name, ip, date, gamename, admin, reason, expiredate, context ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscUser + "', '" + EscIP + "', CURDATE( ), '" + EscGameName + "', '" + EscAdmin + "', '" + EscReason + "', DATE_ADD( NOW( ), INTERVAL " + UTIL_ToString( expiretime ) + " second ), '" + EscContext + "' )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
 	else
-		Success = true;
+		RowID = mysql_insert_id( (MYSQL *)conn );
 
-	return Success;
+	return RowID;
 }
 
 bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, string user, string context )
@@ -888,7 +902,7 @@ vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string
 	else
 	{
 		string EscServer = MySQLEscapeString( conn, server );
-		string Query = "SELECT name, ip, DATE(date), gamename, admin, reason, expiredate, context FROM bans WHERE server='" + EscServer + "'";
+		string Query = "SELECT id, name, ip, DATE(date), gamename, admin, reason, expiredate, context FROM bans WHERE server='" + EscServer + "'";
 
 		if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 			*error = mysql_error( (MYSQL *)conn );
@@ -900,9 +914,9 @@ vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string
 			{
 				vector<string> Row = MySQLFetchRow( Result );
 
-				while( Row.size( ) == 8 )
+				while( Row.size( ) == 9 )
 				{
-					BanList.push_back( new CDBBan( server, Row[0], Row[1], Row[2], Row[3], Row[4], Row[5], Row[6], Row[7] ) );
+					BanList.push_back( new CDBBan( UTIL_ToUInt32( Row[0] ), server, Row[1], Row[2], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8] ) );
 					Row = MySQLFetchRow( Result );
 				}
 
@@ -914,6 +928,80 @@ vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string
 	}
 
 	return BanList;
+}
+
+void MySQLBanListFast( void *conn, string *error, uint32_t botid, CBNET *bnet )
+{
+	string EscServer = MySQLEscapeString( conn, bnet->GetServer( ) );
+	
+	//find what to reset ban list fast time to
+	uint64_t OldBanListFastTime = bnet->GetBanListFastTime( );
+	uint64_t NewBanListFastTime = OldBanListFastTime;
+	
+	//first, select the ones that should be added
+	string Query = "SELECT banid, bans.name, bans.ip, bans.date, bans.gamename, bans.admin, bans.reason, bans.expiredate, bans.context, UNIX_TIMESTAMP(bancache.datetime) FROM bancache LEFT JOIN bans ON bancache.banid = bans.id WHERE bans.server='" + EscServer + "' AND bancache.datetime >= FROM_UNIXTIME('" + UTIL_ToString( OldBanListFastTime ) + "') AND bancache.status = 0";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			while( Row.size( ) == 10 )
+			{
+				uint64_t BanTime = UTIL_ToUInt64( Row[9] );
+				
+				if( BanTime > NewBanListFastTime )
+					NewBanListFastTime = BanTime;
+				
+				bnet->AddBan( UTIL_ToUInt32( Row[0] ), Row[1], Row[2], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8] );
+				
+				Row = MySQLFetchRow( Result );
+			}
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+	
+	bnet->SetBanListFastTime( NewBanListFastTime );
+	
+	//now, select the ones that should be deleted
+	// don't update new ban list fast time because we might miss some add-bans next time we go through cache
+	//additionally, we update OldBanListFastTime based on NewBanListFastTime if it has not been set yet
+	// this is so that we don't select EVERY deleted ban, ever
+	
+	if( OldBanListFastTime == 0 )
+		OldBanListFastTime = NewBanListFastTime - 3600;
+	
+	Query = "SELECT bancache.banid FROM bancache LEFT JOIN ban_history ON bancache.banid = ban_history.banid WHERE ban_history.server = '" + EscServer + "' AND bancache.datetime >= FROM_UNIXTIME('" + UTIL_ToString( OldBanListFastTime ) + "') AND bancache.status = 1";
+	
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			while( Row.size( ) == 1 )
+			{
+				bnet->DeleteBanFast( UTIL_ToUInt32( Row[0] ) );
+				Row = MySQLFetchRow( Result );
+			}
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
 }
 
 vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid )
@@ -2019,6 +2107,16 @@ void CMySQLCallableBanList :: operator( )( )
 
 	if( m_Error.empty( ) )
 		m_Result = MySQLBanList( m_Connection, &m_Error, m_SQLBotID, m_Server );
+
+	Close( );
+}
+
+void CMySQLCallableBanListFast :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		MySQLBanListFast( m_Connection, &m_Error, m_SQLBotID, m_Bnet );
 
 	Close( );
 }

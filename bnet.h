@@ -43,6 +43,7 @@ class CCallableBanCount;
 class CCallableBanAdd;
 class CCallableBanRemove;
 class CCallableBanList;
+class CCallableBanListFast;
 class CCallableGamePlayerSummaryCheck;
 class CCallableDotAPlayerSummaryCheck;
 class CCallableVampPlayerSummaryCheck;
@@ -87,6 +88,7 @@ private:
 	vector<PairedGameUpdate> m_PairedGameUpdates;	// vector of paired threaded database gamelist query checks in progress
 	CCallableAdminList *m_CallableAdminList;		// threaded database admin list in progress
 	CCallableBanList *m_CallableBanList;			// threaded database ban list in progress
+	CCallableBanListFast *m_CallableBanListFast;	// threaded database ban list in progress
 	vector<string> m_Admins;						// vector of cached admins
 	vector<CDBBan *> m_Bans;						// vector of cached bans
 	boost::mutex m_BansMutex;						// synchronizes accesses and updates to the m_Bans vector
@@ -122,7 +124,8 @@ private:
 	uint32_t m_LastOutPacketTicks;					// GetTicks when the last packet was sent for the m_OutPackets queue
 	uint32_t m_LastOutPacketSize;
 	uint32_t m_LastAdminRefreshTime;				// GetTime when the admin list was last refreshed from the database
-	uint32_t m_LastBanRefreshTime;					// GetTime when the ban list was last refreshed from the database
+	uint32_t m_LastBanRefreshTime;					// GetTime when the ban list was last refreshed from the database (BanListFast)
+	uint32_t m_LastBanHardRefreshTime;				// GetTime when the ban list was last hard-refreshed from the database (BanList)
 	bool m_FirstConnect;							// if we haven't tried to connect to battle.net yet
 	bool m_WaitingToConnect;						// if we're waiting to reconnect to battle.net after being disconnected
 	bool m_LoggedIn;								// if we've logged into battle.net or not
@@ -131,6 +134,8 @@ private:
 	bool m_HoldClan;								// whether to auto hold clan members when creating a game or not
 	bool m_PublicCommands;							// whether to allow public commands or not
 	bool m_LastInviteCreation;						// whether the last invite received was for a clan creation (else, it was for invitation response)
+	
+	uint64_t m_BanListFastTime;						// last time when we got the ban list fast
 
 public:
 	CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nHostCounterID );
@@ -159,6 +164,8 @@ public:
 	bool GetPublicCommands( )			{ return m_PublicCommands; }
 	uint32_t GetOutPacketsQueued( )		{ return m_OutPackets.size( ); }
 	BYTEARRAY GetUniqueName( );
+	uint64_t GetBanListFastTime( )		{ return m_BanListFastTime; }
+	void SetBanListFastTime( uint64_t nBanListFastTime ) { m_BanListFastTime = nBanListFastTime; }
 
 	// processing functions
 
@@ -197,7 +204,9 @@ public:
 	CDBBan *IsBannedName( string name, string context );
 	CDBBan *IsBannedIP( string ip, string context );
 	void AddAdmin( string name );
-	void AddBan( string name, string ip, string gamename, string admin, string reason );
+	void AddBan( uint32_t id, string name, string ip, string gamename, string admin, string reason );
+	void AddBan( uint32_t id, string name, string ip, string date, string gamename, string admin, string reason, string expiredate, string context );
+	void DeleteBanFast( uint32_t id );
 	void RemoveAdmin( string name );
 	void RemoveBan( string name, string context );
 	void HoldFriends( CBaseGame *game );

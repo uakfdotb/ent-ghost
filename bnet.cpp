@@ -53,8 +53,6 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_Protocol = new CBNETProtocol( );
 	m_BNLSClient = NULL;
 	m_BNCSUtil = new CBNCSUtilInterface( nUserName, nUserPassword );
-	m_CallableAdminList = m_GHost->m_DB->ThreadedAdminList( nServer );
-	m_CallableBanList = m_GHost->m_DB->ThreadedBanList( nServer );
 	m_Exiting = false;
 	m_Server = nServer;
 	string LowerServer = m_Server;
@@ -72,6 +70,10 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 		m_ServerAlias = "Europe";
 	else
 		m_ServerAlias = m_Server;
+	
+	m_CallableAdminList = m_GHost->m_DB->ThreadedAdminList( nServer );
+	m_CallableBanList = NULL;
+	m_CallableBanListFast = NULL;
 
 	if( nPasswordHashType == "pvpgn" && !nBNLSServer.empty( ) )
 	{
@@ -124,7 +126,8 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_LastOutPacketTicks = 0;
 	m_LastOutPacketSize = 0;
 	m_LastAdminRefreshTime = GetTime( );
-	m_LastBanRefreshTime = GetTime( );
+	m_LastBanRefreshTime = GetTime( ) - 30;
+	m_LastBanHardRefreshTime = 0;
 	m_FirstConnect = true;
 	m_WaitingToConnect = true;
 	m_LoggedIn = false;
@@ -134,6 +137,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_PublicCommands = nPublicCommands;
 	m_LastInviteCreation = false;
 	m_ServerReconnectCount = 0;
+	m_BanListFastTime = 0;
 }
 
 CBNET :: ~CBNET( )
@@ -319,7 +323,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		{
 			if( i->second->GetResult( ) )
 			{
-				AddBan( i->second->GetUser( ), i->second->GetIP( ), i->second->GetGameName( ), i->second->GetAdmin( ), i->second->GetReason( ) );
+				//AddBan( 0, i->second->GetUser( ), i->second->GetIP( ), i->second->GetGameName( ), i->second->GetAdmin( ), i->second->GetReason( ) );
 				QueueChatCommand( m_GHost->m_Language->BannedUser( i->second->GetServer( ), i->second->GetUser( ) ), i->first, !i->first.empty( ) );
 			}
 			else
@@ -484,9 +488,9 @@ bool CBNET :: Update( void *fd, void *send_fd )
 	}
 
 
-	// refresh the admin list every 5 minutes
+	// refresh the admin list every hour
 
-	if( !m_CallableAdminList && GetTime( ) - m_LastAdminRefreshTime >= 300 )
+	if( !m_CallableAdminList && GetTime( ) - m_LastAdminRefreshTime >= 3600 )
 		m_CallableAdminList = m_GHost->m_DB->ThreadedAdminList( m_Server );
 
 	if( m_CallableAdminList && m_CallableAdminList->GetReady( ) )
@@ -499,16 +503,33 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		m_LastAdminRefreshTime = GetTime( );
 	}
 
-	// refresh the ban list every 5 minutes
+	// fast-refresh the ban list every 3 minutes
 
-	if( !m_CallableBanList && GetTime( ) - m_LastBanRefreshTime >= 300 )
+	if( !m_CallableBanListFast && GetTime( ) - m_LastBanRefreshTime >= 180 )
+		m_CallableBanListFast = m_GHost->m_DB->ThreadedBanListFast( this );
+	
+	if( m_CallableBanListFast && m_CallableBanListFast->GetReady( ) )
+	{
+		boost::mutex::scoped_lock lock( m_BansMutex );
+		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (new size: " + UTIL_ToString( m_Bans.size( ) ) + ")" );
+		lock.unlock( );
+		
+		m_GHost->m_DB->RecoverCallable( m_CallableBanListFast );
+		delete m_CallableBanListFast;
+		m_CallableBanListFast = NULL;
+		m_LastBanRefreshTime = GetTime( );
+	}
+	
+	// hard-refresh the ban list every 3 hours
+
+	if( !m_CallableBanList && GetTime( ) - m_LastBanHardRefreshTime >= 3 * 3600 )
 		m_CallableBanList = m_GHost->m_DB->ThreadedBanList( m_Server );
 
 	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
 	{
-		// CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (" + UTIL_ToString( m_Bans.size( ) ) + " -> " + UTIL_ToString( m_CallableBanList->GetResult( ).size( ) ) + " bans)" );
-
 		boost::mutex::scoped_lock lock( m_BansMutex );
+		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (" + UTIL_ToString( m_Bans.size( ) ) + " -> " + UTIL_ToString( m_CallableBanList->GetResult( ).size( ) ) + " bans)" );
+
 		
 		while( !m_Bans.empty( ) )
 		{
@@ -523,7 +544,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		m_GHost->m_DB->RecoverCallable( m_CallableBanList );
 		delete m_CallableBanList;
 		m_CallableBanList = NULL;
-		m_LastBanRefreshTime = GetTime( );
+		m_LastBanHardRefreshTime = GetTime( );
 	}
 
 	// we return at the end of each if statement so we don't have to deal with errors related to the order of the if statements
@@ -2570,12 +2591,46 @@ void CBNET :: AddAdmin( string name )
 	m_Admins.push_back( name );
 }
 
-void CBNET :: AddBan( string name, string ip, string gamename, string admin, string reason )
+void CBNET :: AddBan( uint32_t id, string name, string ip, string gamename, string admin, string reason )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	
+	// delete ban in case it already exists
+	DeleteBanFast( id );
+	
+	// add the new ban
 	boost::mutex::scoped_lock lock( m_BansMutex );
-	m_Bans.push_back( new CDBBan( m_Server, name, ip, "N/A", gamename, admin, reason, "", "ttr.cloud" ) );
+	m_Bans.push_back( new CDBBan( id, m_Server, name, ip, "N/A", gamename, admin, reason, "", "ttr.cloud" ) );
+	lock.unlock( );
+}
+
+void CBNET :: AddBan( uint32_t id, string name, string ip, string date, string gamename, string admin, string reason, string expiredate, string context )
+{
+	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
+	
+	// delete ban in case it already exists
+	DeleteBanFast( id );
+	
+	// add the new ban
+	boost::mutex::scoped_lock lock( m_BansMutex );
+	m_Bans.push_back( new CDBBan( id, m_Server, name, ip, date, gamename, admin, reason, expiredate, context ) );
+	lock.unlock( );
+}
+
+void CBNET :: DeleteBanFast( uint32_t id )
+{
+	boost::mutex::scoped_lock lock( m_BansMutex );
+	
+	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); )
+	{
+		if( (*i)->GetId( ) == id )
+		{
+			i = m_Bans.erase( i );
+		}
+		else
+			i++;
+	}
+	
 	lock.unlock( );
 }
 

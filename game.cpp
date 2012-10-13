@@ -266,11 +266,14 @@ bool CGame :: Update( void *fd, void *send_fd )
 		{
 			if( i->second->GetResult( ) )
 			{
+				// don't add the ban, we'll sync with it and get proper information later anyway
+				/*
                                 for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
 				{
 					if( (*j)->GetServer( ) == i->second->GetServer( ) )
-						(*j)->AddBan( i->second->GetUser( ), i->second->GetIP( ), i->second->GetGameName( ), i->second->GetAdmin( ), i->second->GetReason( ) );
+						(*j)->AddBan( i->second->GetResult( ), i->second->GetUser( ), i->second->GetIP( ), i->second->GetGameName( ), i->second->GetAdmin( ), i->second->GetReason( ) );
 				}
+				*/
 
 				SendAllChat( m_GHost->m_Language->PlayerWasBannedByPlayer( i->second->GetServer( ), i->second->GetUser( ), i->first ) );
 			}
@@ -2806,7 +2809,7 @@ void CGame :: EventGameStarted( )
 	// so we create a "potential ban" for each player and only store it in the database if requested to by an admin
 
         for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
-		m_DBBans.push_back( new CDBBan( (*i)->GetJoinedRealm( ), (*i)->GetName( ), (*i)->GetExternalIPString( ), string( ), string( ), string( ), string( ), string( ), string( ) ) );
+		m_DBBans.push_back( new CDBBan( 0, (*i)->GetJoinedRealm( ), (*i)->GetName( ), (*i)->GetExternalIPString( ), string( ), string( ), string( ), string( ), string( ), string( ) ) );
 }
 
 bool CGame :: IsGameDataSaved( )
