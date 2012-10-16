@@ -137,6 +137,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_PublicCommands = nPublicCommands;
 	m_LastInviteCreation = false;
 	m_ServerReconnectCount = 0;
+	m_CDKeyUseCount = 0;
 	m_BanListFastTime = 0;
 }
 
@@ -698,7 +699,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		}
 	}
 
-	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && ( m_FirstConnect || GetTime( ) - m_LastDisconnectedTime >= 90 ) )
+	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && ( m_FirstConnect || GetTime( ) - m_LastDisconnectedTime >= 90 + m_CDKeyUseCount * 45 || GetTime( ) - m_LastDisconnectedTime >= 400 ) )
 	{
 		// attempt to connect to battle.net
 
@@ -930,6 +931,7 @@ void CBNET :: ProcessPackets( )
 					m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_ACCOUNTLOGON( m_BNCSUtil->GetClientKey( ), m_UserName ) );
 					
 					m_ServerReconnectCount = 0;
+					m_CDKeyUseCount = 0;
 				}
 				else
 				{
@@ -939,9 +941,11 @@ void CBNET :: ProcessPackets( )
 					{
 					case CBNETProtocol :: KR_ROC_KEY_IN_USE:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - ROC CD key in use by user [" + m_Protocol->GetKeyStateDescription( ) + "], disconnecting" );
+						m_CDKeyUseCount++;
 						break;
 					case CBNETProtocol :: KR_TFT_KEY_IN_USE:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - TFT CD key in use by user [" + m_Protocol->GetKeyStateDescription( ) + "], disconnecting" );
+						m_CDKeyUseCount++;
 						break;
 					case CBNETProtocol :: KR_OLD_GAME_VERSION:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - game version is too old, disconnecting" );
@@ -951,6 +955,7 @@ void CBNET :: ProcessPackets( )
 						break;
 					default:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - cd keys not accepted, disconnecting" );
+						m_CDKeyUseCount++;
 						break;
 					}
 
