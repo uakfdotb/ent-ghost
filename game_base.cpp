@@ -164,6 +164,9 @@ CBaseGame :: ~CBaseGame( )
 
 	boost::mutex::scoped_lock lock( m_GHost->m_CallablesMutex );
 	
+	for( vector<CCallableConnectCheck *> :: iterator i = m_ConnectChecks.begin( ); i != m_ConnectChecks.end( ); ++i )
+		m_GHost->m_Callables.push_back( *i );
+	
 	for( vector<CCallableScoreCheck *> :: iterator i = m_ScoreChecks.begin( ); i != m_ScoreChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( *i );
 	

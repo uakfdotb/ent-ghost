@@ -2613,7 +2613,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	{
 		if( !m_KickVotePlayer.empty( ) )
 			SendChat( player, m_GHost->m_Language->UnableToVoteKickAlreadyInProgress( ) );
-		else if( m_Players.size( ) == 2 )
+		else if( m_Players.size( ) <= 3 )
 			SendChat( player, m_GHost->m_Language->UnableToVoteKickNotEnoughPlayers( ) );
 		else
 		{
@@ -2624,8 +2624,36 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				SendChat( player, m_GHost->m_Language->UnableToVoteKickNoMatchesFound( Payload ) );
 			else if( Matches == 1 )
 			{
-				if( LastMatch->GetReserved( ) )
-					SendChat( player, m_GHost->m_Language->UnableToVoteKickPlayerIsReserved( LastMatch->GetName( ) ) );
+				//see if the player is the only one left on his team
+				unsigned char SID = GetSIDFromPID( player->GetPID( ) );
+				bool OnlyPlayer = false;
+
+				if( SID < m_Slots.size( ) )
+				{
+					unsigned char Team = m_Slots[SID].GetTeam( );
+					OnlyPlayer = true;
+					char sid, team;
+					
+					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
+					{
+						if( *i && !(*i)->GetLeftMessageSent( ) )
+						{
+							sid = GetSIDFromPID( (*i)->GetPID( ) );
+							if( sid != 255 )
+							{
+								team = m_Slots[sid].GetTeam( );
+								if( team == Team )
+								{
+									OnlyPlayer = false;
+									break;
+								}
+							}			
+						}
+					}
+				}
+				
+				if( OnlyPlayer )
+					SendChat( player, "Unable to votekick player [" + LastMatch->GetName( ) + "]: cannot votekick when there is only one player on victim's team." );
 				else
 				{
 					m_KickVotePlayer = LastMatch->GetName( );
