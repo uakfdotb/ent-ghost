@@ -2887,7 +2887,7 @@ void CGame :: GetStatsUser( string *statsUser, string *statsRealm )
 		else if( *statsRealm == "asia" )
 			*statsRealm = "asia.battle.net";
 		else if( *statsRealm == "ec" )
-			*statsRealm = "entconnect.battle.net";
+			*statsRealm = "entconnect";
 		else if( *statsRealm == "gclient" )
 			*statsRealm = "cloud.ghostclient.com";
 	}
