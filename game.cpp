@@ -135,6 +135,8 @@ CGame :: ~CGame( )
 	// autoban
 	uint32_t EndTime = m_GameTicks / 1000;
 	
+	boost::mutex::scoped_lock callablesLock( m_GHost->m_CallablesMutex );
+	
 	for( vector<CDBGamePlayer *> :: iterator i = m_DBGamePlayers.begin( ); i != m_DBGamePlayers.end( ); ++i )
 	{
 		if( IsAutoBanned( (*i)->GetName( ) ) )
@@ -156,8 +158,6 @@ CGame :: ~CGame( )
 			}
 		}
 	}
-	
-	boost::mutex::scoped_lock callablesLock( m_GHost->m_CallablesMutex );
 	
 	if( m_CallableGameAdd && m_CallableGameAdd->GetReady( ) )
 	{
@@ -2628,7 +2628,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				unsigned char SID = GetSIDFromPID( player->GetPID( ) );
 				bool OnlyPlayer = false;
 
-				if( SID < m_Slots.size( ) )
+				if( m_GameLoaded && SID < m_Slots.size( ) )
 				{
 					unsigned char Team = m_Slots[SID].GetTeam( );
 					OnlyPlayer = true;

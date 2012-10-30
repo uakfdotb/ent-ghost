@@ -171,6 +171,7 @@ public:
 	vector<CDBBan *> m_Bans;				// bans not tied to other realms (entconnect realm)
     uint32_t m_LastBanRefreshTime;			// refresh ban list every 5 minutes
 	CCallableBanList *m_CallableBanList;	// threaded database ban list in progress
+	boost::mutex m_BansMutex;
 
 	CGHost( CConfig *CFG );
 	~CGHost( );

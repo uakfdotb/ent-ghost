@@ -798,8 +798,11 @@ CGHost :: ~CGHost( )
 	if( m_AdminGame )
 		m_AdminGame->doDelete();
 
+
+	boost::mutex::scoped_lock lock( m_GamesMutex );
         for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
 		(*i)->doDelete();
+	lock.unlock( );
 
 	delete m_DB;
 	delete m_DBLocal;
@@ -990,25 +993,6 @@ bool CGHost :: Update( long usecBlock )
 		(*i)->SetFD( &fd, &send_fd, &nfds );
                 ++NumFDs;
 	}
-
-	// before we call select we need to determine how long to block for
-	// previously we just blocked for a maximum of the passed usecBlock microseconds
-	// however, in an effort to make game updates happen closer to the desired latency setting we now use a dynamic block interval
-	// note: we still use the passed usecBlock as a hard maximum
-
-	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
-	{
-		if( (*i)->GetNextTimedActionTicks( ) * 1000 < usecBlock )
-			usecBlock = (*i)->GetNextTimedActionTicks( ) * 1000;
-	}
-
-	// always block for at least 1ms just in case something goes wrong
-	// this prevents the bot from sucking up all the available CPU if a game keeps asking for immediate updates
-	// it's a bit ridiculous to include this check since, in theory, the bot is programmed well enough to never make this mistake
-	// however, considering who programmed it, it's worthwhile to do it anyway
-
-	if( usecBlock < 1000 )
-		usecBlock = 1000;
 
 	struct timeval tv;
 	tv.tv_sec = 0;
@@ -1255,13 +1239,14 @@ bool CGHost :: Update( long usecBlock )
 
     //update gamelist every 10 seconds
     if( !m_CallableGameUpdate && GetTime() - m_LastGameUpdateTime >= 10 && !m_Exiting && !m_ExitingNice) {
+		boost::mutex::scoped_lock lock( m_GamesMutex );
+		
     	uint32_t TotalGames = m_Games.size( );
     	uint32_t TotalPlayers = 0;
     	
     	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
     		TotalPlayers += (*i)->GetNumHumanPlayers( );
     	
-		boost::mutex::scoped_lock lock( m_GamesMutex );
 		
         if( m_CurrentGame ) {
         	TotalGames++;
@@ -1284,9 +1269,9 @@ bool CGHost :: Update( long usecBlock )
         m_CallableGameUpdate = NULL;
     }
 
-	// refresh the ban list every 5 minutes
+	// refresh the ban list every 20 minutes
 
-	if( !m_CallableBanList && GetTime( ) - m_LastBanRefreshTime >= 300 )
+	if( !m_CallableBanList && GetTime( ) - m_LastBanRefreshTime >= 1200 )
 		m_CallableBanList = m_DB->ThreadedBanList( "entconnect" );
 
 	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
@@ -1426,11 +1411,15 @@ CDBBan *CGHost :: IsBannedName( string name, string context )
 
 	// todotodo: optimize this - maybe use a map?
 
+	boost::mutex::scoped_lock bansLock( m_BansMutex );
+	
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
 		if( (*i)->GetName( ) == name && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
-			return *i;
+			return new CDBBan( *i );
 	}
+	
+	bansLock.unlock( );
 
 	return NULL;
 }
@@ -1440,11 +1429,15 @@ CDBBan *CGHost :: IsBannedIP( string ip, string context )
 	transform( context.begin( ), context.end( ), context.begin( ), (int(*)(int))tolower );
 	// todotodo: optimize this - maybe use a map?
 
+	boost::mutex::scoped_lock bansLock( m_BansMutex );
+	
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
 		if( (*i)->GetIP( ) == ip && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
-			return *i;
+			return new CDBBan( *i );
 	}
+	
+	bansLock.unlock( );
 
 	return NULL;
 }
@@ -1876,6 +1869,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
     }
 
     if(!m_CallableGameUpdate) {
+		boost::mutex::scoped_lock lock( m_GamesMutex );
 		uint32_t TotalGames = m_Games.size( ) + 1;
 		uint32_t TotalPlayers = 0;
 		
@@ -1884,6 +1878,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		
         m_CallableGameUpdate = m_DB->ThreadedGameUpdate(m_CurrentGame->GetMapName( ), m_CurrentGame->GetGameName(), m_CurrentGame->GetOwnerName(), m_CurrentGame->GetCreatorName(), m_CurrentGame->GetSlotsOccupied(), m_CurrentGame->GetPlayerList( ), m_CurrentGame->GetSlotsOccupied() + m_CurrentGame->GetSlotsOpen(), TotalGames, TotalPlayers, true);
         m_LastGameUpdateTime = GetTime();
+        lock.unlock( );
     }
 	
 	// start the game thread

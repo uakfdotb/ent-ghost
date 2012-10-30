@@ -787,6 +787,7 @@ private:
 
 public:
 	CDBBan( uint32_t nId, string nServer, string nName, string nIP, string nDate, string nGameName, string nAdmin, string nReason, string nExpireDate, string nContext );
+	CDBBan( CDBBan *copy );
 	~CDBBan( );
 
 	uint32_t GetId( )		{ return m_Id; }

@@ -566,6 +566,20 @@ CDBBan :: CDBBan( uint32_t nId, string nServer, string nName, string nIP, string
 
 }
 
+CDBBan :: CDBBan( CDBBan *copy )
+{
+	m_Id = copy->m_Id;
+	m_Server = copy->m_Server;
+	m_Name = copy->m_Name;
+	m_IP = copy->m_IP;
+	m_Date = copy->m_Date;
+	m_GameName = copy->m_GameName;
+	m_Admin = copy->m_Admin;
+	m_Reason = copy->m_Reason;
+	m_ExpireDate = copy->m_ExpireDate;
+	m_Context = copy->m_Context;
+}
+
 CDBBan :: ~CDBBan( )
 {
 

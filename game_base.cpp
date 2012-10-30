@@ -2068,6 +2068,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 						return NULL;
 					}
 
+					delete Ban;
 					break;
 				}
 			}
@@ -2100,24 +2101,25 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 					m_GHost->DenyIP( potentialCopy->GetExternalIPString( ), 30000, "banned player message" );
 					return NULL;
 				}
-
+				
+				delete Ban;
 				break;
 			}
 		}
 		
-		CDBBan *BanName = NULL;
+		CDBBan *Ban = NULL;
 		
 		if( JoinedRealm == "entconnect" )
-			BanName = m_GHost->IsBannedName( joinPlayer->GetName( ), m_OwnerName );
+			Ban = m_GHost->IsBannedName( joinPlayer->GetName( ), m_OwnerName );
 		
-		CDBBan *BanIP = m_GHost->IsBannedIP( potential->GetExternalIPString( ), m_OwnerName );
-		
-		if( BanName || BanIP )
+		// if still NULL, search by IP too
+		if( !Ban )
 		{
-			CDBBan *Ban = BanName;
-			
-			if( !BanName ) Ban = BanIP;
-			
+			Ban = m_GHost->IsBannedIP( potential->GetExternalIPString( ), m_OwnerName );
+		}
+		
+		if( Ban )
+		{
 			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned via entconnect" );
 
 			if( m_IgnoredNames.find( joinPlayer->GetName( ) ) == m_IgnoredNames.end( ) )
@@ -2138,6 +2140,8 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 			m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
 			SendBannedInfo( potentialCopy, Ban );
 			m_GHost->DenyIP( potentialCopy->GetExternalIPString( ), 30000, "banned player message" );
+			
+			delete Ban;
 			return NULL;
 		}
 	}

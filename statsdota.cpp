@@ -483,7 +483,8 @@ void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 		unsigned int Players = 0;
 
 		// save the dotagame
-
+		// no need to ask for lock on callables mutex: we already have it from CGame
+		
 		GHost->m_Callables.push_back( DB->ThreadedDotAGameAdd( GameID, m_Winner, m_Min, m_Sec, m_SaveType ) );
 
 		// check for invalid colours and duplicates
@@ -515,7 +516,8 @@ void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 		}
 
 		// save the dotaplayers
-
+		// no need to ask for lock on callables, we already have it from CGame
+		
                 for( unsigned int i = 0; i < 12; ++i )
 		{
 			if( m_Players[i] )

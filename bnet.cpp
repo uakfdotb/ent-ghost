@@ -2564,7 +2564,7 @@ CDBBan *CBNET :: IsBannedName( string name, string context )
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
 		if( (*i)->GetName( ) == name && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
-			return *i;
+			return new CDBBan( *i );
 	}
 	
 	bansLock.unlock( );
@@ -2582,7 +2582,7 @@ CDBBan *CBNET :: IsBannedIP( string ip, string context )
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
 		if( (*i)->GetIP( ) == ip && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
-			return *i;
+			return new CDBBan( *i );
 	}
 	
 	bansLock.unlock( );
@@ -2630,6 +2630,7 @@ void CBNET :: DeleteBanFast( uint32_t id )
 	{
 		if( (*i)->GetId( ) == id )
 		{
+			delete (*i);
 			i = m_Bans.erase( i );
 		}
 		else
@@ -2662,7 +2663,10 @@ void CBNET :: RemoveBan( string name, string context )
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); )
 	{
 		if( (*i)->GetName( ) == name && ( context == "ttr.cloud" || context == "" || context == (*i)->GetContext( ) ) )
+		{
+			delete (*i);
 			i = m_Bans.erase( i );
+		}
 		else
                         ++i;
 	}
