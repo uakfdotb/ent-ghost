@@ -2625,7 +2625,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			else if( Matches == 1 )
 			{
 				//see if the player is the only one left on his team
-				unsigned char SID = GetSIDFromPID( player->GetPID( ) );
+				unsigned char SID = GetSIDFromPID( LastMatch->GetPID( ) );
 				bool OnlyPlayer = false;
 
 				if( m_GameLoaded && SID < m_Slots.size( ) )
@@ -2636,7 +2636,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					
 					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
 					{
-						if( *i && !(*i)->GetLeftMessageSent( ) )
+						if( *i && LastMatch != *i && !(*i)->GetLeftMessageSent( ) )
 						{
 							sid = GetSIDFromPID( (*i)->GetPID( ) );
 							if( sid != 255 )
@@ -2654,6 +2654,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				
 				if( OnlyPlayer )
 					SendChat( player, "Unable to votekick player [" + LastMatch->GetName( ) + "]: cannot votekick when there is only one player on victim's team." );
+				else if( LastMatch == player )
+					SendChat( player, "You cannot votekick yourself!" );
 				else
 				{
 					m_KickVotePlayer = LastMatch->GetName( );
