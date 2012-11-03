@@ -4186,7 +4186,7 @@ vector<unsigned char> CBaseGame :: BalanceSlotsRecursive( vector<unsigned char> 
 			unsigned char bestIndex = currentPlayer;
 			double bestScore = PlayerScores[BestOrdering[currentPlayer]];
 			
-			for( unsigned char j = currentPlayer + 1; j < currentPlayer + TeamSizes[i] + BestOrdering.size( ); ++j )
+			for( unsigned char j = currentPlayer + 1; j < currentPlayer + TeamSizes[i] && j < BestOrdering.size( ); ++j )
 			{
 				if(PlayerScores[BestOrdering[j]] < bestScore) {
 					bestScore = PlayerScores[BestOrdering[j]];
@@ -4310,7 +4310,7 @@ void CBaseGame :: BalanceSlots( )
 
 		for( unsigned char j = 0; j < TeamSizes[i]; ++j )
 		{
-			while( CurrentSlot < m_Slots.size( ) && m_Slots[CurrentSlot].GetTeam( ) != i )
+			while( CurrentSlot < m_Slots.size( ) && ( m_Slots[CurrentSlot].GetTeam( ) != i || m_Slots[CurrentSlot].GetComputer( ) == 1 ) )
 				++CurrentSlot;
 
 			// put the CurrentPID player on team i by swapping them into CurrentSlot
