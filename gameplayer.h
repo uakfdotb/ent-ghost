@@ -53,6 +53,7 @@ protected:
 
     uint32_t m_ConnectionState; // zero if no packets received (wait REQJOIN), one if only REQJOIN received (wait MAPSIZE), two otherwise
     uint32_t m_ConnectionTime;  // last time the player did something relating to connection state
+	string m_CachedIP;							// cached external IP string
 
 public:
 	CPotentialPlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket );
