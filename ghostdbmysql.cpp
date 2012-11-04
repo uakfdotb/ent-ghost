@@ -1807,22 +1807,43 @@ bool MySQLDownloadAdd( void *conn, string *error, uint32_t botid, string map, ui
 	return Success;
 }
 
-double MySQLScoreCheck( void *conn, string *error, uint32_t botid, string category, string name, string server )
+double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string category, string name, string server )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	string EscCategory = MySQLEscapeString( conn, category );
 	string EscName = MySQLEscapeString( conn, name );
 	string EscServer = MySQLEscapeString( conn, server );
-	double Score = -100000.0;
+	
+	//first element of score is the score needed to join the game
+	//second element is the score in the actual category
+	double *Score = new double[2];
+	Score[0] = -100000.0;
+	Score[1] = 1000.0;
 	
 	string Query = "SELECT score FROM scores WHERE category='" + EscCategory + "' AND name='" + EscName + "' AND server='" + EscServer + "'";
+	string Query2 = "SELECT 1000.0;";
 	
 	if( category == "dota2" ) // dota2 checks normal DotA stats
+	{
 		Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 20";
+		Query2 = "SELECT score FROM dota2_elo_scores WHERE name = '" + EscName + "' AND server='" + EscServer + "'";
+	}
 	else if( category == "castlefight2" ) // castlefight2 checks castlefight stats
+	{
 		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='castlefight' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 15";
+		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='castlefight2' AND name='" + EscName + "' AND server='" + EscServer + "'";
+	}
 	else if( category == "legionmega2" ) // legionmega2 checks legion mega stats
+	{
 		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 15";
+		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega2' AND name='" + EscName + "' AND server='" + EscServer + "'";
+	}
+	else if( category == "dota" )
+	{
+		Score[0] = 1000.0;
+		Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "'";
+		Query2 = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "'";
+	}
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1835,7 +1856,28 @@ double MySQLScoreCheck( void *conn, string *error, uint32_t botid, string catego
 			vector<string> Row = MySQLFetchRow( Result );
 
 			if( Row.size( ) == 1 )
-				Score = UTIL_ToDouble( Row[0] );
+				Score[0] = UTIL_ToDouble( Row[0] );
+			/* else
+				*error = "error checking score [" + category + " : " + name + " : " + server + "] - row doesn't have 1 column"; */
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+
+	if( mysql_real_query( (MYSQL *)conn, Query2.c_str( ), Query2.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			if( Row.size( ) == 1 )
+				Score[1] = UTIL_ToDouble( Row[0] );
 			/* else
 				*error = "error checking score [" + category + " : " + name + " : " + server + "] - row doesn't have 1 column"; */
 

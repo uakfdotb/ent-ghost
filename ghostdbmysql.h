@@ -260,7 +260,7 @@ CDBSnipePlayerSummary *MySQLSnipePlayerSummaryCheck( void *conn, string *error, 
 CDBShipsPlayerSummary *MySQLShipsPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm );
 CDBW3MMDPlayerSummary *MySQLW3MMDPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm, string category );
 bool MySQLDownloadAdd( void *conn, string *error, uint32_t botid, string map, uint32_t mapsize, string name, string realm, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
-double MySQLScoreCheck( void *conn, string *error, uint32_t botid, string category, string name, string server );
+double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string category, string name, string server );
 uint32_t MySQLLeagueCheck( void *conn, string *error, uint32_t botid, string category, string name, string server );
 bool MySQLConnectCheck( void *conn, string *error, uint32_t botid, string name, uint32_t sessionkey );
 uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t botid, string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );

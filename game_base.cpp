@@ -415,12 +415,12 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	{
 		if( (*i)->GetReady( ) )
 		{
-			double Score = (*i)->GetResult( );
+			double *Score = (*i)->GetResult( );
 
 			for( vector<CPotentialPlayer *> :: iterator j = m_Potentials.begin( ); j != m_Potentials.end( ); ++j )
 			{
 				if( (*j)->GetJoinPlayer( ) && (*j)->GetJoinPlayer( )->GetName( ) == (*i)->GetName( ) )
-					EventPlayerJoined( *j, (*j)->GetJoinPlayer( ), &Score );
+					EventPlayerJoined( *j, (*j)->GetJoinPlayer( ), Score );
 			}
 
 			m_GHost->m_DB->RecoverCallable( *i );
@@ -436,15 +436,19 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		if( (*i)->GetReady( ) )
 		{
 			double SID = (*i)->GetResult( ); //convert to double so we don't need another parameter
+			double *Array = new double[2];
+			Array[0] = SID;
+			Array[1] = 1000.0;
 
 			for( vector<CPotentialPlayer *> :: iterator j = m_Potentials.begin( ); j != m_Potentials.end( ); ++j )
 			{
 				if( (*j)->GetJoinPlayer( ) && (*j)->GetJoinPlayer( )->GetName( ) == (*i)->GetName( ) )
-					EventPlayerJoined( *j, (*j)->GetJoinPlayer( ), &SID );
+					EventPlayerJoined( *j, (*j)->GetJoinPlayer( ), Array );
 			}
 
 			m_GHost->m_DB->RecoverCallable( *i );
 			delete *i;
+			delete Array;
 			i = m_LeagueChecks.erase( i );
 		}
 		else
@@ -1969,9 +1973,9 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	
 	// check if the new player's score is within the limits
 
-	if( m_MatchMaking && score != NULL && ( *score < m_MinimumScore || *score > m_MaximumScore ) )
+	if( m_MatchMaking && score != NULL && ( score[0] < m_MinimumScore || score[0] > m_MaximumScore ) )
 	{
-		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but has a rating [" + UTIL_ToString( *score, 2 ) + "] outside the limits [" + UTIL_ToString( m_MinimumScore, 2 ) + "] to [" + UTIL_ToString( m_MaximumScore, 2 ) + "]" );
+		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but has a rating [" + UTIL_ToString( score[0], 2 ) + "] outside the limits [" + UTIL_ToString( m_MinimumScore, 2 ) + "] to [" + UTIL_ToString( m_MaximumScore, 2 ) + "]" );
 		potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 		potential->SetDeleteMe( true );
 		return NULL;
@@ -2227,7 +2231,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	}
 	else if( m_League )
 	{
-		uint32_t tmp = *score;
+		uint32_t tmp = score[0];
 		
 		if( tmp < m_Slots.size( ) )
 		{
@@ -2343,7 +2347,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	Player->SetWhoisShouldBeSent( m_GHost->m_SpoofChecks == 1 || ( m_GHost->m_SpoofChecks == 2 && AnyAdminCheck ) );
 	
 	if( score != NULL )
-		Player->SetScore( *score );
+		Player->SetScore( score[1] );
 	
 	m_Players.push_back( Player );
 	potential->SetSocket( NULL );
@@ -4182,7 +4186,7 @@ vector<unsigned char> CBaseGame :: BalanceSlotsRecursive( vector<unsigned char> 
 	
 	//now put best player on each team in first position
 	
-	int currentPlayer = 1;
+	int currentPlayer = 0;
 	
 	for( unsigned char i = 0; i < 12; ++i )
 	{
@@ -4193,7 +4197,7 @@ vector<unsigned char> CBaseGame :: BalanceSlotsRecursive( vector<unsigned char> 
 			
 			for( unsigned char j = currentPlayer + 1; j < currentPlayer + TeamSizes[i] && j < BestOrdering.size( ); ++j )
 			{
-				if(PlayerScores[BestOrdering[j]] < bestScore) {
+				if(PlayerScores[BestOrdering[j]] > bestScore) {
 					bestScore = PlayerScores[BestOrdering[j]];
 					bestIndex = j;
 				}

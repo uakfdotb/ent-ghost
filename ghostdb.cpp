@@ -549,7 +549,7 @@ CCallableDownloadAdd :: ~CCallableDownloadAdd( )
 
 CCallableScoreCheck :: ~CCallableScoreCheck( )
 {
-
+	delete m_Result;
 }
 
 CCallableLeagueCheck :: ~CCallableLeagueCheck( )

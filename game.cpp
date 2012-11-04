@@ -81,6 +81,16 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_Stats = new CStatsDOTA( this, "dota" );
 		m_MapType = "dota";
 	}
+	else if( m_Map->GetMapType( ) == "dotaab" )
+	{
+		m_Stats = new CStatsDOTA( this, "dota" );
+		m_MapType = "dotaab";
+		
+		// match making settings for autobalanced games
+		m_MatchMaking = true;
+		m_MinimumScore = 200;
+		m_MaximumScore = 99999;
+	}
 	else if( m_Map->GetMapType( ) == "lod" )
 	{
 		m_Stats = new CStatsDOTA( this, "lod" );
@@ -149,7 +159,7 @@ CGame :: ~CGame( )
 				
 				if( m_MapType == "eihl" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-eihl", CustomReason, 3600 * 12, "ttr.cloud" ));
-				else if( m_MapType == "dota" || m_MapType == "dota2" || m_MapType == "lod" )
+				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
 				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "civwars" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600, "ttr.cloud" ));
@@ -755,7 +765,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 			} else {
 				string BanType = "";
 				
-				if( m_MapType == "dota" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "eihl" )
+				if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "eihl" )
 					BanType = "dota";
 				
 				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "civwars" )
@@ -2772,7 +2782,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !FORFEIT
 	//
 	
-	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dota2" || m_MapType == "eihl" ) && ( Command == "ff" || Command == "forfeit" ) && !player->GetForfeitVote( ) )
+	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" ) && ( Command == "ff" || Command == "forfeit" ) && !player->GetForfeitVote( ) )
 	{
 		player->SetForfeitVote( true );
 		char playerSID = GetSIDFromPID( player->GetPID( ) );

@@ -692,15 +692,15 @@ protected:
 	string m_Category;
 	string m_Name;
 	string m_Server;
-	double m_Result;
+	double *m_Result;
 
 public:
-	CCallableScoreCheck( string nCategory, string nName, string nServer ) : CBaseCallable( ), m_Category( nCategory ), m_Name( nName ), m_Server( nServer ), m_Result( 0.0 ) { }
+	CCallableScoreCheck( string nCategory, string nName, string nServer ) : CBaseCallable( ), m_Category( nCategory ), m_Name( nName ), m_Server( nServer ), m_Result( NULL ) { }
 	virtual ~CCallableScoreCheck( );
 
 	virtual string GetName( )					{ return m_Name; }
-	virtual double GetResult( )					{ return m_Result; }
-	virtual void SetResult( double nResult )	{ m_Result = nResult; }
+	virtual double *GetResult( )					{ return m_Result; }
+	virtual void SetResult( double *nResult )	{ m_Result = nResult; }
 };
 
 class CCallableLeagueCheck : virtual public CBaseCallable
