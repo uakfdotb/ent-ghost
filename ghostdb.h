@@ -36,6 +36,7 @@ class CCallableBanCheck;
 class CCallableBanAdd;
 class CCallableBanRemove;
 class CCallableBanList;
+class CCallableWhiteList;
 class CCallableBanListFast;
 class CCallableCommandList;
 class CCallableGameAdd;
@@ -101,6 +102,7 @@ public:
 	virtual bool BanRemove( string server, string user, string context );
 	virtual bool BanRemove( string user, string context );
 	virtual vector<CDBBan *> BanList( string server );
+	virtual vector<string> WhiteList( );
 	virtual void BanListFast( CBNET *bnet );
 	virtual vector<string> CommandList(  );
 	virtual uint32_t GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
@@ -139,6 +141,7 @@ public:
 	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user, string context );
 	virtual CCallableBanRemove *ThreadedBanRemove( string user, string context );
 	virtual CCallableBanList *ThreadedBanList( string server );
+	virtual CCallableWhiteList *ThreadedWhiteList( );
 	virtual CCallableBanListFast *ThreadedBanListFast( CBNET *bnet );
 	virtual CCallableCommandList *ThreadedCommandList( );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
@@ -383,6 +386,19 @@ public:
 
 	virtual vector<CDBBan *> GetResult( )				{ return m_Result; }
 	virtual void SetResult( vector<CDBBan *> nResult )	{ m_Result = nResult; }
+};
+
+class CCallableWhiteList : virtual public CBaseCallable
+{
+protected:
+	vector<string> m_Result;
+
+public:
+	CCallableWhiteList( ) : CBaseCallable( ) { }
+	virtual ~CCallableWhiteList( );
+
+	virtual vector<string> GetResult( )				{ return m_Result; }
+	virtual void SetResult( vector<string> nResult )	{ m_Result = nResult; }
 };
 
 class CCallableCommandList : virtual public CBaseCallable

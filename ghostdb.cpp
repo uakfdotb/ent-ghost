@@ -108,6 +108,11 @@ vector<CDBBan *> CGHostDB :: BanList( string server )
 	return vector<CDBBan *>( );
 }
 
+vector<string> CGHostDB :: WhiteList( )
+{
+	return vector<string>( );
+}
+
 void CGHostDB :: BanListFast( CBNET *bnet )
 {
 }
@@ -278,6 +283,11 @@ CCallableBanRemove *CGHostDB :: ThreadedBanRemove( string user, string context )
 }
 
 CCallableBanList *CGHostDB :: ThreadedBanList( string server )
+{
+	return NULL;
+}
+
+CCallableWhiteList *CGHostDB :: ThreadedWhiteList( )
 {
 	return NULL;
 }
@@ -453,6 +463,11 @@ CCallableBanRemove :: ~CCallableBanRemove( )
 }
 
 CCallableBanList :: ~CCallableBanList( )
+{
+	// don't delete anything in m_Result here, it's the caller's responsibility
+}
+
+CCallableWhiteList :: ~CCallableWhiteList( )
 {
 	// don't delete anything in m_Result here, it's the caller's responsibility
 }

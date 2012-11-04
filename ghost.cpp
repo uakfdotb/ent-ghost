@@ -430,7 +430,9 @@ CGHost :: CGHost( CConfig *CFG )
     m_CallableCommandList = NULL;
     m_CallableGameUpdate = NULL;
     m_CallableBanList = NULL;
+    m_CallableWhiteList = NULL;
     m_LastBanRefreshTime = 0;
+    m_LastWhiteListRefreshTime = 0;
 	string DBType = CFG->GetString( "db_type", "sqlite3" );
 	CONSOLE_Print( "[GHOST] opening primary database" );
 
@@ -1274,6 +1276,9 @@ bool CGHost :: Update( long usecBlock )
 	if( !m_CallableBanList && GetTime( ) - m_LastBanRefreshTime >= 1200 )
 		m_CallableBanList = m_DB->ThreadedBanList( "entconnect" );
 
+	if( !m_CallableWhiteList && GetTime( ) - m_LastWhiteListRefreshTime >= 1200 )
+		m_CallableWhiteList = m_DB->ThreadedWhiteList( );
+
 	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
 	{
 		while( !m_Bans.empty( ) )
@@ -1288,6 +1293,15 @@ bool CGHost :: Update( long usecBlock )
 		delete m_CallableBanList;
 		m_CallableBanList = NULL;
 		m_LastBanRefreshTime = GetTime( );
+	}
+
+	if( m_CallableWhiteList && m_CallableWhiteList->GetReady( ) )
+	{
+		m_WhiteList = m_CallableWhiteList->GetResult( );
+		m_DB->RecoverCallable( m_CallableWhiteList );
+		delete m_CallableWhiteList;
+		m_CallableWhiteList = NULL;
+		m_LastWhiteListRefreshTime = GetTime( );
 	}
 
 	return m_Exiting || AdminExit || BNETExit;
@@ -1422,6 +1436,25 @@ CDBBan *CGHost :: IsBannedName( string name, string context )
 	bansLock.unlock( );
 
 	return NULL;
+}
+
+bool CGHost :: IsWhiteList( string name )
+{
+	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
+
+	// todotodo: optimize this - maybe use a map?
+
+	boost::mutex::scoped_lock bansLock( m_BansMutex );
+	
+	for( vector<string> :: iterator i = m_WhiteList.begin( ); i != m_WhiteList.end( ); ++i )
+	{
+		if( (*i) == name )
+			return true;
+	}
+	
+	bansLock.unlock( );
+
+	return false;
 }
 
 CDBBan *CGHost :: IsBannedIP( string ip, string context )

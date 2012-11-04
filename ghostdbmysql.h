@@ -200,6 +200,7 @@ public:
 	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user, string context );
 	virtual CCallableBanRemove *ThreadedBanRemove( string user, string context );
 	virtual CCallableBanList *ThreadedBanList( string server );
+	virtual CCallableWhiteList *ThreadedWhiteList( );
 	virtual CCallableBanListFast *ThreadedBanListFast( CBNET *bnet );
 	virtual CCallableCommandList *ThreadedCommandList(  );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
@@ -243,6 +244,7 @@ uint32_t MySQLBanAdd( void *conn, string *error, uint32_t botid, string server, 
 bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, string user, string context );
 bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user, string context );
 vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string server );
+vector<string> MySQLWhiteList( void *conn, string *error, uint32_t botid );
 void MySQLBanListFast( void *conn, string *error, uint32_t botid, CBNET *bnet );
 vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid );
 uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
@@ -395,6 +397,17 @@ class CMySQLCallableBanList : public CCallableBanList, public CMySQLCallable
 public:
 	CMySQLCallableBanList( string nServer, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableBanList( nServer ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
 	virtual ~CMySQLCallableBanList( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableWhiteList : public CCallableWhiteList, public CMySQLCallable
+{
+public:
+	CMySQLCallableWhiteList( void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableWhiteList( ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
+	virtual ~CMySQLCallableWhiteList( ) { }
 
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }

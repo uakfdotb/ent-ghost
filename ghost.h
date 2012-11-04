@@ -46,6 +46,7 @@ class CConfig;
 class CCallableCommandList;
 class CCallableGameUpdate;
 class CCallableBanList;
+class CCallableWhiteList;
 class CDBBan;
 struct DenyInfo;
 
@@ -169,8 +170,11 @@ public:
     vector<string> m_FlameTriggers;			// triggers for antiflame system
     
 	vector<CDBBan *> m_Bans;				// bans not tied to other realms (entconnect realm)
+	vector<string> m_WhiteList;				// entconnect whitelist
     uint32_t m_LastBanRefreshTime;			// refresh ban list every 5 minutes
+    uint32_t m_LastWhiteListRefreshTime;	// refresh white list every 5 minutes
 	CCallableBanList *m_CallableBanList;	// threaded database ban list in progress
+	CCallableWhiteList *m_CallableWhiteList;	// threaded database white list in progress
 	boost::mutex m_BansMutex;
 
 	CGHost( CConfig *CFG );
@@ -195,6 +199,7 @@ public:
 	void EventGameDeleted( CBaseGame *game );
 
 	CDBBan *IsBannedName( string name, string context );
+	bool IsWhiteList( string name );
 	CDBBan *IsBannedIP( string ip, string context );
 
 	// other functions

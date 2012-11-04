@@ -295,6 +295,19 @@ CCallableBanList *CGHostDBMySQL :: ThreadedBanList( string server )
 	return Callable;
 }
 
+CCallableWhiteList *CGHostDBMySQL :: ThreadedWhiteList( )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableWhiteList *Callable = new CMySQLCallableWhiteList( Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
 CCallableBanListFast *CGHostDBMySQL :: ThreadedBanListFast( CBNET *bnet )
 {
 	void *Connection = GetIdleConnection( );
@@ -928,6 +941,36 @@ vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string
 	}
 
 	return BanList;
+}
+
+vector<string> MySQLWhiteList( void *conn, string *error, uint32_t botid )
+{
+	vector<string> WhiteList;
+	string Query = "SELECT name FROM whitelist";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			while( Row.size( ) == 1 )
+			{
+				WhiteList.push_back( Row[0] );
+				Row = MySQLFetchRow( Result );
+			}
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+
+	return WhiteList;
 }
 
 void MySQLBanListFast( void *conn, string *error, uint32_t botid, CBNET *bnet )
@@ -2107,6 +2150,16 @@ void CMySQLCallableBanList :: operator( )( )
 
 	if( m_Error.empty( ) )
 		m_Result = MySQLBanList( m_Connection, &m_Error, m_SQLBotID, m_Server );
+
+	Close( );
+}
+
+void CMySQLCallableWhiteList :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		m_Result = MySQLWhiteList( m_Connection, &m_Error, m_SQLBotID );
 
 	Close( );
 }

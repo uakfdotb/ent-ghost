@@ -2033,6 +2033,11 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	// this is because if bot_banmethod is 0 and we announce the ban here it's possible for the player to be rejected later because the game is full
 	// this would allow the player to spam the chat by attempting to join the game multiple times in a row
 
+	bool WhiteList = false;
+	
+	if( JoinedRealm == "entconnect" && m_GHost->IsWhiteList( joinPlayer->GetName( ) ) )
+		WhiteList = true;
+
 	if( m_GHost->m_BanMethod != 0 )
 	{
 		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
@@ -2077,7 +2082,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 
 			if( Ban )
 			{
-				if( m_GHost->m_BanMethod == 2 || m_GHost->m_BanMethod == 3 )
+				if( !WhiteList && ( m_GHost->m_BanMethod == 2 || m_GHost->m_BanMethod == 3 ) )
 				{
 					CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned by IP address" );
 
@@ -2113,7 +2118,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 			Ban = m_GHost->IsBannedName( joinPlayer->GetName( ), m_OwnerName );
 		
 		// if still NULL, search by IP too
-		if( !Ban )
+		if( !Ban && !WhiteList )
 		{
 			Ban = m_GHost->IsBannedIP( potential->GetExternalIPString( ), m_OwnerName );
 		}
