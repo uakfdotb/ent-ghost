@@ -2145,7 +2145,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] non-admin [" + User + "] sent command [" + Message + "]" );
 
 	/*********************
-
 	* NON ADMIN COMMANDS *
 	*********************/
 
