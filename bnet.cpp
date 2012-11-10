@@ -2049,7 +2049,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		}
 
 		//
-		// !PMB (host public/private game with set map/config and by other player)
+		// !MB (host public/private game with set map/config and by other player)
 		//
 
 		else if( Command == "mb" && !Payload.empty( ) )
@@ -2073,7 +2073,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				
 				SS >> MapType;
 				
-				if( ( MapType == "m" || MapType == "load" ) && !SS.eof( ) )
+				if( ( MapType == "m" || MapType == "l" ) && !SS.eof( ) )
 				{
 					if( MapType == "m" )
 						MapType = "map";
