@@ -421,11 +421,19 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		if( (*i)->GetReady( ) )
 		{
 			double *Score = (*i)->GetResult( );
-
-			for( vector<CPotentialPlayer *> :: iterator j = m_Potentials.begin( ); j != m_Potentials.end( ); ++j )
+			
+			if( Score != NULL )
 			{
-				if( (*j)->GetJoinPlayer( ) && (*j)->GetJoinPlayer( )->GetName( ) == (*i)->GetName( ) )
-					EventPlayerJoined( *j, (*j)->GetJoinPlayer( ), Score );
+				for( vector<CPotentialPlayer *> :: iterator j = m_Potentials.begin( ); j != m_Potentials.end( ); ++j )
+				{
+					if( (*j)->GetJoinPlayer( ) && (*j)->GetJoinPlayer( )->GetName( ) == (*i)->GetName( ) )
+						EventPlayerJoined( *j, (*j)->GetJoinPlayer( ), Score );
+				}
+			}
+			else
+			{
+				// this is bad, it means that the score check failed
+				// we ignore and eventually player will be kicked
 			}
 
 			m_GHost->m_DB->RecoverCallable( *i );
@@ -1617,10 +1625,8 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 			SendChat( player, " " );
 
 		SendChat( player, "===========================================================================" );
-		SendChat( player, "Welcome! The current game name is " + m_GameName );
-		SendChat( player, "This bots name is ENT1 (/whois ENT1 to see current game)" );
-		SendChat( player, "This game is brought to you by Clan ENT on US West." );
-		SendChat( player, "Forums and free public hosting coming soon." );
+		SendChat( player, "Welcome! The current game name is " + m_GameName + "." );
+		SendChat( player, "This game is brought to you by Clan ENT (http://clanent.net/)" );
 		SendChat( player, "===========================================================================" );
 
 		if( !m_HCLCommandString.empty( ) )
@@ -1630,6 +1636,12 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 	{
 		// custom welcome message
 		// don't print more than 8 lines
+		
+		// get botname replacement
+		string BotName = "Unknown";
+		
+		if( !m_GHost->m_BNETs.empty( ) )
+			BotName = m_GHost->m_BNETs.begin( ).GetUserName( );
 
 		uint32_t Count = 0;
 		string Line;
@@ -1637,6 +1649,7 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 		while( !in.eof( ) && Count < 8 )
 		{
 			getline( in, Line );
+			UTIL_Replace( Line, "$BOTNAME$", BotName );
 
 			if( Line.empty( ) )
 			{

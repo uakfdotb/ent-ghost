@@ -2049,6 +2049,61 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		}
 
 		//
+		// !PMB (host public/private game with set map/config and by other player)
+		//
+
+		else if( Command == "mb" && !Payload.empty( ) )
+		{
+			string GameType;
+			string MapType;
+			string Map;
+			string Owner;
+			string GameName;
+			
+			stringstream SS;
+			SS << Payload;
+			SS >> GameType;
+			
+			if( ( GameType == "u" || GameType == "r" ) && !SS.eof( ) )
+			{
+				if( GameType == "u" )
+					GameType = "pubby";
+				else
+					GameType = "privby";
+				
+				SS >> MapType;
+				
+				if( ( MapType == "m" || MapType == "load" ) && !SS.eof( ) )
+				{
+					if( MapType == "m" )
+						MapType = "map";
+					else
+						MapType = "load";
+					
+					SS >> Map;
+					
+					if( !SS.eof( ) )
+					{
+						SS >> Owner;
+					
+						if( !SS.eof( ) )
+						{
+							getline( SS, GameName );
+							string :: size_type Start = GameName.find_first_not_of( " " );
+
+							if( Start != string :: npos )
+								GameName = GameName.substr( Start );
+						
+							//execute secondary commands
+							BotCommand( m_CommandTrigger + MapType + " " + Map, User, Whisper, ForceRoot );
+							BotCommand( m_CommandTrigger + GameType + " " + Owner + " " + GameName, User, Whisper, ForceRoot );
+						}
+					}
+				}
+			}
+		}
+
+		//
 		// !RELOAD
 		//
 
