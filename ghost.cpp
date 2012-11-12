@@ -438,6 +438,7 @@ CGHost :: CGHost( CConfig *CFG )
     m_CallableWhiteList = NULL;
     m_LastBanRefreshTime = 0;
     m_LastWhiteListRefreshTime = 0;
+    m_LastDenyCleanTime = 0;
 	string DBType = CFG->GetString( "db_type", "sqlite3" );
 	CONSOLE_Print( "[GHOST] opening primary database" );
 
@@ -1286,6 +1287,8 @@ bool CGHost :: Update( long usecBlock )
 
 	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
 	{
+		boost::mutex::scoped_lock lock( m_BansMutex );
+		
 		while( !m_Bans.empty( ) )
 		{
 			CDBBan *LastBan = m_Bans.back( );
@@ -1298,15 +1301,39 @@ bool CGHost :: Update( long usecBlock )
 		delete m_CallableBanList;
 		m_CallableBanList = NULL;
 		m_LastBanRefreshTime = GetTime( );
+		
+		lock.unlock( );
 	}
 
 	if( m_CallableWhiteList && m_CallableWhiteList->GetReady( ) )
 	{
+		boost::mutex::scoped_lock lock( m_BansMutex );
+		
 		m_WhiteList = m_CallableWhiteList->GetResult( );
 		m_DB->RecoverCallable( m_CallableWhiteList );
 		delete m_CallableWhiteList;
 		m_CallableWhiteList = NULL;
 		m_LastWhiteListRefreshTime = GetTime( );
+		
+		lock.unlock( );
+	}
+	
+	//clean the deny table every two minutes
+	
+	if( GetTime( ) - m_LastDenyCleanTime >= 120 )
+	{
+		boost::mutex::scoped_lock lock( m_DenyMutex );
+		
+		for( map<string, DenyInfo>::iterator i = m_DenyIP.begin( ); i != m_DenyIP.end( ); )
+		{
+			if( GetTicks( ) - i->second.Time > 60000 + i->second.Duration )
+				m_DenyIP.erase(i++);
+			else
+				++i;
+		}
+		
+		lock.unlock( );
+		m_LastDenyCleanTime = GetTime( );
 	}
 
 	return m_Exiting || AdminExit || BNETExit;

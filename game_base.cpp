@@ -461,7 +461,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 			m_GHost->m_DB->RecoverCallable( *i );
 			delete *i;
-			delete Array;
+			delete [] Array;
 			i = m_LeagueChecks.erase( i );
 		}
 		else
@@ -2092,6 +2092,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 						m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
 						SendBannedInfo( potentialCopy, Ban );
 						m_GHost->DenyIP( potentialCopy->GetExternalIPString( ), 30000, "banned player message" );
+						delete Ban;
 						return NULL;
 					}
 
@@ -2126,6 +2127,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 					m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
 					SendBannedInfo( potentialCopy, Ban );
 					m_GHost->DenyIP( potentialCopy->GetExternalIPString( ), 30000, "banned player message" );
+					delete Ban;
 					return NULL;
 				}
 				

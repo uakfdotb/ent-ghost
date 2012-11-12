@@ -79,7 +79,6 @@ public:
 	CBaseGame *m_CurrentGame;				// this game is still in the lobby state
 	CAdminGame *m_AdminGame;				// this "fake game" allows an admin who knows the password to control the bot from the local network
 	vector<CBaseGame *> m_Games;			// these games are in progress
-	boost::thread_group m_GameThreads;		// the threads for games in progress and stuff
 	boost::mutex m_GamesMutex;
 	CGHostDB *m_DB;							// database
 	CGHostDB *m_DBLocal;					// local database (for temporary data)
@@ -181,6 +180,7 @@ public:
 	CCallableBanList *m_CallableBanList;	// threaded database ban list in progress
 	CCallableWhiteList *m_CallableWhiteList;	// threaded database white list in progress
 	boost::mutex m_BansMutex;
+	uint32_t m_LastDenyCleanTime;			// last time we cleaned the deny table
 
 	CGHost( CConfig *CFG );
 	~CGHost( );
