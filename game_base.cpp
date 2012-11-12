@@ -1641,7 +1641,7 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 		string BotName = "Unknown";
 		
 		if( !m_GHost->m_BNETs.empty( ) )
-			BotName = m_GHost->m_BNETs.begin( ).GetUserName( );
+			BotName = m_GHost->m_BNETs[0]->GetUserName( );
 
 		uint32_t Count = 0;
 		string Line;
