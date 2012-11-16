@@ -114,7 +114,7 @@ void CGHostDBMySQL :: RecoverCallable( CBaseCallable *callable )
 
 	if( MySQLCallable )
 	{
-		if( m_IdleConnections.size( ) > 30 || !MySQLCallable->GetError( ).empty( ) )
+		if( m_IdleConnections.size( ) > 8 || !MySQLCallable->GetError( ).empty( ) )
 		{
 			mysql_close( (MYSQL *)MySQLCallable->GetConnection( ) );
                         --m_NumConnections;
