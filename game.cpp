@@ -2821,22 +2821,26 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			
 			m_ForfeitTeam = playerTeam;
 			
-			string ForfeitTeamString = "Sentinel";
-			if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge";
-			
-			if( AllVoted )
+			// observers cannot forfeit!
+			if( m_ForfeitTeam == 1 || m_ForfeitTeam == 2 )
 			{
-				m_Stats->SetWinner( ( playerTeam + 1 ) % 2 + 1 );
-				m_ForfeitTime = GetTime( );
+				string ForfeitTeamString = "Sentinel";
+				if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge";
+			
+				if( AllVoted )
+				{
+					m_Stats->SetWinner( ( playerTeam + 1 ) % 2 + 1 );
+					m_ForfeitTime = GetTime( );
 				
-				SendAllChat( "The " + ForfeitTeamString + " has forfeited" );
-				SendAllChat( "Wait ten seconds before leaving or stats will not be properly recorded!" );
-			}
+					SendAllChat( "The " + ForfeitTeamString + " has forfeited" );
+					SendAllChat( "Wait ten seconds before leaving or stats will not be properly recorded!" );
+				}
 			
-			else
-			{
-				SendAllChat( "[" + player->GetName( ) + "] has voted to forfeit." );
-				SendAllChat( UTIL_ToString( numVoted ) + "/" + UTIL_ToString( numTotal ) + " players on the " + ForfeitTeamString + " have voted to forfeit." );
+				else
+				{
+					SendAllChat( "[" + player->GetName( ) + "] has voted to forfeit." );
+					SendAllChat( UTIL_ToString( numVoted ) + "/" + UTIL_ToString( numTotal ) + " players on the " + ForfeitTeamString + " have voted to forfeit." );
+				}
 			}
 		}
 	}
