@@ -2822,7 +2822,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_ForfeitTeam = playerTeam;
 			
 			// observers cannot forfeit!
-			if( m_ForfeitTeam == 1 || m_ForfeitTeam == 2 )
+			if( m_ForfeitTeam == 0 || m_ForfeitTeam == 1 )
 			{
 				string ForfeitTeamString = "Sentinel";
 				if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge";
