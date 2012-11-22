@@ -171,6 +171,7 @@ public:
 	uint32_t GetOutPacketsQueued( )		{ return m_OutPackets.size( ); }
 	BYTEARRAY GetUniqueName( );
 	uint64_t GetBanListFastTime( )		{ return m_BanListFastTime; }
+	uint32_t GetReconnectTime( );
 	void SetBanListFastTime( uint64_t nBanListFastTime ) { m_BanListFastTime = nBanListFastTime; }
 
 	// processing functions

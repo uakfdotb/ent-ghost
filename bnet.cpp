@@ -219,6 +219,27 @@ BYTEARRAY CBNET :: GetUniqueName( )
 	return m_Protocol->GetUniqueName( );
 }
 
+uint32_t CBNET :: GetReconnectTime( )
+{
+	if( m_CDKeyUseCount == 0 )
+	{
+		return 90;
+	}
+	else
+	{
+		uint32_t Time = 180 + m_CDKeyUseCount * 90;
+		
+		if( Time < 600 )
+		{
+			return Time;
+		}
+		else
+		{
+			return 600;
+		}
+	}
+}
+
 unsigned int CBNET :: SetFD( void *fd, void *send_fd, int *nfds )
 {
 	unsigned int NumFDs = 0;
@@ -704,7 +725,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		}
 	}
 
-	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && ( m_FirstConnect || GetTime( ) - m_LastDisconnectedTime >= 90 + m_CDKeyUseCount * 45 || GetTime( ) - m_LastDisconnectedTime >= 400 ) )
+	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && ( m_FirstConnect || GetTime( ) - m_LastDisconnectedTime >= GetReconnectTime( ) ) )
 	{
 		// attempt to connect to battle.net
 
