@@ -125,10 +125,14 @@ private:
 	uint32_t m_MapDefaultPlayerScore;			// config value: map default player score (for matchmaking)
 	string m_MapLocalPath;						// config value: map local path
 	bool m_MapLoadInGame;
+	bool m_Tournament;							// config value: whether this is involved with uxtourney system
+	uint32_t m_TournamentFakeSlot;				// config value: if tournament, this is SID for fake player
 	string m_MapData;							// the map data itself, for sending the map to players
 	uint32_t m_MapNumPlayers;
 	uint32_t m_MapNumTeams;
 	vector<CGameSlot> m_Slots;
+	vector<uint32_t> m_TournamentLayout;		// tournament layout from config
+	string m_Conditions;						// win conditions, used for some stats processing
 
 public:
 	CMap( CGHost *nGHost );
@@ -159,10 +163,14 @@ public:
 	uint32_t GetMapDefaultPlayerScore( )	{ return m_MapDefaultPlayerScore; }
 	string GetMapLocalPath( )				{ return m_MapLocalPath; }
 	bool GetMapLoadInGame( )				{ return m_MapLoadInGame; }
+	bool GetMapTournament( )				{ return m_Tournament; }
+	uint32_t GetMapTournamentFakeSlot( )	{ return m_TournamentFakeSlot; }
 	string *GetMapData( )					{ return &m_MapData; }
 	uint32_t GetMapNumPlayers( )			{ return m_MapNumPlayers; }
 	uint32_t GetMapNumTeams( )				{ return m_MapNumTeams; }
 	vector<CGameSlot> GetSlots( )			{ return m_Slots; }
+	vector<uint32_t> GetTournamentLayout( )	{ return m_TournamentLayout; }
+	string GetConditions( )					{ return m_Conditions; }
 
 	void Load( CConfig *CFG, string nCFGFile );
 	void CheckValid( );

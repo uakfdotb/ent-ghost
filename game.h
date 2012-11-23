@@ -65,6 +65,7 @@ protected:
 	CDBGame *m_DBGame;							// potential game data for the database
 	vector<CDBGamePlayer *> m_DBGamePlayers;	// vector of potential gameplayer data for the database
 	CStats *m_Stats;							// class to keep track of game stats such as kills/deaths/assists in dota
+	CCallableGetTournament *m_CallableGetTournament; // threaded database tournament info check in progress
 	CCallableGameAdd *m_CallableGameAdd;		// threaded database game addition in progress
 	vector<PairedBanCheck> m_PairedBanChecks;	// vector of paired threaded database ban checks in progress
 	vector<PairedBanAdd> m_PairedBanAdds;		// vector of paired threaded database ban adds in progress

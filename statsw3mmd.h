@@ -36,6 +36,7 @@ class CStatsW3MMD : public CStats
 {
 private:
 	string m_Category;
+	string m_SaveType;
 	uint32_t m_NextValueID;
 	uint32_t m_NextCheckID;
 	map<uint32_t,string> m_PIDToName;			// pid -> player name (e.g. 0 -> "Varlock") --- note: will not be automatically converted to lower case
@@ -49,7 +50,7 @@ private:
 	map<string, vector<string> > m_DefEvents;	// event -> vector of arguments + format
 
 public:
-	CStatsW3MMD( CBaseGame *nGame, string nCategory );
+	CStatsW3MMD( CBaseGame *nGame, string nCategory, string nSaveType );
 	virtual ~CStatsW3MMD( );
 
 	virtual bool ProcessAction( CIncomingAction *Action );

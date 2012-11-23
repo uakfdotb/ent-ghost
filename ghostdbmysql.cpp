@@ -352,14 +352,14 @@ CCallableCommandList *CGHostDBMySQL :: ThreadedCommandList( )
 	return Callable;
 }
 
-CCallableGameAdd *CGHostDBMySQL :: ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
+CCallableGameAdd *CGHostDBMySQL :: ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableGameAdd *Callable = new CMySQLCallableGameAdd( server, map, gamename, ownername, duration, gamestate, creatorname, creatorserver, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableGameAdd *Callable = new CMySQLCallableGameAdd( server, map, gamename, ownername, duration, gamestate, creatorname, creatorserver, savetype, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
@@ -378,14 +378,14 @@ CCallableGameUpdate *CGHostDBMySQL :: ThreadedGameUpdate( string map, string gam
 	return Callable;
 }
 
-CCallableGamePlayerAdd *CGHostDBMySQL :: ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour )
+CCallableGamePlayerAdd *CGHostDBMySQL :: ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour, string savetype )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableGamePlayerAdd *Callable = new CMySQLCallableGamePlayerAdd( gameid, name, ip, spoofed, spoofedrealm, reserved, loadingtime, left, leftreason, team, colour, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableGamePlayerAdd *Callable = new CMySQLCallableGamePlayerAdd( gameid, name, ip, spoofed, spoofedrealm, reserved, loadingtime, left, leftreason, team, colour, savetype, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
@@ -547,66 +547,105 @@ CCallableScoreCheck *CGHostDBMySQL :: ThreadedScoreCheck( string category, strin
 	return Callable;
 }
 
-CCallableLeagueCheck *CGHostDBMySQL :: ThreadedLeagueCheck( string category, string name, string server )
+CCallableLeagueCheck *CGHostDBMySQL :: ThreadedLeagueCheck( string category, string name, string server, string gamename )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableLeagueCheck *Callable = new CMySQLCallableLeagueCheck( category, name, server, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableLeagueCheck *Callable = new CMySQLCallableLeagueCheck( category, name, server, gamename, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
 }
 
-CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
+CCallableGetTournament *CGHostDBMySQL :: ThreadedGetTournament( string gamename )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableW3MMDPlayerAdd *Callable = new CMySQLCallableW3MMDPlayerAdd( category, gameid, pid, name, flag, leaver, practicing, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableGetTournament *Callable = new CMySQLCallableGetTournament( gamename, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
 }
 
-CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints )
+CCallableTournamentChat *CGHostDBMySQL :: ThreadedTournamentChat( uint32_t chatid, string message )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, var_ints, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableTournamentChat *Callable = new CMySQLCallableTournamentChat( chatid, message, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
 }
 
-CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals )
+CCallableTournamentUpdate *CGHostDBMySQL :: ThreadedTournamentUpdate( uint32_t matchid, uint32_t status )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, var_reals, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableTournamentUpdate *Callable = new CMySQLCallableTournamentUpdate( matchid, status, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
 }
 
-CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings )
+CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing, string saveType )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, var_strings, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableW3MMDPlayerAdd *Callable = new CMySQLCallableW3MMDPlayerAdd( category, gameid, pid, name, flag, leaver, practicing, saveType, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
+CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints, string saveType )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, var_ints, saveType, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
+CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals, string saveType )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, var_reals, saveType, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
+CCallableW3MMDVarAdd *CGHostDBMySQL :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings, string saveType )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableW3MMDVarAdd *Callable = new CMySQLCallableW3MMDVarAdd( gameid, var_strings, saveType, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
@@ -1108,7 +1147,7 @@ vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid )
 	return CommandList;
 }
 
-uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
+uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype )
 {
 	uint32_t RowID = 0;
 	string EscServer = MySQLEscapeString( conn, server );
@@ -1117,7 +1156,13 @@ uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server,
 	string EscOwnerName = MySQLEscapeString( conn, ownername );
 	string EscCreatorName = MySQLEscapeString( conn, creatorname );
 	string EscCreatorServer = MySQLEscapeString( conn, creatorserver );
-	string Query = "INSERT INTO games ( botid, server, map, datetime, gamename, ownername, duration, gamestate, creatorname, creatorserver ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscMap + "', NOW( ), '" + EscGameName + "', '" + EscOwnerName + "', " + UTIL_ToString( duration ) + ", " + UTIL_ToString( gamestate ) + ", '" + EscCreatorName + "', '" + EscCreatorServer + "' )";
+	
+	string TargetTable = "games";
+	
+	if( savetype == "uxtourney" )
+		TargetTable = "uxtourney_res_games";
+	
+	string Query = "INSERT INTO " + TargetTable + " ( botid, server, map, datetime, gamename, ownername, duration, gamestate, creatorname, creatorserver ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscMap + "', NOW( ), '" + EscGameName + "', '" + EscOwnerName + "', " + UTIL_ToString( duration ) + ", " + UTIL_ToString( gamestate ) + ", '" + EscCreatorName + "', '" + EscCreatorServer + "' )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1185,7 +1230,7 @@ string MySQLGameUpdate( void *conn, string *error, uint32_t botid, string map, s
     }
 }
 
-uint32_t MySQLGamePlayerAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour )
+uint32_t MySQLGamePlayerAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour, string savetype )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	uint32_t RowID = 0;
@@ -1193,7 +1238,13 @@ uint32_t MySQLGamePlayerAdd( void *conn, string *error, uint32_t botid, uint32_t
 	string EscIP = MySQLEscapeString( conn, ip );
 	string EscSpoofedRealm = MySQLEscapeString( conn, spoofedrealm );
 	string EscLeftReason = MySQLEscapeString( conn, leftreason );
-	string Query = "INSERT INTO gameplayers ( botid, gameid, name, ip, spoofed, reserved, loadingtime, `left`, leftreason, team, colour, spoofedrealm ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", '" + EscName + "', '" + EscIP + "', " + UTIL_ToString( spoofed ) + ", " + UTIL_ToString( reserved ) + ", " + UTIL_ToString( loadingtime ) + ", " + UTIL_ToString( left ) + ", '" + EscLeftReason + "', " + UTIL_ToString( team ) + ", " + UTIL_ToString( colour ) + ", '" + EscSpoofedRealm + "' )";
+	
+	string TargetTable = "gameplayers";
+	
+	if( savetype == "uxtourney" )
+		TargetTable = "uxtourney_res_gameplayers";
+	
+	string Query = "INSERT INTO " + TargetTable + " ( botid, gameid, name, ip, spoofed, reserved, loadingtime, `left`, leftreason, team, colour, spoofedrealm ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", '" + EscName + "', '" + EscIP + "', " + UTIL_ToString( spoofed ) + ", " + UTIL_ToString( reserved ) + ", " + UTIL_ToString( loadingtime ) + ", " + UTIL_ToString( left ) + ", '" + EscLeftReason + "', " + UTIL_ToString( team ) + ", " + UTIL_ToString( colour ) + ", '" + EscSpoofedRealm + "' )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1512,6 +1563,8 @@ uint32_t MySQLDotAGameAdd( void *conn, string *error, uint32_t botid, uint32_t g
 		table = "dota2games";
 	else if( saveType == "eihl" )
 		table = "eihlgames";
+	else if( saveType == "uxtourney" )
+		table = "uxtourney_res_dotagames";
 	
 	string Query = "INSERT INTO " + table + " ( botid, gameid, winner, min, sec ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( winner ) + ", " + UTIL_ToString( min ) + ", " + UTIL_ToString( sec ) + " )";
 
@@ -1542,6 +1595,8 @@ uint32_t MySQLDotAPlayerAdd( void *conn, string *error, uint32_t botid, uint32_t
 		table = "dota2players";
 	else if( saveType == "eihl" )
 		table = "eihlplayers";
+	else if( saveType == "uxtourney" )
+		table = "uxtourney_res_dotaplayers";
 	
 	string Query = "INSERT INTO " + table + " ( botid, gameid, colour, kills, deaths, creepkills, creepdenies, assists, gold, neutralkills, item1, item2, item3, item4, item5, item6, hero, newcolour, towerkills, raxkills, courierkills ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( colour ) + ", " + UTIL_ToString( kills ) + ", " + UTIL_ToString( deaths ) + ", " + UTIL_ToString( creepkills ) + ", " + UTIL_ToString( creepdenies ) + ", " + UTIL_ToString( assists ) + ", " + UTIL_ToString( gold ) + ", " + UTIL_ToString( neutralkills ) + ", '" + EscItem1 + "', '" + EscItem2 + "', '" + EscItem3 + "', '" + EscItem4 + "', '" + EscItem5 + "', '" + EscItem6 + "', '" + EscHero + "', " + UTIL_ToString( newcolour ) + ", " + UTIL_ToString( towerkills ) + ", " + UTIL_ToString( raxkills ) + ", " + UTIL_ToString( courierkills ) + " )";
 
@@ -1916,15 +1971,125 @@ double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string categ
 	return Score;
 }
 
-uint32_t MySQLLeagueCheck( void *conn, string *error, uint32_t botid, string category, string name, string server )
+uint32_t MySQLLeagueCheck( void *conn, string *error, uint32_t botid, string category, string name, string server, string gamename )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	string EscCategory = MySQLEscapeString( conn, category );
 	string EscName = MySQLEscapeString( conn, name );
 	string EscServer = MySQLEscapeString( conn, server );
+	string EscGameName = MySQLEscapeString( conn, gamename );
 	uint32_t SID = 255;
 	
-	string Query = "SELECT k FROM league_status WHERE category='" + EscCategory + "' AND v='" + EscName + "'";
+	if( gamename.empty( ) )
+	{
+		string Query = "SELECT k FROM league_status WHERE category='" + EscCategory + "' AND v='" + EscName + "'";
+
+		if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+			*error = mysql_error( (MYSQL *)conn );
+		else
+		{
+			MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+			if( Result )
+			{
+				vector<string> Row = MySQLFetchRow( Result );
+
+				if( Row.size( ) == 1 )
+					SID = UTIL_ToUInt32( Row[0] );
+				/* else
+					*error = "error checking score [" + category + " : " + name + " : " + server + "] - row doesn't have 1 column"; */
+
+				mysql_free_result( Result );
+			}
+			else
+				*error = mysql_error( (MYSQL *)conn );
+		}
+	}
+	else
+	{
+		//tournament mode probably
+		//the match id for this game
+		string Query = "SELECT match_id FROM uxtourney_host WHERE gamename = '" + EscGameName + "'";
+		uint32_t MatchID = 0;
+
+		if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+			*error = mysql_error( (MYSQL *)conn );
+		else
+		{
+			MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+			if( Result )
+			{
+				vector<string> Row = MySQLFetchRow( Result );
+
+				if( Row.size( ) == 1 )
+					MatchID = UTIL_ToUInt32( Row[0] );
+
+				mysql_free_result( Result );
+			}
+			else
+				*error = mysql_error( (MYSQL *)conn );
+		}
+		
+		//the user's id
+		Query = "SELECT uxtourney_users.id FROM validate LEFT JOIN uxtourney_users ON uxtourney_users.fuser = validate.fuser WHERE `key` = '' AND buser = '" + EscName + "' AND brealm = '" + EscServer + "'";
+		uint32_t UserID = 0;
+
+		if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+			*error = mysql_error( (MYSQL *)conn );
+		else
+		{
+			MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+			if( Result )
+			{
+				vector<string> Row = MySQLFetchRow( Result );
+
+				if( Row.size( ) == 1 )
+					UserID = UTIL_ToUInt32( Row[0] );
+
+				mysql_free_result( Result );
+			}
+			else
+				*error = mysql_error( (MYSQL *)conn );
+		}
+		
+		Query = "SELECT order_id FROM uxtourney_matchplayers WHERE match_id = " + UTIL_ToString( MatchID ) + " AND (SELECT COUNT(*) FROM uxtourney_player_members WHERE user_id = " + UTIL_ToString( UserID ) + " AND player_id = uxtourney_matchplayers.player_id) > 0";
+
+		if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+			*error = mysql_error( (MYSQL *)conn );
+		else
+		{
+			MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+			if( Result )
+			{
+				vector<string> Row = MySQLFetchRow( Result );
+
+				if( Row.size( ) == 1 )
+					SID = UTIL_ToUInt32( Row[0] );
+
+				mysql_free_result( Result );
+			}
+			else
+				*error = mysql_error( (MYSQL *)conn );
+		}
+	}
+
+	return SID;
+}
+
+vector<string> MySQLGetTournament( void *conn, string *error, uint32_t botid, string gamename )
+{
+	//[0]: match id
+	//[1]: tournament id
+	//[2]: members per player
+	//[3]: chat id, if any
+	//[4]: number of players (teams)
+	vector<string> TournamentResult;
+	
+	string EscGameName = MySQLEscapeString( conn, gamename );
+	string Query = "SELECT match_id FROM uxtourney_host WHERE gamename = '" + EscGameName + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1937,17 +2102,89 @@ uint32_t MySQLLeagueCheck( void *conn, string *error, uint32_t botid, string cat
 			vector<string> Row = MySQLFetchRow( Result );
 
 			if( Row.size( ) == 1 )
-				SID = UTIL_ToUInt32( Row[0] );
-			/* else
-				*error = "error checking score [" + category + " : " + name + " : " + server + "] - row doesn't have 1 column"; */
+				TournamentResult.push_back( Row[0] );
 
 			mysql_free_result( Result );
 		}
 		else
 			*error = mysql_error( (MYSQL *)conn );
 	}
+	
+	if( !TournamentResult.empty( ) )
+	{
+		Query = "SELECT uxtourney_tournaments.id, uxtourney_tournaments.teamsize, uxtourney_matches.chat_id FROM uxtourney_matches LEFT JOIN uxtourney_tournaments ON uxtourney_tournaments.id = uxtourney_matches.tournament_id WHERE uxtourney_matches.id = '" + TournamentResult[0] + "'";
 
-	return SID;
+		if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+			*error = mysql_error( (MYSQL *)conn );
+		else
+		{
+			MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+			if( Result )
+			{
+				vector<string> Row = MySQLFetchRow( Result );
+
+				if( Row.size( ) == 3 )
+				{
+					TournamentResult.push_back( Row[0] );
+					TournamentResult.push_back( Row[1] );
+					TournamentResult.push_back( Row[2] );
+				}
+
+				mysql_free_result( Result );
+			}
+			else
+				*error = mysql_error( (MYSQL *)conn );
+		}
+	
+		Query = "SELECT COUNT(*) FROM uxtourney_matchplayers WHERE match_id = '" + TournamentResult[0] + "'";
+
+		if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+			*error = mysql_error( (MYSQL *)conn );
+		else
+		{
+			MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+			if( Result )
+			{
+				vector<string> Row = MySQLFetchRow( Result );
+
+				if( Row.size( ) == 1 )
+					TournamentResult.push_back( Row[0] );
+
+				mysql_free_result( Result );
+			}
+			else
+				*error = mysql_error( (MYSQL *)conn );
+		}
+	}
+	
+	if( TournamentResult.size( ) < 5 )
+	{
+		CONSOLE_Print( "[MYSQL] Tournament retrieval failed, no data found (" + UTIL_ToString( TournamentResult.size( ) ) + ")" );
+		
+		while( TournamentResult.size( ) < 5 )
+			TournamentResult.push_back( "0" );
+	}
+
+	return TournamentResult;
+}
+
+void MySQLTournamentChat( void *conn, string *error, uint32_t botid, uint32_t chatid, string message )
+{
+	string EscMessage = MySQLEscapeString( conn, message );
+	string Query = "INSERT INTO uxtourney_chatlog (chat_id, message, time) VALUES ('" + UTIL_ToString( chatid ) + "', '" + EscMessage + "', UNIX_TIMESTAMP())";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+}
+
+void MySQLTournamentUpdate( void *conn, string *error, uint32_t botid, uint32_t matchid, uint32_t status )
+{
+	string Query = "UPDATE uxtourney_host SET status = " + UTIL_ToString( status ) + " WHERE match_id = " + UTIL_ToString( matchid );
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
 }
 
 bool MySQLConnectCheck( void *conn, string *error, uint32_t botid, string name, uint32_t sessionkey )
@@ -1982,14 +2219,20 @@ bool MySQLConnectCheck( void *conn, string *error, uint32_t botid, string name, 
 	return Check;
 }
 
-uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t botid, string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
+uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t botid, string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing, string saveType )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	uint32_t RowID = 0;
 	string EscCategory = MySQLEscapeString( conn, category );
 	string EscName = MySQLEscapeString( conn, name );
 	string EscFlag = MySQLEscapeString( conn, flag );
-	string Query = "INSERT INTO w3mmdplayers ( botid, category, gameid, pid, name, flag, leaver, practicing ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscCategory + "', " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( pid ) + ", '" + EscName + "', '" + EscFlag + "', " + UTIL_ToString( leaver ) + ", " + UTIL_ToString( practicing ) + " )";
+	
+	string TargetTable = "w3mmdplayers";
+	
+	if( saveType == "uxtourney" )
+		TargetTable = "uxtourney_res_w3mmdplayers";
+	
+	string Query = "INSERT INTO " + TargetTable + " ( botid, category, gameid, pid, name, flag, leaver, practicing ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscCategory + "', " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( pid ) + ", '" + EscName + "', '" + EscFlag + "', " + UTIL_ToString( leaver ) + ", " + UTIL_ToString( practicing ) + " )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1999,20 +2242,25 @@ uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t botid, string 
 	return RowID;
 }
 
-bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,int32_t> var_ints )
+bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,int32_t> var_ints, string saveType )
 {
 	if( var_ints.empty( ) )
 		return false;
 
 	bool Success = false;
 	string Query;
+	
+	string TargetTable = "w3mmdvars";
+	
+	if( saveType == "uxtourney" )
+		TargetTable = "uxtourney_res_w3mmdvars";
 
         for( map<VarP,int32_t> :: iterator i = var_ints.begin( ); i != var_ints.end( ); ++i )
 	{
 		string EscVarName = MySQLEscapeString( conn, i->first.second );
 
 		if( Query.empty( ) )
-			Query = "INSERT INTO w3mmdvars ( botid, gameid, pid, varname, value_int ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', " + UTIL_ToString( i->second ) + " )";
+			Query = "INSERT INTO " + TargetTable + " ( botid, gameid, pid, varname, value_int ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', " + UTIL_ToString( i->second ) + " )";
 		else
 			Query += ", ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', " + UTIL_ToString( i->second ) + " )";
 	}
@@ -2025,20 +2273,25 @@ bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gamei
 	return Success;
 }
 
-bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,double> var_reals )
+bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,double> var_reals, string saveType )
 {
 	if( var_reals.empty( ) )
 		return false;
 
 	bool Success = false;
 	string Query;
+	
+	string TargetTable = "w3mmdvars";
+	
+	if( saveType == "uxtourney" )
+		TargetTable = "uxtourney_res_w3mmdvars";
 
         for( map<VarP,double> :: iterator i = var_reals.begin( ); i != var_reals.end( ); ++i )
 	{
 		string EscVarName = MySQLEscapeString( conn, i->first.second );
 
 		if( Query.empty( ) )
-			Query = "INSERT INTO w3mmdvars ( botid, gameid, pid, varname, value_real ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', " + UTIL_ToString( i->second, 10 ) + " )";
+			Query = "INSERT INTO " + TargetTable + " ( botid, gameid, pid, varname, value_real ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', " + UTIL_ToString( i->second, 10 ) + " )";
 		else
 			Query += ", ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', " + UTIL_ToString( i->second, 10 ) + " )";
 	}
@@ -2051,13 +2304,18 @@ bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gamei
 	return Success;
 }
 
-bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,string> var_strings )
+bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,string> var_strings, string saveType )
 {
 	if( var_strings.empty( ) )
 		return false;
 
 	bool Success = false;
 	string Query;
+	
+	string TargetTable = "w3mmdvars";
+	
+	if( saveType == "uxtourney" )
+		TargetTable = "uxtourney_res_w3mmdvars";
 
         for( map<VarP,string> :: iterator i = var_strings.begin( ); i != var_strings.end( ); ++i )
 	{
@@ -2065,7 +2323,7 @@ bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gamei
 		string EscValueString = MySQLEscapeString( conn, i->second );
 
 		if( Query.empty( ) )
-			Query = "INSERT INTO w3mmdvars ( botid, gameid, pid, varname, value_string ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', '" + EscValueString + "' )";
+			Query = "INSERT INTO " + TargetTable + " ( botid, gameid, pid, varname, value_string ) VALUES ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', '" + EscValueString + "' )";
 		else
 			Query += ", ( " + UTIL_ToString( botid ) + ", " + UTIL_ToString( gameid ) + ", " + UTIL_ToString( i->first.first ) + ", '" + EscVarName + "', '" + EscValueString + "' )";
 	}
@@ -2267,7 +2525,7 @@ void CMySQLCallableGameAdd :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLGameAdd( m_Connection, &m_Error, m_SQLBotID, m_Server, m_Map, m_GameName, m_OwnerName, m_Duration, m_GameState, m_CreatorName, m_CreatorServer );
+		m_Result = MySQLGameAdd( m_Connection, &m_Error, m_SQLBotID, m_Server, m_Map, m_GameName, m_OwnerName, m_Duration, m_GameState, m_CreatorName, m_CreatorServer, m_SaveType );
 
 	Close( );
 }
@@ -2287,7 +2545,7 @@ void CMySQLCallableGamePlayerAdd :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLGamePlayerAdd( m_Connection, &m_Error, m_SQLBotID, m_GameID, m_Name, m_IP, m_Spoofed, m_SpoofedRealm, m_Reserved, m_LoadingTime, m_Left, m_LeftReason, m_Team, m_Colour );
+		m_Result = MySQLGamePlayerAdd( m_Connection, &m_Error, m_SQLBotID, m_GameID, m_Name, m_IP, m_Spoofed, m_SpoofedRealm, m_Reserved, m_LoadingTime, m_Left, m_LeftReason, m_Team, m_Colour, m_SaveType );
 
 	Close( );
 }
@@ -2407,7 +2665,37 @@ void CMySQLCallableLeagueCheck :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLLeagueCheck( m_Connection, &m_Error, m_SQLBotID, m_Category, m_Name, m_Server );
+		m_Result = MySQLLeagueCheck( m_Connection, &m_Error, m_SQLBotID, m_Category, m_Name, m_Server, m_GameName );
+
+	Close( );
+}
+
+void CMySQLCallableGetTournament :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		m_Result = MySQLGetTournament( m_Connection, &m_Error, m_SQLBotID, m_GameName );
+
+	Close( );
+}
+
+void CMySQLCallableTournamentChat :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		MySQLTournamentChat( m_Connection, &m_Error, m_SQLBotID, m_ChatID, m_Message );
+
+	Close( );
+}
+
+void CMySQLCallableTournamentUpdate :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		MySQLTournamentUpdate( m_Connection, &m_Error, m_SQLBotID, m_MatchID, m_Status );
 
 	Close( );
 }
@@ -2427,7 +2715,7 @@ void CMySQLCallableW3MMDPlayerAdd :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLW3MMDPlayerAdd( m_Connection, &m_Error, m_SQLBotID, m_Category, m_GameID, m_PID, m_Name, m_Flag, m_Leaver, m_Practicing );
+		m_Result = MySQLW3MMDPlayerAdd( m_Connection, &m_Error, m_SQLBotID, m_Category, m_GameID, m_PID, m_Name, m_Flag, m_Leaver, m_Practicing, m_SaveType );
 
 	Close( );
 }
@@ -2439,11 +2727,11 @@ void CMySQLCallableW3MMDVarAdd :: operator( )( )
 	if( m_Error.empty( ) )
 	{
 		if( m_ValueType == VALUETYPE_INT )
-			m_Result = MySQLW3MMDVarAdd( m_Connection, &m_Error, m_SQLBotID, m_GameID, m_VarInts );
+			m_Result = MySQLW3MMDVarAdd( m_Connection, &m_Error, m_SQLBotID, m_GameID, m_VarInts, m_SaveType );
 		else if( m_ValueType == VALUETYPE_REAL )
-			m_Result = MySQLW3MMDVarAdd( m_Connection, &m_Error, m_SQLBotID, m_GameID, m_VarReals );
+			m_Result = MySQLW3MMDVarAdd( m_Connection, &m_Error, m_SQLBotID, m_GameID, m_VarReals, m_SaveType );
 		else
-			m_Result = MySQLW3MMDVarAdd( m_Connection, &m_Error, m_SQLBotID, m_GameID, m_VarStrings );
+			m_Result = MySQLW3MMDVarAdd( m_Connection, &m_Error, m_SQLBotID, m_GameID, m_VarStrings, m_SaveType );
 	}
 
 	Close( );

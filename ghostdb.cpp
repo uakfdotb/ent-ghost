@@ -133,7 +133,7 @@ vector<string> CGHostDB :: CommandList( )
 	return vector<string>( );
 }
 
-uint32_t CGHostDB :: GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
+uint32_t CGHostDB :: GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype )
 {
 	return 0;
 }
@@ -143,7 +143,7 @@ string CGHostDB :: GameUpdate( string map, string gamename, string ownername, st
 	return "";
 }
 
-uint32_t CGHostDB :: GamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour )
+uint32_t CGHostDB :: GamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour, string savetype )
 {
 	return 0;
 }
@@ -218,22 +218,22 @@ bool CGHostDB :: DownloadAdd( string map, uint32_t mapsize, string name, string 
 	return false;
 }
 
-uint32_t CGHostDB :: W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
+uint32_t CGHostDB :: W3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing, string saveType )
 {
 	return 0;
 }
 
-bool CGHostDB :: W3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints )
+bool CGHostDB :: W3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints, string saveType )
 {
 	return false;
 }
 
-bool CGHostDB :: W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals )
+bool CGHostDB :: W3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals, string saveType )
 {
 	return false;
 }
 
-bool CGHostDB :: W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings )
+bool CGHostDB :: W3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings, string saveType )
 {
 	return false;
 }
@@ -318,7 +318,7 @@ CCallableCommandList *CGHostDB :: ThreadedCommandList( )
 	return NULL;
 }
 
-CCallableGameAdd *CGHostDB :: ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
+CCallableGameAdd *CGHostDB :: ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype )
 {
 	return NULL;
 }
@@ -328,7 +328,7 @@ CCallableGameUpdate *CGHostDB :: ThreadedGameUpdate( string map, string gamename
 	return NULL;
 }
 
-CCallableGamePlayerAdd *CGHostDB :: ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour )
+CCallableGamePlayerAdd *CGHostDB :: ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour, string savetype )
 {
 	return NULL;
 }
@@ -388,7 +388,22 @@ CCallableScoreCheck *CGHostDB :: ThreadedScoreCheck( string category, string nam
 	return NULL;
 }
 
-CCallableLeagueCheck *CGHostDB :: ThreadedLeagueCheck( string category, string name, string server )
+CCallableLeagueCheck *CGHostDB :: ThreadedLeagueCheck( string category, string name, string server, string gamename )
+{
+	return NULL;
+}
+
+CCallableGetTournament *CGHostDB :: ThreadedGetTournament( string gamename )
+{
+	return NULL;
+}
+
+CCallableTournamentChat *CGHostDB :: ThreadedTournamentChat( uint32_t chatid, string message )
+{
+	return NULL;
+}
+
+CCallableTournamentUpdate *CGHostDB :: ThreadedTournamentUpdate( uint32_t matchid, uint32_t status )
 {
 	return NULL;
 }
@@ -398,22 +413,22 @@ CCallableConnectCheck *CGHostDB :: ThreadedConnectCheck( string name, uint32_t s
 	return NULL;
 }
 
-CCallableW3MMDPlayerAdd *CGHostDB :: ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing )
+CCallableW3MMDPlayerAdd *CGHostDB :: ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing, string saveType )
 {
 	return NULL;
 }
 
-CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints )
+CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints, string saveType )
 {
 	return NULL;
 }
 
-CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals )
+CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,double> var_reals, string saveType )
 {
 	return NULL;
 }
 
-CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings )
+CCallableW3MMDVarAdd *CGHostDB :: ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,string> var_strings, string saveType )
 {
 	return NULL;
 }
@@ -574,6 +589,21 @@ CCallableScoreCheck :: ~CCallableScoreCheck( )
 }
 
 CCallableLeagueCheck :: ~CCallableLeagueCheck( )
+{
+
+}
+
+CCallableGetTournament :: ~CCallableGetTournament( )
+{
+
+}
+
+CCallableTournamentChat :: ~CCallableTournamentChat( )
+{
+
+}
+
+CCallableTournamentUpdate :: ~CCallableTournamentUpdate( )
 {
 
 }

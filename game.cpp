@@ -71,24 +71,54 @@ public:
 // CGame
 //
 
-CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ), m_CallableGameAdd( NULL ), m_ForfeitTime( 0 ), m_ForfeitTeam( 0 )
+CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ), m_CallableGameAdd( NULL ), m_ForfeitTime( 0 ), m_ForfeitTeam( 0 ), m_CallableGetTournament( NULL )
 {
     m_DBGame = new CDBGame( 0, string( ), m_Map->GetMapPath( ), string( ), string( ), string( ), 0 );
     m_MapType = "";
 
 	if( m_Map->GetMapType( ) == "w3mmd" )
 	{
-		m_Stats = new CStatsW3MMD( this, m_Map->GetMapStatsW3MMDCategory( ) );
-		m_MapType = m_Map->GetMapStatsW3MMDCategory( );
+		if( m_Map->GetMapTournament( ) )
+		{
+			m_CallableGetTournament = m_GHost->m_DB->ThreadedGetTournament( m_GameName );
+			m_Stats = new CStatsW3MMD( this, m_Map->GetMapStatsW3MMDCategory( ), "uxtourney" );
+			m_MapType = "uxtourney";
+			m_League = true;
+			m_FakePlayerName = "uxtourney";
+			
+			//create fake player for tournament if possible
+			if( m_Map->GetMapTournamentFakeSlot( ) != 255 )
+				CreateFakePlayer( m_Map->GetMapTournamentFakeSlot( ) );
+		}
+		else
+		{
+			m_Stats = new CStatsW3MMD( this, m_Map->GetMapStatsW3MMDCategory( ), "" );
+			m_MapType = m_Map->GetMapStatsW3MMDCategory( );
+		}
 	}
 	else if( m_Map->GetMapType( ) == "dota" )
 	{
-		m_Stats = new CStatsDOTA( this, "dota" );
-		m_MapType = "dota";
+		if( m_Map->GetMapTournament( ) )
+		{
+			m_CallableGetTournament = m_GHost->m_DB->ThreadedGetTournament( m_GameName );
+			m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "uxtourney" );
+			m_MapType = "uxtourney";
+			m_League = true;
+			m_FakePlayerName = "uxtourney";
+			
+			//create fake player for tournament if possible
+			if( m_Map->GetMapTournamentFakeSlot( ) != 255 )
+				CreateFakePlayer( m_Map->GetMapTournamentFakeSlot( ) );
+		}
+		else
+		{
+			m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "dota" );
+			m_MapType = "dota";
+		}
 	}
 	else if( m_Map->GetMapType( ) == "dotaab" )
 	{
-		m_Stats = new CStatsDOTA( this, "dota" );
+		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "dota" );
 		m_MapType = "dotaab";
 		
 		// match making settings for autobalanced games
@@ -98,12 +128,12 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 	}
 	else if( m_Map->GetMapType( ) == "lod" )
 	{
-		m_Stats = new CStatsDOTA( this, "lod" );
+		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "lod" );
 		m_MapType = "lod";
 	}
 	else if( m_Map->GetMapType( ) == "dota2" )
 	{
-		m_Stats = new CStatsDOTA( this, "dota2" );
+		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "dota2" );
 		m_MapType = "dota2";
 		
 		// match making settings for tier 2
@@ -113,7 +143,7 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 	}
 	else if( m_Map->GetMapType( ) == "castlefight2" )
 	{
-		m_Stats = new CStatsW3MMD( this, "castlefight2" );
+		m_Stats = new CStatsW3MMD( this, "castlefight2", "" );
 		m_MapType = "castlefight2";
 		
 		// match making settings for tier 2
@@ -123,7 +153,7 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 	}
 	else if( m_Map->GetMapType( ) == "legionmega2" )
 	{
-		m_Stats = new CStatsW3MMD( this, "legionmega2" );
+		m_Stats = new CStatsW3MMD( this, "legionmega2", "" );
 		m_MapType = "legionmega2";
 		
 		// match making settings for tier 2
@@ -133,13 +163,11 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 	}
 	else if( m_Map->GetMapType( ) == "eihl" )
 	{
-		m_Stats = new CStatsDOTA( this, "eihl" );
+		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "eihl" );
 		m_MapType = "eihl";
 		
 		m_League = true; 
 	}
-	
-	CONSOLE_Print( m_MapType + "/" + m_Map->GetMapType( ) );
 
     m_Guess = 0;
     m_FirstLeaver = true;
@@ -183,7 +211,7 @@ CGame :: ~CGame( )
 			// store the CDBGamePlayers in the database
 
                         for( vector<CDBGamePlayer *> :: iterator i = m_DBGamePlayers.begin( ); i != m_DBGamePlayers.end( ); ++i )
-				m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedGamePlayerAdd( m_CallableGameAdd->GetResult( ), (*i)->GetName( ), (*i)->GetIP( ), (*i)->GetSpoofed( ), (*i)->GetSpoofedRealm( ), (*i)->GetReserved( ), (*i)->GetLoadingTime( ), (*i)->GetLeft( ), (*i)->GetLeftReason( ), (*i)->GetTeam( ), (*i)->GetColour( ) ) );
+				m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedGamePlayerAdd( m_CallableGameAdd->GetResult( ), (*i)->GetName( ), (*i)->GetIP( ), (*i)->GetSpoofed( ), (*i)->GetSpoofedRealm( ), (*i)->GetReserved( ), (*i)->GetLoadingTime( ), (*i)->GetLeft( ), (*i)->GetLeftReason( ), (*i)->GetTeam( ), (*i)->GetColour( ), m_Tournament ? "uxtourney" : string( ) ) );
 
 			// store the stats in the database
 
@@ -692,6 +720,22 @@ bool CGame :: Update( void *fd, void *send_fd )
 		
 		m_ForfeitTime = 0;
 		m_GameOverTime = GetTime( );
+	}
+	
+	if( m_CallableGetTournament && m_CallableGetTournament->GetReady( ) )
+	{
+		vector<string> Result = m_CallableGetTournament->GetResult( );
+		
+		if( Result.size( ) >= 5 )
+		{
+			m_TournamentMatchID = UTIL_ToUInt32( Result[0] );
+			m_TournamentChatID = UTIL_ToUInt32( Result[3] );
+			m_AutoStartPlayers = UTIL_ToUInt32( Result[2] ) * UTIL_ToUInt32( Result[4] );
+		}
+		
+		m_GHost->m_DB->RecoverCallable( m_CallableGetTournament );
+		delete m_CallableGetTournament;
+		m_CallableGetTournament = NULL;
 	}
 
 	return CBaseGame :: Update( fd, send_fd );
@@ -2872,7 +2916,7 @@ bool CGame :: IsGameDataSaved( )
 void CGame :: SaveGameData( )
 {
 	CONSOLE_Print( "[GAME: " + m_GameName + "] saving game data to database" );
-	m_CallableGameAdd = m_GHost->m_DB->ThreadedGameAdd( m_GHost->m_BNETs.size( ) == 1 ? m_GHost->m_BNETs[0]->GetServer( ) : string( ), m_DBGame->GetMap( ), m_GameName, m_OwnerName, m_GameTicks / 1000, m_GameState, m_CreatorName, m_CreatorServer );
+	m_CallableGameAdd = m_GHost->m_DB->ThreadedGameAdd( m_GHost->m_BNETs.size( ) == 1 ? m_GHost->m_BNETs[0]->GetServer( ) : string( ), m_DBGame->GetMap( ), m_GameName, m_OwnerName, m_GameTicks / 1000, m_GameState, m_CreatorName, m_CreatorServer, m_Tournament ? "uxtourney" : string( ) );
 }
 
 bool CGame :: IsAutoBanned( string name )

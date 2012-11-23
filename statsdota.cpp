@@ -36,12 +36,43 @@
 // CStatsDOTA
 //
 
-CStatsDOTA :: CStatsDOTA( CBaseGame *nGame, string nSaveType ) : CStats( nGame ), m_SaveType( nSaveType ), m_Winner( 0 ), m_Min( 0 ), m_Sec( 0 )
+CStatsDOTA :: CStatsDOTA( CBaseGame *nGame, string nConditions, string nSaveType ) : CStats( nGame ), m_SaveType( nSaveType ), m_Winner( 0 ), m_Min( 0 ), m_Sec( 0 ), m_TowerLimit( false ), m_KillLimit( 0 ), m_TimeLimit( 0 ), m_SentinelTowers( 0 ), m_ScourgeTowers( 0 ), m_SentinelKills( 0 ), m_ScourgeKills( 0 ), m_LastCreepTime( 0 )
 {
 	CONSOLE_Print( "[STATSDOTA] using dota stats" );
 
         for( unsigned int i = 0; i < 12; ++i )
 		m_Players[i] = NULL;
+	
+	// process the win conditions
+	if( !nConditions.empty( ) )
+	{
+		stringstream SS;
+		SS << nConditions;
+
+		while( !SS.eof( ) )
+		{
+			string Condition;
+			SS >> Condition;
+
+			if( SS.fail( ) )
+			{
+				CONSOLE_Print( "[STATSDOTA] failed to process win conditions: " + nConditions );
+				break;
+			}
+			else if( Condition.length( ) >= 2 )
+			{
+				string Key = Condition.substr( 0, 2 );
+				string Value = Condition.substr( 2 );
+				
+				if( Key == "tw" )
+					m_TowerLimit = UTIL_ToUInt32( Value );
+				else if( Key == "ki" )
+					m_KillLimit = UTIL_ToUInt32( Value );
+				else if( Key == "tm" )
+					m_TimeLimit = UTIL_ToUInt32( Value );
+			}
+		}
+	}
 }
 
 CStatsDOTA :: ~CStatsDOTA( )
@@ -111,7 +142,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								uint32_t VictimColour = UTIL_ToUInt32( VictimColourString );
 								CGamePlayer *Killer = m_Game->GetPlayerFromColour( ValueInt );
 								CGamePlayer *Victim = m_Game->GetPlayerFromColour( VictimColour );
-
+								
 								if( Killer && Victim )
 								{
 									if( ( ValueInt >= 1 && ValueInt <= 5 ) || ( ValueInt >= 7 && ValueInt <= 11 ) )
@@ -129,6 +160,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 
 											if (ValueInt != VictimColour)
 												m_Players[ValueInt]->SetKills( m_Players[ValueInt]->GetKills() + 1 );
+											
+											if( ValueInt >= 1 && ValueInt <= 5 )
+												m_SentinelKills++;
+											else
+												m_ScourgeKills++;
 										}
 									}
 								
@@ -155,9 +191,15 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 									}
 									
 									if( ValueInt == 0 )
+									{
+										m_SentinelKills++;
 										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Sentinel killed player [" + Victim->GetName( ) + "]" );
+									}
 									else if( ValueInt == 6 )
+									{
+										m_ScourgeKills++;
 										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Scourge killed player [" + Victim->GetName( ) + "]" );
+									}
 								}
 							}
 							else if( KeyString.size( ) >= 8 && KeyString.substr( 0, 7 ) == "Courier" )
@@ -207,9 +249,15 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								string SideString;
 
 								if( Alliance == "0" )
+								{
+									m_ScourgeTowers++;
 									AllianceString = "Sentinel";
+								}
 								else if( Alliance == "1" )
+								{
+									m_SentinelTowers++;
 									AllianceString = "Scourge";
+								}
 								else
 									AllianceString = "unknown";
 
@@ -314,6 +362,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 													
 									m_Players[ID]->SetCreepKills(ValueInt);
 								}
+								
+								m_LastCreepTime = GetTime( );
 							}
 							else if( KeyString.size( ) >= 3 && KeyString.substr( 0, 3 ) == "CSD" )
 							{
@@ -329,6 +379,8 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								
 									m_Players[ID]->SetCreepDenies(ValueInt);
 								}
+								
+								m_LastCreepTime = GetTime( );
 							}
 							else if( KeyString.size( ) >= 2 && KeyString.substr( 0, 2 ) == "NK" )
 							{
@@ -471,6 +523,86 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 		}
 		else
                         ++i;
+	}
+	
+	// set winner if any win conditions have been met
+	if( m_Winner == 0 )
+	{
+		if( m_KillLimit != 0 )
+		{
+			if( m_SentinelKills >= m_KillLimit )
+			{
+				m_Winner = 1;
+				return true;
+			}
+			else if( m_ScourgeKills >= m_KillLimit )
+			{
+				m_Winner = 2;
+				return true;
+			}
+		}
+		
+		if( m_TowerLimit != 0)
+		{
+			if( m_SentinelTowers >= m_TowerLimit )
+			{
+				m_Winner = 1;
+				return true;
+			}
+			else if( m_ScourgeTowers >= m_TowerLimit )
+			{
+				m_Winner = 2;
+				return true;
+			}
+		}
+		
+		if( m_TimeLimit != 0 && m_Game->GetGameTicks( ) > m_TimeLimit * 1000 )
+		{
+			// we must determine a winner at this point
+			// or at least we must try...!
+			
+			if( m_SentinelKills > m_ScourgeKills )
+			{
+				m_Winner = 1;
+				return true;
+			}
+			else if( m_SentinelKills < m_ScourgeKills )
+			{
+				m_Winner = 2;
+				return true;
+			}
+			
+			// ok, base on creep kills then?
+			uint32_t SentinelTotal = 0;
+			uint32_t ScourgeTotal = 0;
+			
+			for( unsigned int i = 0; i < 12; ++i )
+			{
+				if( m_Players[i] )
+				{
+					uint32_t Colour = i;
+					
+					if( m_Players[i]->GetNewColour( ) != 0 )
+						Colour = m_Players[i]->GetNewColour( );
+
+					if( Colour >= 1 && Colour <= 5 )
+						SentinelTotal += m_Players[i]->GetCreepKills( ) + m_Players[i]->GetCreepDenies( );
+					if( Colour >= 7 && Colour <= 11 )
+						ScourgeTotal += m_Players[i]->GetCreepKills( ) + m_Players[i]->GetCreepDenies( );
+				}
+			}
+			
+			if( SentinelTotal > ScourgeTotal )
+			{
+				m_Winner = 1;
+				return true;
+			}
+			else if( SentinelTotal < ScourgeTotal )
+			{
+				m_Winner = 2;
+				return true;
+			}
+		}
 	}
 
 	return m_Winner != 0;

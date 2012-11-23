@@ -2112,6 +2112,10 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 					
 					SS >> Map;
 					
+					//change pipes in map to spaces
+					// this is done to avoid problems with map and then gamename
+					UTIL_Replace( Map, "|", " " );
+					
 					if( !SS.eof( ) )
 					{
 						SS >> Owner;

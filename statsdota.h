@@ -40,9 +40,20 @@ private:
 	uint32_t m_Min;
 	uint32_t m_Sec;
 	string m_SaveType;
+	
+	// win conditions
+	uint32_t m_TowerLimit; // win condition on number of towers destroyed
+	uint32_t m_KillLimit; // win condition on number of kills
+	uint32_t m_TimeLimit; // time limit win condition; winner is more kills, or if even then higher (creep kills + creep denies) value
+	
+	uint32_t m_SentinelTowers;
+	uint32_t m_ScourgeTowers;
+	uint32_t m_SentinelKills;
+	uint32_t m_ScourgeKills;
+	uint32_t m_LastCreepTime; // last time we received creep stats, for the time limit win condition
 
 public:
-	CStatsDOTA( CBaseGame *nGame, string nSaveType );
+	CStatsDOTA( CBaseGame *nGame, string nConditions, string nSaveType );
 	virtual ~CStatsDOTA( );
 
 	virtual bool ProcessAction( CIncomingAction *Action );

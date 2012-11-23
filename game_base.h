@@ -141,6 +141,10 @@ protected:
 	int m_DoDelete;									// notifies thread to exit
 	uint32_t m_LastReconnectHandleTime;				// last time we tried to handle GProxy reconnects
 	bool m_League;									// whether or not this is a league game
+	bool m_Tournament;								// whether or not this is a uxtourney system game
+	uint32_t m_TournamentMatchID;					// if m_Tournament, this is the tournament match ID
+	uint32_t m_TournamentChatID;					// if m_Tournament, this is the chat id
+	string m_FakePlayerName;						// fake player name, only will be different if tournament
 
 public:
 	vector<string> m_DoSayGames;					// vector of strings we should announce to the current game
@@ -169,6 +173,7 @@ public:
 	virtual string GetOwnerName( )					{ return m_OwnerName; }
 	virtual string GetCreatorName( )				{ return m_CreatorName; }
 	virtual string GetCreatorServer( )				{ return m_CreatorServer; }
+	virtual uint32_t GetGameTicks( )				{ return m_GameTicks; }
 	virtual uint32_t GetHostCounter( )				{ return m_HostCounter; }
 	virtual uint32_t GetLastLagScreenTime( )		{ return m_LastLagScreenTime; }
 	virtual bool GetLocked( )						{ return m_Locked; }
@@ -296,6 +301,7 @@ public:
 	virtual void CreateVirtualHost( );
 	virtual void DeleteVirtualHost( );
 	virtual void CreateFakePlayer( );
+	virtual void CreateFakePlayer( unsigned char SID );
 	virtual void DeleteFakePlayer( );
 };
 

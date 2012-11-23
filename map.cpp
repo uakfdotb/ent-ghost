@@ -796,6 +796,19 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapDefaultHCL = CFG->GetString( "map_defaulthcl", string( ) );
 	m_MapDefaultPlayerScore = CFG->GetInt( "map_defaultplayerscore", 1000 );
 	m_MapLoadInGame = CFG->GetInt( "map_loadingame", 0 ) == 0 ? false : true;
+	m_Tournament = CFG->GetInt( "map_tournament", 0 ) == 0 ? false : true;
+	m_TournamentFakeSlot = CFG->GetInt( "map_tournamentfake", 255 );
+	
+	if( m_Tournament )
+	{
+		for( int i = 0; i <= 12; i++ )
+		{
+			uint32_t CurrentSlot = CFG->GetInt( "map_tournamentlayout" + UTIL_ToString( i ), 12 );
+			m_TournamentLayout.push_back( CurrentSlot );
+		}
+	}
+	
+	m_Conditions = CFG->GetString( "map_conditions", string( ) );
 
 	if( MapNumPlayers == 0 )
 		MapNumPlayers = CFG->GetInt( "map_numplayers", 0 );

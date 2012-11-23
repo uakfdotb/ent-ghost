@@ -35,7 +35,7 @@
 // CStatsW3MMD
 //
 
-CStatsW3MMD :: CStatsW3MMD( CBaseGame *nGame, string nCategory ) : CStats( nGame ), m_Category( nCategory ), m_NextValueID( 0 ), m_NextCheckID( 0 )
+CStatsW3MMD :: CStatsW3MMD( CBaseGame *nGame, string nCategory, string nSaveType ) : CStats( nGame ), m_Category( nCategory ), m_SaveType( nSaveType ), m_NextValueID( 0 ), m_NextCheckID( 0 )
 {
 	CONSOLE_Print( "[STATSW3MMD] using Warcraft 3 Map Meta Data stats parser version 1" );
 	CONSOLE_Print( "[STATSW3MMD] using map_statsw3mmdcategory [" + nCategory + "]" );
@@ -386,19 +386,19 @@ void CStatsW3MMD :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 			CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] recorded flags [" + Flags + "] for player [" + i->second + "] with PID [" + UTIL_ToString( i->first ) + "]" );
 			
 			// no need to ask for lock on callables mutex: we already have it from CGame
-			GHost->m_Callables.push_back( DB->ThreadedW3MMDPlayerAdd( m_Category, GameID, i->first, i->second, m_Flags[i->first], Leaver, Practicing ) );
+			GHost->m_Callables.push_back( DB->ThreadedW3MMDPlayerAdd( m_Category, GameID, i->first, i->second, m_Flags[i->first], Leaver, Practicing, m_SaveType ) );
 		}
 
 		// no need to ask for lock on callables mutex: we already have it from CGame
 		
 		if( !m_VarPInts.empty( ) )
-			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, m_VarPInts ) );
+			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, m_VarPInts, m_SaveType ) );
 
 		if( !m_VarPReals.empty( ) )
-			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, m_VarPReals ) );
+			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, m_VarPReals, m_SaveType ) );
 
 		if( !m_VarPStrings.empty( ) )
-			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, m_VarPStrings ) );
+			GHost->m_Callables.push_back( DB->ThreadedW3MMDVarAdd( GameID, m_VarPStrings, m_SaveType ) );
 
 		if( DB->Commit( ) )
 			CONSOLE_Print( "[STATSW3MMD: " + m_Game->GetGameName( ) + "] saving data" );
