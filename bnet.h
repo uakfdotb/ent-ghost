@@ -111,6 +111,7 @@ private:
 	string m_CountryAbbrev;							// country abbreviation
 	string m_Country;								// country
 	uint32_t m_LocaleID;							// see: http://msdn.microsoft.com/en-us/library/0h88fahh%28VS.85%29.aspx
+	string m_KeyOwnerName;							// key owner name
 	string m_UserName;								// battle.net username
 	string m_UserPassword;							// battle.net password
 	string m_FirstChannel;							// the first chat channel to join upon entering chat (note: we hijack this to store the last channel when entering a game)
@@ -144,7 +145,7 @@ private:
 	uint64_t m_BanListFastTime;						// last time when we got the ban list fast
 
 public:
-	CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nHostCounterID );
+	CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nKeyOwnerName, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nHostCounterID );
 	~CBNET( );
 
 	bool GetExiting( )					{ return m_Exiting; }
@@ -182,6 +183,7 @@ public:
 	void ProcessPackets( );
 	void ProcessChatEvent( CIncomingChatEvent *chatEvent );
 	void BotCommand( string Message, string User, bool Whisper, bool ForceRoot );
+	void UxReconnected( );
 
 	// functions to send packets to battle.net
 

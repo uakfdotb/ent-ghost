@@ -326,6 +326,19 @@ CCallableBanListFast *CGHostDBMySQL :: ThreadedBanListFast( CBNET *bnet )
 	return Callable;
 }
 
+CCallableReconUpdate *CGHostDBMySQL :: ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+		++m_NumConnections;
+
+	CCallableReconUpdate *Callable = new CMySQLCallableReconUpdate( hostcounter, seconds, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CreateThread( Callable );
+	++m_OutstandingCallables;
+	return Callable;
+}
+
 CCallableCommandList *CGHostDBMySQL :: ThreadedCommandList( )
 {
 	void *Connection = GetIdleConnection( );
@@ -1050,6 +1063,14 @@ void MySQLBanListFast( void *conn, string *error, uint32_t botid, CBNET *bnet )
 		else
 			*error = mysql_error( (MYSQL *)conn );
 	}
+}
+
+void MySQLReconUpdate( void *conn, string *error, uint32_t botid, uint32_t hostcounter,  uint32_t seconds )
+{
+	string Query = "UPDATE uxrecon_bots SET time = DATE_ADD(NOW(), INTERVAL " + UTIL_ToString( seconds ) + " SECOND), status = 1 WHERE botid = " + UTIL_ToString( botid ) + " AND bnet = " + UTIL_ToString( hostcounter );
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
 }
 
 vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid )
@@ -2217,6 +2238,16 @@ void CMySQLCallableBanListFast :: operator( )( )
 
 	if( m_Error.empty( ) )
 		MySQLBanListFast( m_Connection, &m_Error, m_SQLBotID, m_Bnet );
+
+	Close( );
+}
+
+void CMySQLCallableReconUpdate :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		MySQLReconUpdate( m_Connection, &m_Error, m_SQLBotID, m_HostCounter, m_Seconds );
 
 	Close( );
 }

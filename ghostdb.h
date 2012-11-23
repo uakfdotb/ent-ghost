@@ -43,6 +43,7 @@ class CCallableBanRemove;
 class CCallableBanList;
 class CCallableWhiteList;
 class CCallableBanListFast;
+class CCallableReconUpdate;
 class CCallableCommandList;
 class CCallableGameAdd;
 class CCallableGameUpdate;
@@ -109,6 +110,7 @@ public:
 	virtual vector<CDBBan *> BanList( string server );
 	virtual vector<string> WhiteList( );
 	virtual void BanListFast( CBNET *bnet );
+	virtual void ReconUpdate( uint32_t hostcounter, uint32_t seconds );
 	virtual vector<string> CommandList(  );
 	virtual uint32_t GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual string GameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add );
@@ -148,6 +150,7 @@ public:
 	virtual CCallableBanList *ThreadedBanList( string server );
 	virtual CCallableWhiteList *ThreadedWhiteList( );
 	virtual CCallableBanListFast *ThreadedBanListFast( CBNET *bnet );
+	virtual CCallableReconUpdate *ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds );
 	virtual CCallableCommandList *ThreadedCommandList( );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual CCallableGameUpdate *ThreadedGameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add );
@@ -427,6 +430,17 @@ protected:
 public:
 	CCallableBanListFast( CBNET *nBnet ) : CBaseCallable( ) { m_Bnet = nBnet; }
 	virtual ~CCallableBanListFast( );
+};
+
+class CCallableReconUpdate : virtual public CBaseCallable
+{
+protected:
+	uint32_t m_HostCounter;
+	uint32_t m_Seconds;
+
+public:
+	CCallableReconUpdate( uint32_t nHostCounter, uint32_t nSeconds ) : CBaseCallable( ), m_HostCounter( nHostCounter ), m_Seconds( nSeconds ) { }
+	virtual ~CCallableReconUpdate( );
 };
 
 class CCallableGameAdd : virtual public CBaseCallable

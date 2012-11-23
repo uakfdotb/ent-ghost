@@ -207,6 +207,7 @@ public:
 	virtual CCallableBanList *ThreadedBanList( string server );
 	virtual CCallableWhiteList *ThreadedWhiteList( );
 	virtual CCallableBanListFast *ThreadedBanListFast( CBNET *bnet );
+	virtual CCallableReconUpdate *ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds );
 	virtual CCallableCommandList *ThreadedCommandList(  );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual CCallableGameUpdate *ThreadedGameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add );
@@ -251,6 +252,7 @@ bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user, str
 vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string server );
 vector<string> MySQLWhiteList( void *conn, string *error, uint32_t botid );
 void MySQLBanListFast( void *conn, string *error, uint32_t botid, CBNET *bnet );
+void MySQLReconUpdate( void *conn, string *error, uint32_t botid, uint32_t hostcounter, uint32_t seconds );
 vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid );
 uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 string MySQLGameUpdate( void *conn, string *error, uint32_t botid, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add );
@@ -435,6 +437,17 @@ class CMySQLCallableBanListFast : public CCallableBanListFast, public CMySQLCall
 public:
 	CMySQLCallableBanListFast( CBNET *nBnet, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableBanListFast( nBnet ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
 	virtual ~CMySQLCallableBanListFast( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableReconUpdate : public CCallableReconUpdate, public CMySQLCallable
+{
+public:
+	CMySQLCallableReconUpdate( uint32_t nHostCounter, uint32_t nSeconds, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableReconUpdate( nHostCounter, nSeconds ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
+	virtual ~CMySQLCallableReconUpdate( ) { }
 
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }

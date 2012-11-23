@@ -591,6 +591,7 @@ CGHost :: CGHost( CConfig *CFG )
 
 		string UserName = CFG->GetString( Prefix + "username", string( ) );
 		string UserPassword = CFG->GetString( Prefix + "password", string( ) );
+		string KeyOwnerName = CFG->GetString( Prefix + "keyownername", "GHost" );
 		string FirstChannel = CFG->GetString( Prefix + "firstchannel", "The Void" );
 		string RootAdmin = CFG->GetString( Prefix + "rootadmin", string( ) );
 		string BNETCommandTrigger = CFG->GetString( Prefix + "commandtrigger", "!" );
@@ -649,7 +650,7 @@ CGHost :: CGHost( CConfig *CFG )
 #endif
 		}
 
-		m_BNETs.push_back( new CBNET( this, Server, ServerAlias, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, LocaleID, UserName, UserPassword, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, PublicCommands, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, PVPGNRealmName, MaxMessageLength, i ) );
+		m_BNETs.push_back( new CBNET( this, Server, ServerAlias, BNLSServer, (uint16_t)BNLSPort, (uint32_t)BNLSWardenCookie, CDKeyROC, CDKeyTFT, CountryAbbrev, Country, LocaleID, UserName, UserPassword, KeyOwnerName, FirstChannel, RootAdmin, BNETCommandTrigger[0], HoldFriends, HoldClan, PublicCommands, War3Version, EXEVersion, EXEVersionHash, PasswordHashType, PVPGNRealmName, MaxMessageLength, i ) );
 	}
 
 	if( m_BNETs.empty( ) )
@@ -1584,6 +1585,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
 	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
     m_MapGameType = CFG->GetUInt32( "bot_mapgametype", 21569728 );
+    m_FastReconnect = CFG->GetInt( "bot_fastreconnect", 0 ) == 0 ? false : true;
 }
 
 void CGHost :: ExtractScripts( )

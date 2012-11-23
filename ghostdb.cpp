@@ -120,6 +120,12 @@ vector<string> CGHostDB :: WhiteList( )
 
 void CGHostDB :: BanListFast( CBNET *bnet )
 {
+
+}
+
+void CGHostDB :: ReconUpdate( uint32_t hostcounter, uint32_t seconds )
+{
+
 }
 
 vector<string> CGHostDB :: CommandList( )
@@ -302,6 +308,11 @@ CCallableBanListFast *CGHostDB :: ThreadedBanListFast( CBNET *bnet )
 	return NULL;
 }
 
+CCallableReconUpdate *CGHostDB :: ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds )
+{
+	return NULL;
+}
+
 CCallableCommandList *CGHostDB :: ThreadedCommandList( )
 {
 	return NULL;
@@ -480,6 +491,11 @@ CCallableWhiteList :: ~CCallableWhiteList( )
 CCallableBanListFast :: ~CCallableBanListFast( )
 {
 	// don't delete anything in m_Result here, it's the caller's responsibility
+}
+
+CCallableReconUpdate :: ~CCallableReconUpdate( )
+{
+
 }
 
 CCallableCommandList :: ~CCallableCommandList( )

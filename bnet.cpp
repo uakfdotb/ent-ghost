@@ -49,7 +49,7 @@ using namespace boost :: filesystem;
 // CBNET
 //
 
-CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nHostCounterID )
+CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNLSServer, uint16_t nBNLSPort, uint32_t nBNLSWardenCookie, string nCDKeyROC, string nCDKeyTFT, string nCountryAbbrev, string nCountry, uint32_t nLocaleID, string nUserName, string nUserPassword, string nKeyOwnerName, string nFirstChannel, string nRootAdmin, char nCommandTrigger, bool nHoldFriends, bool nHoldClan, bool nPublicCommands, unsigned char nWar3Version, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType, string nPVPGNRealmName, uint32_t nMaxMessageLength, uint32_t nHostCounterID )
 {
 	// todotodo: append path seperator to Warcraft3Path if needed
 
@@ -114,6 +114,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_LocaleID = nLocaleID;
 	m_UserName = nUserName;
 	m_UserPassword = nUserPassword;
+	m_KeyOwnerName = nKeyOwnerName;
 	m_FirstChannel = nFirstChannel;
 	m_RootAdmin = nRootAdmin;
 	transform( m_RootAdmin.begin( ), m_RootAdmin.end( ), m_RootAdmin.begin( ), (int(*)(int))tolower );
@@ -221,10 +222,10 @@ BYTEARRAY CBNET :: GetUniqueName( )
 
 uint32_t CBNET :: GetReconnectTime( )
 {
+	if( m_GHost->m_FastReconnect )
+		return 25;
 	if( m_CDKeyUseCount == 0 )
-	{
 		return 90;
-	}
 	else
 	{
 		uint32_t Time = 180 + m_CDKeyUseCount * 90;
@@ -923,7 +924,7 @@ void CBNET :: ProcessPackets( )
 						else
 							CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempting to auth as Warcraft III: Reign of Chaos" );							
 
-						m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_CHECK( m_GHost->m_TFT, m_Protocol->GetClientToken( ), m_BNCSUtil->GetEXEVersion( ), m_BNCSUtil->GetEXEVersionHash( ), m_BNCSUtil->GetKeyInfoROC( ), m_BNCSUtil->GetKeyInfoTFT( ), m_BNCSUtil->GetEXEInfo( ), "GHost" ) );
+						m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_CHECK( m_GHost->m_TFT, m_Protocol->GetClientToken( ), m_BNCSUtil->GetEXEVersion( ), m_BNCSUtil->GetEXEVersionHash( ), m_BNCSUtil->GetKeyInfoROC( ), m_BNCSUtil->GetKeyInfoTFT( ), m_BNCSUtil->GetEXEInfo( ), m_KeyOwnerName ) );
 
 						// the Warden seed is the first 4 bytes of the ROC key hash
 						// initialize the Warden handler
@@ -968,10 +969,18 @@ void CBNET :: ProcessPackets( )
 					case CBNETProtocol :: KR_ROC_KEY_IN_USE:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - ROC CD key in use by user [" + m_Protocol->GetKeyStateDescription( ) + "], disconnecting" );
 						m_CDKeyUseCount++;
+						
+						if( m_Protocol->GetKeyStateDescription( ) == "ur5949" )
+							UxReconnected( );
+						
 						break;
 					case CBNETProtocol :: KR_TFT_KEY_IN_USE:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - TFT CD key in use by user [" + m_Protocol->GetKeyStateDescription( ) + "], disconnecting" );
 						m_CDKeyUseCount++;
+						
+						if( m_Protocol->GetKeyStateDescription( ) == "ur5949" )
+							UxReconnected( );
+						
 						break;
 					case CBNETProtocol :: KR_OLD_GAME_VERSION:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - game version is too old, disconnecting" );
@@ -2319,6 +2328,13 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				QueueChatCommand( m_GHost->m_Language->VersionNotAdmin( m_GHost->m_Version ), User, Whisper );
 		}
 	}
+}
+
+void CBNET :: UxReconnected( )
+{
+	boost::mutex::scoped_lock lock( m_GHost->m_CallablesMutex );
+	m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedReconUpdate( m_HostCounterID, GetReconnectTime( ) ) );
+	lock.unlock( );
 }
 
 void CBNET :: SendJoinChannel( string channel )
