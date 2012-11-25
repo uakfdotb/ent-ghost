@@ -1615,6 +1615,7 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 	string EscRealm = MySQLEscapeString( conn, realm );
 	
 	string Query = string( );
+	CDBDotAPlayerSummary *DotAPlayerSummary = NULL;
 	
 	if( saveType == "openstats" )
 	{
@@ -1630,8 +1631,7 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 			table = "dota2_elo_scores";
 		else if( saveType == "eihl" )
 			table = "eihl_elo_scores";
-	
-		CDBDotAPlayerSummary *DotAPlayerSummary = NULL;
+		
 		string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(kills), 0), IFNULL(SUM(deaths), 0), IFNULL(SUM(creepkills), 0), IFNULL(SUM(creepdenies), 0), IFNULL(SUM(assists), 0), IFNULL(SUM(neutralkills), 0), IFNULL(SUM(towerkills), 0), IFNULL(SUM(raxkills), 0), IFNULL(SUM(courierkills), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM " + table + " WHERE name='" + EscName + "'";
 	
 		if( !realm.empty( ) )
