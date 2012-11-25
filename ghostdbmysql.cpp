@@ -1614,20 +1614,29 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 	string EscName = MySQLEscapeString( conn, name );
 	string EscRealm = MySQLEscapeString( conn, realm );
 	
-	string table = "dota_elo_scores";
+	string Query = string( );
 	
-	if( saveType == "lod" )
-		table = "lod_elo_scores";
-	else if( saveType == "dota2" )
-		table = "dota2_elo_scores";
-	else if( saveType == "eihl" )
-		table = "eihl_elo_scores";
+	if( saveType == "openstats" )
+	{
+		string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(kills), 0), IFNULL(SUM(deaths), 0), IFNULL(SUM(creeps), 0), IFNULL(SUM(denies), 0), IFNULL(SUM(assists), 0), IFNULL(SUM(neutrals), 0), IFNULL(SUM(towers), 0), IFNULL(SUM(rax), 0), 0, IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM stats WHERE player='" + EscName + "'";
+	}
+	else
+	{
+		string table = "dota_elo_scores";
+		
+		if( saveType == "lod" )
+			table = "lod_elo_scores";
+		else if( saveType == "dota2" )
+			table = "dota2_elo_scores";
+		else if( saveType == "eihl" )
+			table = "eihl_elo_scores";
 	
-	CDBDotAPlayerSummary *DotAPlayerSummary = NULL;
-	string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(kills), 0), IFNULL(SUM(deaths), 0), IFNULL(SUM(creepkills), 0), IFNULL(SUM(creepdenies), 0), IFNULL(SUM(assists), 0), IFNULL(SUM(neutralkills), 0), IFNULL(SUM(towerkills), 0), IFNULL(SUM(raxkills), 0), IFNULL(SUM(courierkills), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM " + table + " WHERE name='" + EscName + "'";
+		CDBDotAPlayerSummary *DotAPlayerSummary = NULL;
+		string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(kills), 0), IFNULL(SUM(deaths), 0), IFNULL(SUM(creepkills), 0), IFNULL(SUM(creepdenies), 0), IFNULL(SUM(assists), 0), IFNULL(SUM(neutralkills), 0), IFNULL(SUM(towerkills), 0), IFNULL(SUM(raxkills), 0), IFNULL(SUM(courierkills), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM " + table + " WHERE name='" + EscName + "'";
 	
-	if( !realm.empty( ) )
-		Query += " AND server = '" + EscRealm + "'";
+		if( !realm.empty( ) )
+			Query += " AND server = '" + EscRealm + "'";
+	}
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );

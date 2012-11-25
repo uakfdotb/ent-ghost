@@ -1586,6 +1586,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
     m_MapGameType = CFG->GetUInt32( "bot_mapgametype", 21569728 );
     m_FastReconnect = CFG->GetInt( "bot_fastreconnect", 0 ) == 0 ? false : true;
+    m_Openstats = CFG->GetInt( "bot_openstats", 0 ) == 0 ? false : true;
 }
 
 void CGHost :: ExtractScripts( )
