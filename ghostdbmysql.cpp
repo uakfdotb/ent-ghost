@@ -1619,7 +1619,7 @@ CDBDotAPlayerSummary *MySQLDotAPlayerSummaryCheck( void *conn, string *error, ui
 	
 	if( saveType == "openstats" )
 	{
-		string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(kills), 0), IFNULL(SUM(deaths), 0), IFNULL(SUM(creeps), 0), IFNULL(SUM(denies), 0), IFNULL(SUM(assists), 0), IFNULL(SUM(neutrals), 0), IFNULL(SUM(towers), 0), IFNULL(SUM(rax), 0), 0, IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM stats WHERE player='" + EscName + "'";
+		Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(kills), 0), IFNULL(SUM(deaths), 0), IFNULL(SUM(creeps), 0), IFNULL(SUM(denies), 0), IFNULL(SUM(assists), 0), IFNULL(SUM(neutrals), 0), IFNULL(SUM(towers), 0), IFNULL(SUM(rax), 0), 0, IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM stats WHERE player='" + EscName + "'";
 	}
 	else
 	{
