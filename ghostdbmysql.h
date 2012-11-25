@@ -226,7 +226,7 @@ public:
 	virtual CCallableLeagueCheck *ThreadedLeagueCheck( string category, string name, string server, string gamename );
 	virtual CCallableGetTournament *ThreadedGetTournament( string gamename );
 	virtual CCallableTournamentChat *ThreadedTournamentChat( uint32_t chatid, string message );
-	virtual CCallableTournamentUpdate *ThreadedTournamentUpdate( uint32_t matchid, uint32_t status );
+	virtual CCallableTournamentUpdate *ThreadedTournamentUpdate( uint32_t matchid, string gamename, uint32_t status );
 	virtual CCallableConnectCheck *ThreadedConnectCheck( string name, uint32_t sessionkey );
 	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing, string saveType );
 	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints, string saveType );
@@ -274,7 +274,7 @@ double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string categ
 uint32_t MySQLLeagueCheck( void *conn, string *error, uint32_t botid, string category, string name, string server, string gamename );
 vector<string> MySQLGetTournament( void *conn, string *error, uint32_t botid, string gamename );
 void MySQLTournamentChat( void *conn, string *error, uint32_t botid, uint32_t chatid, string message );
-void MySQLTournamentUpdate( void *conn, string *error, uint32_t botid, uint32_t matchid, uint32_t status );
+void MySQLTournamentUpdate( void *conn, string *error, uint32_t botid, uint32_t matchid, string gamename, uint32_t status );
 bool MySQLConnectCheck( void *conn, string *error, uint32_t botid, string name, uint32_t sessionkey );
 uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t botid, string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing, string saveType );
 bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,int32_t> var_ints, string saveType );
@@ -650,7 +650,7 @@ public:
 class CMySQLCallableTournamentUpdate : public CCallableTournamentUpdate, public CMySQLCallable
 {
 public:
-	CMySQLCallableTournamentUpdate( uint32_t nMatchID, uint32_t nStatus, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableTournamentUpdate( nMatchID, nStatus ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
+	CMySQLCallableTournamentUpdate( uint32_t nMatchID, string nGameName, uint32_t nStatus, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableTournamentUpdate( nMatchID, nGameName, nStatus ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
 	virtual ~CMySQLCallableTournamentUpdate( ) { }
 
 	virtual void operator( )( );

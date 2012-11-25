@@ -403,7 +403,7 @@ CCallableTournamentChat *CGHostDB :: ThreadedTournamentChat( uint32_t chatid, st
 	return NULL;
 }
 
-CCallableTournamentUpdate *CGHostDB :: ThreadedTournamentUpdate( uint32_t matchid, uint32_t status )
+CCallableTournamentUpdate *CGHostDB :: ThreadedTournamentUpdate( uint32_t matchid, string gamename, uint32_t status )
 {
 	return NULL;
 }

@@ -184,7 +184,7 @@ CBaseGame :: ~CBaseGame( )
 	// if tournament, update tournament database status
 	if( m_Tournament && m_TournamentMatchID != 0 )
 	{
-		m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedTournamentUpdate( m_TournamentMatchID, 4 ) );
+		m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedTournamentUpdate( m_TournamentMatchID, m_GameName, 4 ) );
 	}
 	
 	lock.unlock( );
@@ -3523,7 +3523,7 @@ void CBaseGame :: EventGameStarted( )
 	if( m_Tournament && m_TournamentMatchID != 0 )
 	{
 		boost::mutex::scoped_lock lock( m_GHost->m_CallablesMutex );
-		m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedTournamentUpdate( m_TournamentMatchID, 3 ) );
+		m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedTournamentUpdate( m_TournamentMatchID, m_GameName, 3 ) );
 		lock.unlock( );
 	}
 

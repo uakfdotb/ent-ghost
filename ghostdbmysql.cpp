@@ -586,14 +586,14 @@ CCallableTournamentChat *CGHostDBMySQL :: ThreadedTournamentChat( uint32_t chati
 	return Callable;
 }
 
-CCallableTournamentUpdate *CGHostDBMySQL :: ThreadedTournamentUpdate( uint32_t matchid, uint32_t status )
+CCallableTournamentUpdate *CGHostDBMySQL :: ThreadedTournamentUpdate( uint32_t matchid, string gamename, uint32_t status )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableTournamentUpdate *Callable = new CMySQLCallableTournamentUpdate( matchid, status, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableTournamentUpdate *Callable = new CMySQLCallableTournamentUpdate( matchid, gamename, status, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
@@ -2179,9 +2179,10 @@ void MySQLTournamentChat( void *conn, string *error, uint32_t botid, uint32_t ch
 		*error = mysql_error( (MYSQL *)conn );
 }
 
-void MySQLTournamentUpdate( void *conn, string *error, uint32_t botid, uint32_t matchid, uint32_t status )
+void MySQLTournamentUpdate( void *conn, string *error, uint32_t botid, uint32_t matchid, string gamename, uint32_t status )
 {
-	string Query = "UPDATE uxtourney_host SET status = " + UTIL_ToString( status ) + " WHERE match_id = " + UTIL_ToString( matchid );
+	string EscGameName = MySQLEscapeString( conn, gamename );
+	string Query = "UPDATE uxtourney_host SET status = " + UTIL_ToString( status ) + " WHERE match_id = " + UTIL_ToString( matchid ) + " AND gamename = '" + EscGameName + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -2695,7 +2696,7 @@ void CMySQLCallableTournamentUpdate :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		MySQLTournamentUpdate( m_Connection, &m_Error, m_SQLBotID, m_MatchID, m_Status );
+		MySQLTournamentUpdate( m_Connection, &m_Error, m_SQLBotID, m_MatchID, m_GameName, m_Status );
 
 	Close( );
 }
