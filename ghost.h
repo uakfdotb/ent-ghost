@@ -70,7 +70,7 @@ public:
 	CUDPSocket *m_LocalSocket;				// a UDP socket for sending broadcasts and other junk (used with !sendlan)
 	CTCPServer *m_ReconnectSocket;			// listening socket for GProxy++ reliable reconnects
 	vector<CTCPSocket *> m_ReconnectSockets;// vector of sockets attempting to reconnect (connected but not identified yet)
-	vector<string> m_SlapPhrases;           // vector of phrases
+	vector<string> m_SlapPhrases;		   // vector of phrases
 	CGPSProtocol *m_GPSProtocol;
 	CGCBIProtocol *m_GCBIProtocol;
 	CCRC32 *m_CRC;							// for calculating CRC's
@@ -107,8 +107,8 @@ public:
 	uint32_t m_LastGameUpdateTime;			// GetTime when the gamelist was last updated
 	uint32_t m_LastCommandListTime;			// GetTime when last refreshed command list
 	CCallableCommandList *m_CallableCommandList;			// threaded database command list in progress
-    CCallableGameUpdate *m_CallableGameUpdate;// threaded database game update in progress
-    bool m_AutoHostMatchMaking;
+	CCallableGameUpdate *m_CallableGameUpdate;// threaded database game update in progress
+	bool m_AutoHostMatchMaking;
 	double m_AutoHostMinimumScore;
 	double m_AutoHostMaximumScore;
 	bool m_AllGamesFinished;				// if all games finished (used when exiting nicely)
@@ -148,9 +148,9 @@ public:
 	uint32_t m_LobbyTimeLimit;				// config value: auto close the game lobby after this many minutes without any reserved players
 	uint32_t m_Latency;						// config value: the latency (by default)
 	uint32_t m_SyncLimit;					// config value: the maximum number of packets a player can fall out of sync before starting the lag screen (by default)
-	bool m_VoteStartAllowed;			    // config value: if votestarts are allowed or not
-    bool m_VoteStartAutohostOnly;           // config value: if votestarts are only allowed in autohosted games
-    uint32_t m_VoteStartMinPlayers;             // config value: minimum number of players before users can !votestart
+	bool m_VoteStartAllowed;				// config value: if votestarts are allowed or not
+	bool m_VoteStartAutohostOnly;		   // config value: if votestarts are only allowed in autohosted games
+	uint32_t m_VoteStartMinPlayers;			 // config value: minimum number of players before users can !votestart
 	bool m_VoteKickAllowed;					// config value: if votekicks are allowed or not
 	uint32_t m_VoteKickPercentage;			// config value: percentage of players required to vote yes for a votekick to pass
 	string m_DefaultMap;					// config value: default map (map.cfg)
@@ -169,15 +169,17 @@ public:
 	uint32_t m_MatchMakingMethod;			// config value: the matchmaking method
 	vector<GProxyReconnector *> m_PendingReconnects;
 	boost::mutex m_ReconnectMutex;
-    uint32_t m_MapGameType;
-    bool m_Openstats;						// config value: whether we have openstats tables
-    
-    vector<string> m_FlameTriggers;			// triggers for antiflame system
-    
+	uint32_t m_MapGameType;
+	bool m_Openstats;						// config value: whether we have openstats tables
+	bool m_FirstLeaver;						// config value: whether to ban first leaver
+	uint32_t m_Autoban;						// config value: how long to autoban for
+	
+	vector<string> m_FlameTriggers;			// triggers for antiflame system
+	
 	vector<CDBBan *> m_Bans;				// bans not tied to other realms (entconnect realm)
 	vector<string> m_WhiteList;				// entconnect whitelist
-    uint32_t m_LastBanRefreshTime;			// refresh ban list every 5 minutes
-    uint32_t m_LastWhiteListRefreshTime;	// refresh white list every 5 minutes
+	uint32_t m_LastBanRefreshTime;			// refresh ban list every 5 minutes
+	uint32_t m_LastWhiteListRefreshTime;	// refresh white list every 5 minutes
 	CCallableBanList *m_CallableBanList;	// threaded database ban list in progress
 	CCallableWhiteList *m_CallableWhiteList;	// threaded database white list in progress
 	boost::mutex m_BansMutex;

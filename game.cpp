@@ -78,99 +78,14 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 
 	if( m_Map->GetMapType( ) == "w3mmd" )
 	{
-		if( m_Map->GetMapTournament( ) )
-		{
-			m_CallableGetTournament = m_GHost->m_DB->ThreadedGetTournament( m_GameName );
-			m_Stats = new CStatsW3MMD( this, m_Map->GetMapStatsW3MMDCategory( ), "uxtourney" );
-			m_MapType = "uxtourney";
-			m_League = true;
-			m_FakePlayerName = "uxtourney";
-			
-			//create fake player for tournament if possible
-			if( m_Map->GetMapTournamentFakeSlot( ) != 255 )
-				CreateFakePlayer( m_Map->GetMapTournamentFakeSlot( ) );
-		}
-		else
-		{
-			m_Stats = new CStatsW3MMD( this, m_Map->GetMapStatsW3MMDCategory( ), "" );
-			m_MapType = m_Map->GetMapStatsW3MMDCategory( );
-		}
+		m_Stats = new CStatsW3MMD( this, m_Map->GetMapStatsW3MMDCategory( ), "" );
+		m_MapType = m_Map->GetMapStatsW3MMDCategory( );
 	}
 	else if( m_Map->GetMapType( ) == "dota" )
 	{
-		if( m_Map->GetMapTournament( ) )
-		{
-			m_CallableGetTournament = m_GHost->m_DB->ThreadedGetTournament( m_GameName );
-			m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "uxtourney" );
-			m_MapType = "uxtourney";
-			m_League = true;
-			m_FakePlayerName = "uxtourney";
-			
-			//create fake player for tournament if possible
-			if( m_Map->GetMapTournamentFakeSlot( ) != 255 )
-				CreateFakePlayer( m_Map->GetMapTournamentFakeSlot( ) );
-		}
-		else
-		{
-			m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "dota" );
-			m_MapType = "dota";
-		}
-	}
-	else if( m_Map->GetMapType( ) == "dotaab" )
-	{
 		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "dota" );
-		m_MapType = "dotaab";
-		
-		// match making settings for autobalanced games
-		m_MatchMaking = true;
-		m_MinimumScore = 200;
-		m_MaximumScore = 99999;
+		m_MapType = "dota";
 	}
-	else if( m_Map->GetMapType( ) == "lod" )
-	{
-		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "lod" );
-		m_MapType = "lod";
-	}
-	else if( m_Map->GetMapType( ) == "dota2" )
-	{
-		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "dota2" );
-		m_MapType = "dota2";
-		
-		// match making settings for tier 2
-		m_MatchMaking = true;
-		m_MinimumScore = 1150;
-		m_MaximumScore = 99999;
-	}
-	else if( m_Map->GetMapType( ) == "castlefight2" )
-	{
-		m_Stats = new CStatsW3MMD( this, "castlefight2", "" );
-		m_MapType = "castlefight2";
-		
-		// match making settings for tier 2
-		m_MatchMaking = true;
-		m_MinimumScore = 1100;
-		m_MaximumScore = 99999;
-	}
-	else if( m_Map->GetMapType( ) == "legionmega2" )
-	{
-		m_Stats = new CStatsW3MMD( this, "legionmega2", "" );
-		m_MapType = "legionmega2";
-		
-		// match making settings for tier 2
-		m_MatchMaking = true;
-		m_MinimumScore = 1100;
-		m_MaximumScore = 99999;
-	}
-	else if( m_Map->GetMapType( ) == "eihl" )
-	{
-		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "eihl" );
-		m_MapType = "eihl";
-		
-		m_League = true; 
-	}
-
-    m_Guess = 0;
-    m_FirstLeaver = true;
 }
 
 CGame :: ~CGame( )
@@ -391,7 +306,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else if( i->second->GetSaveType( ) == "dota2" )
 					DotaCategory = "high-ranked DotA";
 				else if( i->second->GetSaveType( ) == "eihl" )
-					DotaCategory = "DotA EIHL";
+					DotaCategory = "DotA League";
 				
 				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ) + " " + DotaCategory + " games here (ELO: " + UTIL_ToString( DotAPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ) + ". Hero K/D/A: " + UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ) + " (" + UTIL_ToString( DotAPlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgDeaths( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgAssists( ), 2 ) + "). Creep K/D/N: " + UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ) + " (" + UTIL_ToString( DotAPlayerSummary->GetAvgCreepKills( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgCreepDenies( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgNeutralKills( ), 2 ) + "). T/R/C: " + UTIL_ToString( DotAPlayerSummary->GetTotalTowerKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalRaxKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalCourierKills( ) ) + ".";
 
@@ -810,12 +725,12 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				m_DBBanLast = *i;
 		}
 		
-		if( player->GetAutoban( ) && m_GHost->m_AutoHostMaximumGames != 0 )
+		if( m_Autoban && player->GetAutoban( ) && m_GHost->m_AutoHostMaximumGames != 0 )
 		{
 			// ban if game is loading or if it's dota and player has left >= 4v4 situation
-			if( m_GameLoading || ( m_FirstLeaver && m_GameTicks < 1000 * 60 * 3 ) ) {
+			if( m_GameLoading || ( m_GHost->m_FirstLeaver && m_GameTicks < 1000 * 60 * 3 ) ) {
 				m_AutoBans.push_back( player->GetName( ) );
-				m_FirstLeaver = false;
+				m_GHost->m_FirstLeaver = false;
 			} else {
 				string BanType = "";
 				

@@ -178,16 +178,16 @@ void SignalCatcher( int s )
 
 void handler()
 {
-    void *trace_elems[20];
-    int trace_elem_count(backtrace( trace_elems, 20 ));
-    char **stack_syms(backtrace_symbols( trace_elems, trace_elem_count ));
-    for ( int i = 0 ; i < trace_elem_count ; ++i )
-    {
-        std::cout << stack_syms[i] << "\n";
-    }
-    free( stack_syms );
+	void *trace_elems[20];
+	int trace_elem_count(backtrace( trace_elems, 20 ));
+	char **stack_syms(backtrace_symbols( trace_elems, trace_elem_count ));
+	for ( int i = 0 ; i < trace_elem_count ; ++i )
+	{
+		std::cout << stack_syms[i] << "\n";
+	}
+	free( stack_syms );
 
-    exit(1);
+	exit(1);
 }
 
 void CONSOLE_Print( string message )
@@ -432,13 +432,13 @@ CGHost :: CGHost( CConfig *CFG )
 	m_CRC->Initialize( );
 	m_SHA = new CSHA1( );
 	m_CurrentGame = NULL;
-    m_CallableCommandList = NULL;
-    m_CallableGameUpdate = NULL;
-    m_CallableBanList = NULL;
-    m_CallableWhiteList = NULL;
-    m_LastBanRefreshTime = 0;
-    m_LastWhiteListRefreshTime = 0;
-    m_LastDenyCleanTime = 0;
+	m_CallableCommandList = NULL;
+	m_CallableGameUpdate = NULL;
+	m_CallableBanList = NULL;
+	m_CallableWhiteList = NULL;
+	m_LastBanRefreshTime = 0;
+	m_LastWhiteListRefreshTime = 0;
+	m_LastDenyCleanTime = 0;
 	string DBType = CFG->GetString( "db_type", "sqlite3" );
 	CONSOLE_Print( "[GHOST] opening primary database" );
 
@@ -531,10 +531,10 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostOwner = CFG->GetString( "autohost_owner", string( ) );
 	m_LastAutoHostTime = GetTime( );
 	m_LastGameUpdateTime  = GetTime( );
-	m_AutoHostMatchMaking = false;
+	m_AutoHostMatchMaking = CFG->GetInt( "autohost_matchmaking", 0 );
 	m_LastCommandListTime = GetTime( );
-	m_AutoHostMinimumScore = 0.0;
-	m_AutoHostMaximumScore = 0.0;
+	m_AutoHostMinimumScore = CFG->GetInt( "autohost_minscore", 1000 );
+	m_AutoHostMaximumScore = CFG->GetInt( "autohost_maxscore", 9999 );
 	m_AllGamesFinished = false;
 	m_AllGamesFinishedTime = 0;
 	m_TFT = CFG->GetInt( "bot_tft", 1 ) == 0 ? false : true;
@@ -730,16 +730,16 @@ CGHost :: CGHost( CConfig *CFG )
 	CONSOLE_Print( "[GHOST] GHost++ Version " + m_Version + " (without MySQL support)" );
 #endif
 
-    CONSOLE_Print("[GHOST] Loading slap phrases...");
+	CONSOLE_Print("[GHOST] Loading slap phrases...");
 
 	ifstream phrasein;
 	phrasein.open( "phrase.txt" );
 
 	if( phrasein.fail( ) )
 	{
-        CONSOLE_Print("[GHOST] Slap phrase load failed!");
-        perror("Fail");
-    }
+		CONSOLE_Print("[GHOST] Slap phrase load failed!");
+		perror("Fail");
+	}
 	else
 	{
 		string Line;
@@ -749,7 +749,7 @@ CGHost :: CGHost( CConfig *CFG )
 			getline( phrasein, Line );
 
 			if( !Line.empty( ) )
-                m_SlapPhrases.push_back(Line);
+				m_SlapPhrases.push_back(Line);
 		}
 
 		phrasein.close( );
@@ -862,12 +862,12 @@ bool CGHost :: Update( long usecBlock )
 	
 	if( m_CurrentGame && m_CurrentGame->readyDelete( ) )
 	{
-        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
-        {
-            (*i)->QueueGameUncreate( );
-            (*i)->QueueEnterChat( );
-        }
-        
+		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+		{
+			(*i)->QueueGameUncreate( );
+			(*i)->QueueEnterChat( );
+		}
+		
 		delete m_CurrentGame;
 		m_CurrentGame = NULL;
 	}
@@ -994,13 +994,13 @@ bool CGHost :: Update( long usecBlock )
 	if( m_Reconnect && m_ReconnectSocket )
 	{
 		m_ReconnectSocket->SetFD( &fd, &send_fd, &nfds );
-                ++NumFDs;
+		++NumFDs;
 	}
 
 	for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); ++i )
 	{
 		(*i)->SetFD( &fd, &send_fd, &nfds );
-                ++NumFDs;
+		++NumFDs;
 	}
 
 	struct timeval tv;
@@ -1222,10 +1222,10 @@ bool CGHost :: Update( long usecBlock )
 	}
 	
 	//refresh command list every 20 seconds
-    if( !m_CallableCommandList && GetTime( ) - m_LastCommandListTime >= 20 )
+	if( !m_CallableCommandList && GetTime( ) - m_LastCommandListTime >= 20 )
 	{
-	    m_CallableCommandList = m_DB->ThreadedCommandList( );
-	    m_LastCommandListTime = GetTime();
+		m_CallableCommandList = m_DB->ThreadedCommandList( );
+		m_LastCommandListTime = GetTime();
 	}
 
 	if( m_CallableCommandList && m_CallableCommandList->GetReady( ) )
@@ -1243,40 +1243,40 @@ bool CGHost :: Update( long usecBlock )
 		m_DB->RecoverCallable( m_CallableCommandList );
 		delete m_CallableCommandList;
 		m_CallableCommandList = NULL;
-	    m_LastCommandListTime = GetTime();
+		m_LastCommandListTime = GetTime();
 	}
 
-    //update gamelist every 10 seconds
-    if( !m_CallableGameUpdate && GetTime() - m_LastGameUpdateTime >= 10 && !m_Exiting && !m_ExitingNice) {
+	//update gamelist every 10 seconds
+	if( !m_CallableGameUpdate && GetTime() - m_LastGameUpdateTime >= 10 && !m_Exiting && !m_ExitingNice) {
 		boost::mutex::scoped_lock lock( m_GamesMutex );
 		
-    	uint32_t TotalGames = m_Games.size( );
-    	uint32_t TotalPlayers = 0;
-    	
-    	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
-    		TotalPlayers += (*i)->GetNumHumanPlayers( );
-    	
+		uint32_t TotalGames = m_Games.size( );
+		uint32_t TotalPlayers = 0;
+	
+		for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
+			TotalPlayers += (*i)->GetNumHumanPlayers( );
+	
 		
-        if( m_CurrentGame ) {
-        	TotalGames++;
-        	TotalPlayers += m_CurrentGame->GetNumHumanPlayers( );
-        	
-            m_CallableGameUpdate = m_DB->ThreadedGameUpdate(m_CurrentGame->GetMapName(), m_CurrentGame->GetGameName(), m_CurrentGame->GetOwnerName(), m_CurrentGame->GetCreatorName(), m_CurrentGame->GetNumHumanPlayers(), m_CurrentGame->GetPlayerList( ), m_CurrentGame->GetNumHumanPlayers() + m_CurrentGame->GetSlotsOpen(), TotalGames, TotalPlayers, true);
-        } else {
-            m_CallableGameUpdate = m_DB->ThreadedGameUpdate("", "", "", "", 0, "", 0, TotalGames, TotalPlayers, true);
-        }
-        
-        lock.unlock( );
+		if( m_CurrentGame ) {
+			TotalGames++;
+			TotalPlayers += m_CurrentGame->GetNumHumanPlayers( );
+			
+			m_CallableGameUpdate = m_DB->ThreadedGameUpdate(m_CurrentGame->GetMapName(), m_CurrentGame->GetGameName(), m_CurrentGame->GetOwnerName(), m_CurrentGame->GetCreatorName(), m_CurrentGame->GetNumHumanPlayers(), m_CurrentGame->GetPlayerList( ), m_CurrentGame->GetNumHumanPlayers() + m_CurrentGame->GetSlotsOpen(), TotalGames, TotalPlayers, true);
+		} else {
+			m_CallableGameUpdate = m_DB->ThreadedGameUpdate("", "", "", "", 0, "", 0, TotalGames, TotalPlayers, true);
+		}
 
-        m_LastGameUpdateTime = GetTime();
-    }
+		lock.unlock( );
 
-    if( m_CallableGameUpdate && m_CallableGameUpdate->GetReady()) {
-        m_LastGameUpdateTime = GetTime();
-        m_DB->RecoverCallable( m_CallableGameUpdate );
-        delete m_CallableGameUpdate;
-        m_CallableGameUpdate = NULL;
-    }
+		m_LastGameUpdateTime = GetTime();
+	}
+
+	if( m_CallableGameUpdate && m_CallableGameUpdate->GetReady()) {
+		m_LastGameUpdateTime = GetTime();
+		m_DB->RecoverCallable( m_CallableGameUpdate );
+		delete m_CallableGameUpdate;
+		m_CallableGameUpdate = NULL;
+	}
 
 	// refresh the ban list every 20 minutes
 
@@ -1565,7 +1565,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_IPBlackListFile = CFG->GetString( "bot_ipblacklistfile", "ipblacklist.txt" );
 	m_LobbyTimeLimit = CFG->GetInt( "bot_lobbytimelimit", 10 );
 	m_Latency = CFG->GetInt( "bot_latency", 100 );
-    m_SyncLimit = CFG->GetInt( "bot_synclimit", 50 );
+	m_SyncLimit = CFG->GetInt( "bot_synclimit", 50 );
 	m_VoteKickAllowed = CFG->GetInt( "bot_votekickallowed", 1 ) == 0 ? false : true;
 	m_VoteStartAllowed = CFG->GetInt( "bot_votestartallowed", 1 ) == 0 ? false : true;
 	m_VoteStartAutohostOnly = CFG->GetInt( "bot_votestartautohostonly", 1 ) == 0 ? false : true;
@@ -1584,8 +1584,10 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_LocalAdminMessages = CFG->GetInt( "bot_localadminmessages", 1 ) == 0 ? false : true;
 	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
 	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
-    m_MapGameType = CFG->GetUInt32( "bot_mapgametype", 21569728 );
-    m_Openstats = CFG->GetInt( "bot_openstats", 0 ) == 0 ? false : true;
+	m_MapGameType = CFG->GetUInt32( "bot_mapgametype", 21569728 );
+	m_Openstats = CFG->GetInt( "bot_openstats", 0 ) == 0 ? false : true;
+	m_FirstLeaver = CFG->GetInt( "bot_firstleaver", 0 ) == 0 ? false : true;
+	m_Autoban = CFG->GetInt( "bot_autoban", 0 );
 }
 
 void CGHost :: ExtractScripts( )
@@ -1927,15 +1929,15 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 			(*i)->HoldClan( m_CurrentGame );
 	}
 
-    //update mysql current games list
-    if( m_CallableGameUpdate && m_CallableGameUpdate->GetReady()) {
-        m_DB->RecoverCallable( m_CallableGameUpdate );
-        delete m_CallableGameUpdate;
-        m_CallableGameUpdate = NULL;
-        m_LastGameUpdateTime = GetTime();
-    }
+	//update mysql current games list
+	if( m_CallableGameUpdate && m_CallableGameUpdate->GetReady()) {
+		m_DB->RecoverCallable( m_CallableGameUpdate );
+		delete m_CallableGameUpdate;
+		m_CallableGameUpdate = NULL;
+		m_LastGameUpdateTime = GetTime();
+	}
 
-    if(!m_CallableGameUpdate) {
+	if(!m_CallableGameUpdate) {
 		boost::mutex::scoped_lock lock( m_GamesMutex );
 		uint32_t TotalGames = m_Games.size( ) + 1;
 		uint32_t TotalPlayers = 0;
@@ -1943,10 +1945,10 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
 			TotalPlayers += (*i)->GetNumHumanPlayers( );
 		
-        m_CallableGameUpdate = m_DB->ThreadedGameUpdate(m_CurrentGame->GetMapName( ), m_CurrentGame->GetGameName(), m_CurrentGame->GetOwnerName(), m_CurrentGame->GetCreatorName(), m_CurrentGame->GetNumHumanPlayers( ), m_CurrentGame->GetPlayerList( ), m_CurrentGame->GetNumHumanPlayers( ) + m_CurrentGame->GetSlotsOpen(), TotalGames, TotalPlayers, true);
-        m_LastGameUpdateTime = GetTime();
-        lock.unlock( );
-    }
+		m_CallableGameUpdate = m_DB->ThreadedGameUpdate(m_CurrentGame->GetMapName( ), m_CurrentGame->GetGameName(), m_CurrentGame->GetOwnerName(), m_CurrentGame->GetCreatorName(), m_CurrentGame->GetNumHumanPlayers( ), m_CurrentGame->GetPlayerList( ), m_CurrentGame->GetNumHumanPlayers( ) + m_CurrentGame->GetSlotsOpen(), TotalGames, TotalPlayers, true);
+		m_LastGameUpdateTime = GetTime();
+		lock.unlock( );
+	}
 	
 	// start the game thread
 	boost::thread(&CBaseGame::loop, m_CurrentGame);

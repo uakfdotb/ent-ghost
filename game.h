@@ -57,8 +57,6 @@ typedef pair<string,CCallableW3MMDPlayerSummaryCheck *> PairedWPSCheck;
 
 class CGame : public CBaseGame
 {
-private:
-    uint32_t m_Guess;
 protected:
 	CDBBan *m_DBBanLast;						// last ban for the !banlast command - this is a pointer to one of the items in m_DBBans
 	vector<CDBBan *> m_DBBans;					// vector of potential ban data for the database (see the Update function for more info, it's not as straightforward as you might think)
@@ -81,7 +79,6 @@ protected:
 	vector<string> m_AutoBans;
 	uint32_t m_ForfeitTime;						// time that players forfeited, or 0 if not forfeited
 	uint32_t m_ForfeitTeam;						// id of team that forfeited
-	bool m_FirstLeaver;							// first leaver more likely to be banned
 	
 	bool IsAutoBanned( string name );
 
@@ -97,8 +94,6 @@ public:
 	virtual void EventGameStarted( );
 	virtual bool IsGameDataSaved( );
 	virtual void SaveGameData( );
-    virtual uint32_t GetGuess() {return m_Guess;}
-    virtual void SetGuess( uint32_t nGuess )     { m_Guess = nGuess; }
     virtual void GetStatsUser( string *statsUser, string *statsRealm );
 
 };
