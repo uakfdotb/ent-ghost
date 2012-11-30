@@ -2490,29 +2490,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	}
 
 	//
-	// !GUESS
-	//
-
-	else if( Command == "guess" && !Payload.empty() )
-	{
-		uint32_t PlayerGuess = UTIL_ToUInt32( Payload );
-		uint32_t Guess = GetGuess();
-
-		if(Guess > 0) {
-			if(Guess > PlayerGuess) {
-				SendChat(player, "Sorry, but you're too low.");
-			} else if(Guess < PlayerGuess) {
-				SendChat(player, "Sorry, but you're too high.");
-			} else {
-				SendAllChat("[" + player->GetName() + "] has guessed the number correctly: " + UTIL_ToString(Guess) + "!");
-				SetGuess(0);
-			}
-		} else {
-			SendChat( player, "Error: you have to start a guessing game first with !startguess <maxnumber>.");
-		}
-	}
-
-	//
 	// !IGNORE
 	//
 
@@ -2550,26 +2527,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		}
 		else
 			SendChat( player, "Unable to unignore player [" + Payload + "]. Found more than one match." );
-	}
-
-	//
-	// !STARTGUESS
-	//
-
-	else if( (Command == "startguess" || Command == "sg" )&& !Payload.empty() )
-	{
-        uint32_t PlayerGuess = UTIL_ToUInt32(Payload);
-        uint32_t Guess = GetGuess();
-
-        if(Guess > 0) {
-            SendChat(player, "Error: it seems like a guessing game is already in progress. Use !guess <number> to guess a number.");
-        } else if(PlayerGuess > 300 || PlayerGuess < 10) {
-            SendChat(player, "Error: <maxnumber> must be between 10 and 300.");
-        } else {
-            SetGuess(rand() % PlayerGuess + 1);
-            SendAllChat("[" + player->GetName() + "] has started a guessing game. The number is from 1 to " + UTIL_ToString(PlayerGuess) + ". Use !guess <number> to guess.");
-        }
-        HideCommand = true;
 	}
 
 	//
