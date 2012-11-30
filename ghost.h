@@ -170,7 +170,6 @@ public:
 	vector<GProxyReconnector *> m_PendingReconnects;
 	boost::mutex m_ReconnectMutex;
     uint32_t m_MapGameType;
-    bool m_FastReconnect;					// config value: whether this is a fast reconnect bot
     bool m_Openstats;						// config value: whether we have openstats tables
     
     vector<string> m_FlameTriggers;			// triggers for antiflame system

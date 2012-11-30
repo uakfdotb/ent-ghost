@@ -222,8 +222,6 @@ BYTEARRAY CBNET :: GetUniqueName( )
 
 uint32_t CBNET :: GetReconnectTime( )
 {
-	if( m_GHost->m_FastReconnect )
-		return 25;
 	if( m_CDKeyUseCount == 0 )
 		return 90;
 	else
