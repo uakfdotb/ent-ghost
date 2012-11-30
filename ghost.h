@@ -173,6 +173,7 @@ public:
 	bool m_Openstats;						// config value: whether we have openstats tables
 	bool m_FirstLeaver;						// config value: whether to ban first leaver
 	uint32_t m_Autoban;						// config value: how long to autoban for
+	uint32_t m_GameCounterLimit;			// config value: limit to the #XX autohosting
 	
 	vector<string> m_FlameTriggers;			// triggers for antiflame system
 	

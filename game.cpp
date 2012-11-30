@@ -106,13 +106,13 @@ CGame :: ~CGame( )
 				string CustomReason = "autoban: left at " + UTIL_ToString( LeftTime ) + "/" + UTIL_ToString( EndTime );
 				
 				if( m_MapType == "eihl" )
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-eihl", CustomReason, 3600 * 12, "ttr.cloud" ));
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-eihl", CustomReason, 60 * m_GHost->m_Autoban, "ttr.cloud" ));
 				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" )
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 60 * m_GHost->m_Autoban, "ttr.cloud" ));
 				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "civwars" )
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600, "ttr.cloud" ));
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 60 * m_GHost->m_Autoban, "ttr.cloud" ));
 				else
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 1800, "ttr.cloud" ));
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 60 * m_GHost->m_Autoban, "ttr.cloud" ));
 			}
 		}
 	}
@@ -725,7 +725,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				m_DBBanLast = *i;
 		}
 		
-		if( m_Autoban && player->GetAutoban( ) && m_GHost->m_AutoHostMaximumGames != 0 )
+		if( m_GHost->m_Autoban && player->GetAutoban( ) && m_GHost->m_AutoHostMaximumGames != 0 )
 		{
 			// ban if game is loading or if it's dota and player has left >= 4v4 situation
 			if( m_GameLoading || ( m_GHost->m_FirstLeaver && m_GameTicks < 1000 * 60 * 3 ) ) {

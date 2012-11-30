@@ -1161,7 +1161,12 @@ bool CGHost :: Update( long usecBlock )
 		{
 			if( m_AutoHostMap->GetValid( ) )
 			{
-				string GameName = m_AutoHostGameName + " #" + UTIL_ToString( m_HostCounter % 100 );
+				uint32_t Counter = m_HostCounter;
+				
+				if( m_GameCounterLimit > 0 )
+					Counter = m_HostCounter % m_GameCounterLimit;
+				
+				string GameName = m_AutoHostGameName + " #" + UTIL_ToString( Counter );
 
 				if( GameName.size( ) <= 31 )
 				{
@@ -1588,6 +1593,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_Openstats = CFG->GetInt( "bot_openstats", 0 ) == 0 ? false : true;
 	m_FirstLeaver = CFG->GetInt( "bot_firstleaver", 0 ) == 0 ? false : true;
 	m_Autoban = CFG->GetInt( "bot_autoban", 0 );
+	m_GameCounterLimit = CFG->GetInt( "bot_gamecounterlimit", 100 );
 }
 
 void CGHost :: ExtractScripts( )
