@@ -1677,31 +1677,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		}
 
 		//
-		// !EXIT
-		// !QUIT
-		//
-
-		else if( Command == "exit" || Command == "quit" )
-		{
-			if( IsRootAdmin( User ) || ForceRoot )
-			{
-				if( Payload == "nice" )
-					m_GHost->m_ExitingNice = true;
-				else if( Payload == "force" )
-					m_Exiting = true;
-				else
-				{
-					if( m_GHost->m_CurrentGame || !m_GHost->m_Games.empty( ) )
-						QueueChatCommand( m_GHost->m_Language->AtLeastOneGameActiveUseForceToShutdown( ), User, Whisper );
-					else
-						m_Exiting = true;
-				}
-			}
-			else
-				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
-		}
-
-		//
 		// !GETCLAN
 		//
 
