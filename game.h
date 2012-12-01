@@ -44,6 +44,7 @@ class CCallableTreePlayerSummaryCheck;
 class CCallableSnipePlayerSummaryCheck;
 class CCallableShipsPlayerSummaryCheck;
 class CCallableW3MMDPlayerSummaryCheck;
+class CCallableGameUpdate;
 
 typedef pair<string,CCallableBanCheck *> PairedBanCheck;
 typedef pair<string,CCallableBanAdd *> PairedBanAdd;
@@ -74,6 +75,11 @@ protected:
 	vector<PairedSPSCheck> m_PairedSPSChecks;	// vector of paired threaded database sniper player summary checks in progress
 	vector<PairedBPSCheck> m_PairedBPSChecks;	// vector of paired threaded database battleships player summary checks in progress
 	vector<PairedWPSCheck> m_PairedWPSChecks;	// vector of paired threaded database battleships player summary checks in progress
+	
+	
+	uint32_t m_LastGameUpdateTime;				// GetTime when the gamelist was last updated
+	CCallableGameUpdate *m_CallableGameUpdate;	// threaded database game update in progress
+	uint32_t m_GameUpdateID;					// id in gamelist table
 	
     string m_MapType;							// recorded map type after game starts because map is deleted
 	vector<string> m_AutoBans;

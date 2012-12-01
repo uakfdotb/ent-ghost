@@ -433,7 +433,6 @@ CGHost :: CGHost( CConfig *CFG )
 	m_SHA = new CSHA1( );
 	m_CurrentGame = NULL;
 	m_CallableCommandList = NULL;
-	m_CallableGameUpdate = NULL;
 	m_CallableBanList = NULL;
 	m_CallableWhiteList = NULL;
 	m_LastBanRefreshTime = 0;
@@ -530,7 +529,6 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostGameName = CFG->GetString( "autohost_gamename", string( ) );
 	m_AutoHostOwner = CFG->GetString( "autohost_owner", string( ) );
 	m_LastAutoHostTime = GetTime( );
-	m_LastGameUpdateTime  = GetTime( );
 	m_AutoHostMatchMaking = CFG->GetInt( "autohost_matchmaking", 0 );
 	m_LastCommandListTime = GetTime( );
 	m_AutoHostMinimumScore = CFG->GetInt( "autohost_minscore", 1000 );
@@ -1251,38 +1249,6 @@ bool CGHost :: Update( long usecBlock )
 		m_LastCommandListTime = GetTime();
 	}
 
-	//update gamelist every 10 seconds
-	if( !m_CallableGameUpdate && GetTime() - m_LastGameUpdateTime >= 10 && !m_Exiting && !m_ExitingNice) {
-		boost::mutex::scoped_lock lock( m_GamesMutex );
-		
-		uint32_t TotalGames = m_Games.size( );
-		uint32_t TotalPlayers = 0;
-	
-		for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
-			TotalPlayers += (*i)->GetNumHumanPlayers( );
-	
-		
-		if( m_CurrentGame ) {
-			TotalGames++;
-			TotalPlayers += m_CurrentGame->GetNumHumanPlayers( );
-			
-			m_CallableGameUpdate = m_DB->ThreadedGameUpdate(m_CurrentGame->GetMapName(), m_CurrentGame->GetGameName(), m_CurrentGame->GetOwnerName(), m_CurrentGame->GetCreatorName(), m_CurrentGame->GetNumHumanPlayers(), m_CurrentGame->GetPlayerList( ), m_CurrentGame->GetNumHumanPlayers() + m_CurrentGame->GetSlotsOpen(), TotalGames, TotalPlayers, true);
-		} else {
-			m_CallableGameUpdate = m_DB->ThreadedGameUpdate("", "", "", "", 0, "", 0, TotalGames, TotalPlayers, true);
-		}
-
-		lock.unlock( );
-
-		m_LastGameUpdateTime = GetTime();
-	}
-
-	if( m_CallableGameUpdate && m_CallableGameUpdate->GetReady()) {
-		m_LastGameUpdateTime = GetTime();
-		m_DB->RecoverCallable( m_CallableGameUpdate );
-		delete m_CallableGameUpdate;
-		m_CallableGameUpdate = NULL;
-	}
-
 	// refresh the ban list every 20 minutes
 
 	if( !m_CallableBanList && GetTime( ) - m_LastBanRefreshTime >= 1200 )
@@ -1933,27 +1899,6 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 		if( (*i)->GetHoldClan( ) )
 			(*i)->HoldClan( m_CurrentGame );
-	}
-
-	//update mysql current games list
-	if( m_CallableGameUpdate && m_CallableGameUpdate->GetReady()) {
-		m_DB->RecoverCallable( m_CallableGameUpdate );
-		delete m_CallableGameUpdate;
-		m_CallableGameUpdate = NULL;
-		m_LastGameUpdateTime = GetTime();
-	}
-
-	if(!m_CallableGameUpdate) {
-		boost::mutex::scoped_lock lock( m_GamesMutex );
-		uint32_t TotalGames = m_Games.size( ) + 1;
-		uint32_t TotalPlayers = 0;
-		
-		for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
-			TotalPlayers += (*i)->GetNumHumanPlayers( );
-		
-		m_CallableGameUpdate = m_DB->ThreadedGameUpdate(m_CurrentGame->GetMapName( ), m_CurrentGame->GetGameName(), m_CurrentGame->GetOwnerName(), m_CurrentGame->GetCreatorName(), m_CurrentGame->GetNumHumanPlayers( ), m_CurrentGame->GetPlayerList( ), m_CurrentGame->GetNumHumanPlayers( ) + m_CurrentGame->GetSlotsOpen(), TotalGames, TotalPlayers, true);
-		m_LastGameUpdateTime = GetTime();
-		lock.unlock( );
 	}
 	
 	// start the game thread

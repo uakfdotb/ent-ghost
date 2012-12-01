@@ -196,9 +196,6 @@ CBNET :: ~CBNET( )
         for( vector<PairedVPSCheck> :: iterator i = m_PairedVPSChecks.begin( ); i != m_PairedVPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-        for( vector<PairedGameUpdate> :: iterator i = m_PairedGameUpdates.begin( ); i != m_PairedGameUpdates.end( ); ++i )
-		m_GHost->m_Callables.push_back( i->second );
-
 	if( m_CallableAdminList )
 		m_GHost->m_Callables.push_back( m_CallableAdminList );
 
@@ -495,22 +492,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		}
 		else
 			++i;
-	}
-
-	for( vector<PairedGameUpdate> :: iterator i = m_PairedGameUpdates.begin( ); i != m_PairedGameUpdates.end( ); )
-	{
-		if( i->second->GetReady( ) )
-		{
-			string response = i->second->GetResult( );
-
-            QueueChatCommand( response, i->first, !i->first.empty( ) );
-
-			m_GHost->m_DB->RecoverCallable( i->second );
-			delete i->second;
-			i = m_PairedGameUpdates.erase( i );
-		}
-		else
-                        ++i;
 	}
 
 
@@ -2282,15 +2263,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			uint32_t nameIndex = phrase.find_first_of("[") + 1;
 			if(!Whisper)
 				QueueChatCommand("[" + User + "] " + phrase.insert(nameIndex, Payload), User, Whisper);
-		}
-        
-		//
-		// !GAMES
-		//
-
-		else if( Command == "games" || Command == "g" )
-		{
-            m_PairedGameUpdates.push_back( PairedGameUpdate( Whisper ? User : string( ), m_GHost->m_DB->ThreadedGameUpdate("", "", "", "", 0, "", 0, 0, 0, false ) ) );
 		}
 
 		//

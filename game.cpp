@@ -71,7 +71,7 @@ public:
 // CGame
 //
 
-CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ), m_CallableGameAdd( NULL ), m_ForfeitTime( 0 ), m_ForfeitTeam( 0 ), m_CallableGetTournament( NULL )
+CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ), m_CallableGameAdd( NULL ), m_ForfeitTime( 0 ), m_ForfeitTeam( 0 ), m_CallableGetTournament( NULL ), m_CallableGameUpdate( NULL ), m_GameUpdateID( 0 )
 {
     m_DBGame = new CDBGame( 0, string( ), m_Map->GetMapPath( ), string( ), string( ), string( ), 0 );
     m_MapType = "";
@@ -86,6 +86,8 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "dota" );
 		m_MapType = "dota";
 	}
+	
+	m_LastGameUpdateTime  = 0;
 }
 
 CGame :: ~CGame( )
@@ -652,6 +654,24 @@ bool CGame :: Update( void *fd, void *send_fd )
 		delete m_CallableGetTournament;
 		m_CallableGetTournament = NULL;
 	}
+	
+	//update gamelist every 10 seconds
+	if( !m_CallableGameUpdate && GetTime() - m_LastGameUpdateTime >= 10 ) {
+		m_CallableGameUpdate = m_GHost->m_DB->ThreadedGameUpdate(m_GameUpdateID, GetMapName(), GetGameName(), GetOwnerName(), GetCreatorName(), GetNumHumanPlayers(), GetPlayerList( ), GetNumHumanPlayers() + GetSlotsOpen(), 0, 0, true);
+		m_LastGameUpdateTime = GetTime();
+	}
+
+	if( m_CallableGameUpdate && m_CallableGameUpdate->GetReady()) {
+		m_LastGameUpdateTime = GetTime();
+		uint32_t ID = m_CallableGameUpdate->GetResult( );
+		
+		if( ID != 0 )
+			m_GameUpdateID = ID;
+		
+		m_GHost->m_DB->RecoverCallable( m_CallableGameUpdate );
+		delete m_CallableGameUpdate;
+		m_CallableGameUpdate = NULL;
+	}
 
 	return CBaseGame :: Update( fd, send_fd );
 }
@@ -686,6 +706,18 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	else if( Player && m_MapType == "legionmega2" && score != NULL )
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega2" ) ) );
+	}
+	else if( Player && m_MapType == "castlefight" && score != NULL )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "castlefight" ) ) );
+	}
+	else if( Player && m_MapType == "legionmega" && score != NULL )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega" ) ) );
+	}
+	else if( Player && m_MapType == "civwars" && score != NULL )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "civwars" ) ) );
 	}
 	
 	return Player;

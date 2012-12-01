@@ -81,6 +81,7 @@ protected:
 	unsigned char m_GProxyEmptyActions;
 	string m_GameName;								// game name
 	string m_LastGameName;							// last game name (the previous game name before it was rehosted)
+	string m_MapName;								// map path
 	string m_VirtualHostName;						// virtual host's name
 	string m_OwnerName;								// name of the player who owns this game (should be considered an admin)
 	string m_CreatorName;							// name of the player who created this game
@@ -167,7 +168,7 @@ public:
 	virtual unsigned char GetGameState( )			{ return m_GameState; }
 	virtual unsigned char GetGProxyEmptyActions( )	{ return m_GProxyEmptyActions; }
 	virtual string GetGameName( )					{ return m_GameName; }
-	virtual string GetMapName( );
+	virtual string GetMapName( )					{ return m_MapName; }
 	virtual string GetLastGameName( )				{ return m_LastGameName; }
 	virtual string GetVirtualHostName( )			{ return m_VirtualHostName; }
 	virtual string GetOwnerName( )					{ return m_OwnerName; }
