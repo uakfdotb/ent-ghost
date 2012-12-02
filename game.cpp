@@ -767,15 +767,15 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega2" ) ) );
 	}
-	else if( Player && m_MapType == "castlefight" && score != NULL )
+	else if( Player && m_MapType == "castlefight" )
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "castlefight" ) ) );
 	}
-	else if( Player && m_MapType == "legionmega" && score != NULL )
+	else if( Player && m_MapType == "legionmega" )
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega" ) ) );
 	}
-	else if( Player && m_MapType == "civwars" && score != NULL )
+	else if( Player && m_MapType == "civwars" )
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "civwars" ) ) );
 	}
