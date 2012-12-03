@@ -342,13 +342,13 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( GamePlayerSummary && GamePlayerSummary->GetTotalGames( ) > 0 )
 			{
 				if( i->first.empty( ) )
-					SendAllChat( "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Average stay: " + UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) + " percent." );
+					SendAllChat( "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Average stay: " + UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) + " percent. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Average stay: " + UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) + " percent." );
+						SendChat( Player, "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Average stay: " + UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) + " percent. Total playing time: " + UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) + " hours." );
 				}
 			}
 			else

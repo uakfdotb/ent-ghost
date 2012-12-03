@@ -1260,7 +1260,7 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 	string EscName = MySQLEscapeString( conn, name );
 	string EscRealm = MySQLEscapeString( conn, realm );
 	CDBGamePlayerSummary *GamePlayerSummary = NULL;
-	string Query = "SELECT IFNULL(SUM(num_games), 0), (IFNULL(SUM(total_leftpercent), 1) / IFNULL(SUM(num_games), 1) * 100) FROM gametrack WHERE name='" + EscName + "'";
+	string Query = "SELECT IFNULL(SUM(num_games), 0), (IFNULL(SUM(total_leftpercent), 1) / IFNULL(SUM(num_games), 1) * 100), ROUND(playingtime / 3600) FROM gametrack WHERE name='" + EscName + "'";
 	
 	if( !realm.empty( ) )
 		Query += " AND realm = '" + EscRealm + "'";
@@ -1275,14 +1275,15 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 		{
 			vector<string> Row = MySQLFetchRow( Result );
 
-			if( Row.size( ) == 2 )
+			if( Row.size( ) == 3 )
 			{
 				uint32_t TotalGames = UTIL_ToUInt32( Row[0] );
 				double LeftPercent = UTIL_ToDouble( Row[1] );
-				GamePlayerSummary = new CDBGamePlayerSummary( realm, name, TotalGames, LeftPercent );
+				uint32_t PlayingTime = UTIL_ToUInt32( Row[2] );
+				GamePlayerSummary = new CDBGamePlayerSummary( realm, name, TotalGames, LeftPercent, PlayingTime );
 			}
 			else
-				*error = "error checking gameplayersummary [" + name + "] - row doesn't have 2 columns";
+				*error = "error checking gameplayersummary [" + name + "] - row doesn't have 3 columns";
 
 			mysql_free_result( Result );
 		}
