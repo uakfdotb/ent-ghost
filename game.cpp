@@ -675,44 +675,21 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 {
 	CGamePlayer *Player = CBaseGame :: EventPlayerJoined( potential, joinPlayer, score );
 	
-	// show player statistics for DotA
-	// but if this is high ranked game, only show if they actually joined game
-	
-	if( Player && m_Map->GetMapPath( ).find( "DotA v" ) != string :: npos && ( m_MapType != "dota2" || score != NULL ) )
+	// show player statistics if enabled
+	if( m_GHost->m_StatsOnJoin )
 	{
-		if( m_MapType == "lod" )
-			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "lod" ) ) );
-		else if( m_MapType == "dota2" )
-			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "dota2" ) ) );
-		else if( m_MapType == "eihl" )
-			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "eihl" ) ) );
-		else
+		if( m_MapType == "dota" || m_MapType == "eihl" || m_MapType == "lod" || ( m_MapType == "dota2" && score != NULL ) )
 		{
 			if( m_GHost->m_Openstats )
 				m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "openstats" ) ) );
 			else
-				m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "dota" ) ) );
+				m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), m_MapType ) ) );
 		}
-	}
-	else if( Player && m_MapType == "castlefight2" && score != NULL )
-	{
-		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "castlefight2" ) ) );
-	}
-	else if( Player && m_MapType == "legionmega2" && score != NULL )
-	{
-		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega2" ) ) );
-	}
-	else if( Player && m_MapType == "castlefight" && score != NULL )
-	{
-		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "castlefight" ) ) );
-	}
-	else if( Player && m_MapType == "legionmega" && score != NULL )
-	{
-		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega" ) ) );
-	}
-	else if( Player && m_MapType == "civwars" && score != NULL )
-	{
-		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "civwars" ) ) );
+		
+		else if( !m_MapType.empty( ) )
+		{
+			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), m_MapType ) ) );
+		}
 	}
 	
 	return Player;

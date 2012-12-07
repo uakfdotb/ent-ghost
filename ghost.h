@@ -182,6 +182,8 @@ public:
 	uint32_t m_PBanDuration;				// config value: pban duration (hours)
 	uint32_t m_WBanDuration;				// config value: wban duration (hours)
 	
+	bool m_StatsOnJoin;						// config value: attempt to show stats on join?
+	
 	vector<string> m_FlameTriggers;			// triggers for antiflame system
 	
 	vector<CDBBan *> m_Bans;				// bans not tied to other realms (entconnect realm)

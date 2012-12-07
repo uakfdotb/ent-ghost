@@ -1573,6 +1573,8 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_PBanDuration = CFG->GetInt( "bot_banduration", 9999 );
 	m_TBanDuration = CFG->GetInt( "bot_banduration", 4 );
 	m_WBanDuration = CFG->GetInt( "bot_banduration", 120 );
+	
+	m_StatsOnJoin = CFG->GetInt( "bot_statsonjoin", 1 ) == 0 ? false : true;
 }
 
 void CGHost :: ExtractScripts( )
