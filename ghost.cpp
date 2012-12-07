@@ -1567,6 +1567,12 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_AutobanMinEnemies = CFG->GetInt( "bot_autobanminenemies", 0 );
 	m_AutobanGameLimit = CFG->GetInt( "bot_autobangamelimit", 0 );
 	m_GameCounterLimit = CFG->GetInt( "bot_gamecounterlimit", 100 );
+	
+	m_BanDuration = CFG->GetInt( "bot_banduration", 48 );
+	m_CBanDuration = CFG->GetInt( "bot_banduration", 720 );
+	m_PBanDuration = CFG->GetInt( "bot_banduration", 9999 );
+	m_TBanDuration = CFG->GetInt( "bot_banduration", 4 );
+	m_WBanDuration = CFG->GetInt( "bot_banduration", 120 );
 }
 
 void CGHost :: ExtractScripts( )

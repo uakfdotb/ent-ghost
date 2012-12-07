@@ -862,20 +862,21 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !BAN
 			//
 
-			else if( ( Command == "addban" || Command == "ban" || Command == "pban" || Command == "tban" || Command == "wban" ) && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) )
+			else if( ( Command == "addban" || Command == "ban" || Command == "pban" || Command == "tban" || Command == "wban" || Command == "cban" ) && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) )
 			{
-				uint32_t BanDuration = 3600 * 48;
+				uint32_t BanDuration = 3600 * m_GHost->m_BanDuration;
 				
-				if( Command == "pban" ) BanDuration = 3600 * 24 * 30;
-				else if( Command == "tban" ) BanDuration = 3600 * 4;
-				else if( Command == "wban" ) BanDuration = 3600 * 24 * 5;
+				if( Command == "pban" ) BanDuration = 3600 * m_GHost->m_PBanDuration;
+				else if( Command == "tban" ) BanDuration = 3600 * m_GHost->m_PBanDuration;
+				else if( Command == "wban" ) BanDuration = 3600 * m_GHost->m_WBanDuration;
+				else if( Command == "cban" ) BanDuration = 3600 * m_GHost->m_CBanDuration;
 				
 				string userContext = User;
 				
 				if( AdminCheck || RootAdminCheck )
 					userContext = "ttr.cloud";
 				else
-					BanDuration = 3600 * 24 * 30; //!pban for non-admins to non give unexpected results
+					BanDuration = 3600 * m_GHost->m_PBanDuration; //!pban for non-admins to non give unexpected results
 				
 				// extract the victim and the reason
 				// e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"

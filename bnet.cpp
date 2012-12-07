@@ -1320,8 +1320,15 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		// !BAN
 		//
 
-		else if( ( Command == "addban" || Command == "ban" ) && !Payload.empty( ) )
+		else if( ( Command == "addban" || Command == "ban" || Command == "pban" || Command == "tban" || Command == "wban" || Command == "cban" ) && !Payload.empty( ) )
 		{
+			uint32_t BanDuration = 3600 * m_GHost->m_BanDuration;
+			
+			if( Command == "pban" ) BanDuration = 3600 * m_GHost->m_PBanDuration;
+			else if( Command == "tban" ) BanDuration = 3600 * m_GHost->m_PBanDuration;
+			else if( Command == "wban" ) BanDuration = 3600 * m_GHost->m_WBanDuration;
+			else if( Command == "cban" ) BanDuration = 3600 * m_GHost->m_CBanDuration;
+			
 			// extract the victim and the reason
 			// e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
 
@@ -1343,7 +1350,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			if( IsBannedName( Victim, "" ) )
 				QueueChatCommand( m_GHost->m_Language->UserIsAlreadyBanned( m_Server, Victim ), User, Whisper );
 			else
-				m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason, 3600 * 48, "ttr.cloud" ) ) );
+				m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason, BanDuration, "ttr.cloud" ) ) );
 		}
 
 		//

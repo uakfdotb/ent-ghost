@@ -176,6 +176,12 @@ public:
 	uint32_t m_AutobanGameLimit;			// config value: time limit measured backwards from end of game to autoban
 	uint32_t m_GameCounterLimit;			// config value: limit to the #XX autohosting
 	
+	uint32_t m_BanDuration;					// config value: default ban duration (hours)
+	uint32_t m_CBanDuration;				// config value: cban duration (hours)
+	uint32_t m_TBanDuration;				// config value: tban duration (hours)
+	uint32_t m_PBanDuration;				// config value: pban duration (hours)
+	uint32_t m_WBanDuration;				// config value: wban duration (hours)
+	
 	vector<string> m_FlameTriggers;			// triggers for antiflame system
 	
 	vector<CDBBan *> m_Bans;				// bans not tied to other realms (entconnect realm)
