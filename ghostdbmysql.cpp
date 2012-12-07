@@ -1174,32 +1174,37 @@ uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server,
 
 uint32_t MySQLGameUpdate( void *conn, string *error, uint32_t botid, uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add )
 {
-    string EscMap = MySQLEscapeString(conn, map);
-    string EscGameName = MySQLEscapeString( conn, gamename );
-    string EscOwnerName = MySQLEscapeString( conn, ownername );
-    string EscCreatorName = MySQLEscapeString( conn, creatorname );
-    string EscUsernames = MySQLEscapeString( conn, usernames );
-    
-    string Query = "UPDATE gamelist SET map = '" + EscMap + "', gamename = '" + EscGameName + "', ownername = '" + EscOwnerName + "', creatorname = '" + EscCreatorName + "', slotstaken = '" + UTIL_ToString(players) + "', slotstotal = '" + UTIL_ToString(slotsTotal) + "', usernames = '" + EscUsernames + "', totalgames = '" + UTIL_ToString(totalGames) + "', totalplayers = '" + UTIL_ToString(totalPlayers) + "' WHERE botid='" + UTIL_ToString(botid) + "' AND id = '" + UTIL_ToString(id) + "'";
-    
-    if( id == 0 )
-    {
-    	Query = "INSERT INTO gamelist(botid, map, gamename, ownername, creatorname, slotstaken, slotstotal, usernames, totalgames, totalplayers) VALUES ('" + UTIL_ToString(botid) + "', '" + EscMap + "', '" + EscGameName + "', '" + EscOwnerName + "', '" + EscCreatorName + "', '" + UTIL_ToString(players) + "', '" + UTIL_ToString(slotsTotal) + "', '" + EscUsernames + "', '" + UTIL_ToString(totalGames) + "', '" + UTIL_ToString(totalPlayers) + "')";
-    }
-    
-    if( !add )
-    {
-    	Query = "DELETE FROM gamelist WHERE id = '" + UTIL_ToString(id) + "'";
-    }
-    
-    if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
-    {
-        *error = mysql_error( (MYSQL *)conn );
-    	return 0;
-    }
+	string EscMap = MySQLEscapeString(conn, map);
+	string EscGameName = MySQLEscapeString( conn, gamename );
+	string EscOwnerName = MySQLEscapeString( conn, ownername );
+	string EscCreatorName = MySQLEscapeString( conn, creatorname );
+	string EscUsernames = MySQLEscapeString( conn, usernames );
+
+	string Query = "UPDATE gamelist SET map = '" + EscMap + "', gamename = '" + EscGameName + "', ownername = '" + EscOwnerName + "', creatorname = '" + EscCreatorName + "', slotstaken = '" + UTIL_ToString(players) + "', slotstotal = '" + UTIL_ToString(slotsTotal) + "', usernames = '" + EscUsernames + "', totalgames = '" + UTIL_ToString(totalGames) + "', totalplayers = '" + UTIL_ToString(totalPlayers) + "' WHERE botid='" + UTIL_ToString(botid) + "' AND id = '" + UTIL_ToString(id) + "'";
+
+	if( id == 0 )
+	{
+		Query = "INSERT INTO gamelist(botid, map, gamename, ownername, creatorname, slotstaken, slotstotal, usernames, totalgames, totalplayers) VALUES ('" + UTIL_ToString(botid) + "', '" + EscMap + "', '" + EscGameName + "', '" + EscOwnerName + "', '" + EscCreatorName + "', '" + UTIL_ToString(players) + "', '" + UTIL_ToString(slotsTotal) + "', '" + EscUsernames + "', '" + UTIL_ToString(totalGames) + "', '" + UTIL_ToString(totalPlayers) + "')";
+	}
+
+	if( !add )
+	{
+		if( gamename.empty( ) )
+			Query = "DELETE FROM gamelist WHERE botid = " + UTIL_ToString( botid );
+		else if( id != 0 )
+			Query = "DELETE FROM gamelist WHERE id = '" + UTIL_ToString( id ) + "'";
+		else
+			return 0;
+	}
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+	{
+		*error = mysql_error( (MYSQL *)conn );
+		return 0;
+	}
 	
 	if( id == 0 )
-    	return mysql_insert_id( (MYSQL *)conn );
+		return mysql_insert_id( (MYSQL *)conn );
 	else
 		return 0;
 }

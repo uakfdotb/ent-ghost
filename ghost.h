@@ -168,8 +168,12 @@ public:
 	boost::mutex m_ReconnectMutex;
 	uint32_t m_MapGameType;
 	bool m_Openstats;						// config value: whether we have openstats tables
-	bool m_FirstLeaver;						// config value: whether to ban first leaver
-	uint32_t m_Autoban;						// config value: how long to autoban for
+	uint32_t m_Autoban;						// config value: how long to autoban for (hours)
+	uint32_t m_AutobanFirstLeavers;			// config value: number of first leavers to autoban
+	uint32_t m_AutobanFirstLimit;			// config value: time limit on banning first leavers, from beginning of game (seconds)
+	uint32_t m_AutobanMinAllies;			// config value: if player has less than this many allies, don't autoban
+	uint32_t m_AutobanMinEnemies;			// config value: if player has less than this many enemies, don't autoban (seconds)
+	uint32_t m_AutobanGameLimit;			// config value: time limit measured backwards from end of game to autoban
 	uint32_t m_GameCounterLimit;			// config value: limit to the #XX autohosting
 	
 	vector<string> m_FlameTriggers;			// triggers for antiflame system

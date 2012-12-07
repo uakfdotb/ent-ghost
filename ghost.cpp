@@ -753,6 +753,9 @@ CGHost :: CGHost( CConfig *CFG )
 		phrasein.close( );
 	}
 	
+	//delete from gamelist if there's any residual entries
+	m_Callables.push_back( m_DB->ThreadedGameUpdate(0, "", "", "", "", 0, "", 0, 0, 0, false) );
+	
 	m_FlameTriggers.push_back("cunt");
 	m_FlameTriggers.push_back("bitch");
 	m_FlameTriggers.push_back("whore");
@@ -1557,8 +1560,12 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
 	m_MapGameType = CFG->GetUInt32( "bot_mapgametype", 21569728 );
 	m_Openstats = CFG->GetInt( "bot_openstats", 0 ) == 0 ? false : true;
-	m_FirstLeaver = CFG->GetInt( "bot_firstleaver", 0 ) == 0 ? false : true;
 	m_Autoban = CFG->GetInt( "bot_autoban", 0 );
+	m_AutobanFirstLeavers = CFG->GetInt( "bot_autobanfirstleavers", 0 );
+	m_AutobanFirstLimit = CFG->GetInt( "bot_autobanfirstlimit", 0 );
+	m_AutobanMinAllies = CFG->GetInt( "bot_autobanminallies", 0 );
+	m_AutobanMinEnemies = CFG->GetInt( "bot_autobanminenemies", 0 );
+	m_AutobanGameLimit = CFG->GetInt( "bot_autobangamelimit", 0 );
 	m_GameCounterLimit = CFG->GetInt( "bot_gamecounterlimit", 100 );
 }
 

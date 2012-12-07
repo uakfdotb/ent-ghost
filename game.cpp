@@ -71,7 +71,7 @@ public:
 // CGame
 //
 
-CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ), m_CallableGameAdd( NULL ), m_ForfeitTime( 0 ), m_ForfeitTeam( 0 ), m_CallableGetTournament( NULL ), m_CallableGameUpdate( NULL ), m_GameUpdateID( 0 )
+CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ), m_CallableGameAdd( NULL ), m_ForfeitTime( 0 ), m_ForfeitTeam( 0 ), m_CallableGetTournament( NULL ), m_CallableGameUpdate( NULL ), m_GameUpdateID( 0 ), m_AutobanFirstNumber( 0 ), m_LastGameUpdateTime( 0 )
 {
     m_DBGame = new CDBGame( 0, string( ), m_Map->GetMapPath( ), string( ), string( ), string( ), 0 );
     m_MapType = "";
@@ -86,8 +86,6 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "dota" );
 		m_MapType = "dota";
 	}
-	
-	m_LastGameUpdateTime  = 0;
 }
 
 CGame :: ~CGame( )
@@ -103,18 +101,10 @@ CGame :: ~CGame( )
 		{
 			uint32_t LeftTime = (*i)->GetLeft( );
 			
-			if( EndTime - LeftTime > 300 )
+			if( EndTime - LeftTime > m_GHost->m_AutobanGameLimit )
 			{
 				string CustomReason = "autoban: left at " + UTIL_ToString( LeftTime ) + "/" + UTIL_ToString( EndTime );
-				
-				if( m_MapType == "eihl" )
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-eihl", CustomReason, 60 * m_GHost->m_Autoban, "ttr.cloud" ));
-				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" )
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 60 * m_GHost->m_Autoban, "ttr.cloud" ));
-				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "civwars" )
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 60 * m_GHost->m_Autoban, "ttr.cloud" ));
-				else
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 60 * m_GHost->m_Autoban, "ttr.cloud" ));
+				m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 60 * m_GHost->m_Autoban, "ttr.cloud" ));
 			}
 		}
 	}
@@ -143,6 +133,8 @@ CGame :: ~CGame( )
 		m_CallableGameAdd = NULL;
 	}
 
+	//delete from gamelist
+	m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedGameUpdate(m_GameUpdateID, GetMapName(), GetGameName(), GetOwnerName(), GetCreatorName(), GetNumHumanPlayers(), GetPlayerList( ), GetNumHumanPlayers() + GetSlotsOpen(), 0, 0, false) );
 	
 	for( vector<PairedBanCheck> :: iterator i = m_PairedBanChecks.begin( ); i != m_PairedBanChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
@@ -170,6 +162,9 @@ CGame :: ~CGame( )
 
 	for( vector<PairedWPSCheck> :: iterator i = m_PairedWPSChecks.begin( ); i != m_PairedWPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
+	
+	if( m_CallableGameUpdate )
+		m_GHost->m_Callables.push_back( m_CallableGameUpdate );
 	
 	callablesLock.unlock( );
 
@@ -760,52 +755,32 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		if( m_GHost->m_Autoban && player->GetAutoban( ) && m_GHost->m_AutoHostMaximumGames != 0 )
 		{
 			// ban if game is loading or if it's dota and player has left >= 4v4 situation
-			if( m_GameLoading || ( m_GHost->m_FirstLeaver && m_GameTicks < 1000 * 60 * 3 ) ) {
+			if( m_GameLoading || ( m_AutobanFirstNumber + 1 < m_GHost->m_AutobanFirstLeavers && m_GameTicks < m_GHost->m_AutobanFirstLimit * 1000 ) ) {
 				m_AutoBans.push_back( player->GetName( ) );
-				m_GHost->m_FirstLeaver = false;
+				m_AutobanFirstNumber++;
 			} else {
-				string BanType = "";
-				
-				if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "eihl" )
-					BanType = "dota";
-				
-				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "civwars" )
-					BanType = "3v3";
-				
-				else if( m_MapType == "legionmega" || m_MapType == "legionmega2" )
-					BanType = "4v4";
-				
-				if( !BanType.empty( ) )
-				{
-					char sid, team;
-					uint32_t CountAlly = 0;
-					uint32_t CountEnemy = 0;
+				char sid, team;
+				uint32_t CountAlly = 0;
+				uint32_t CountEnemy = 0;
 
-					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
+				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
+				{
+					if( *i && !(*i)->GetLeftMessageSent( ) )
 					{
-						if( *i && !(*i)->GetLeftMessageSent( ) )
+						sid = GetSIDFromPID( (*i)->GetPID( ) );
+						if( sid != 255 )
 						{
-							sid = GetSIDFromPID( (*i)->GetPID( ) );
-							if( sid != 255 )
-							{
-								team = m_Slots[sid].GetTeam( );
-								if( team == Team )
-									CountAlly++;
-								else
-									CountEnemy++;
-							}			
-						}
+							team = m_Slots[sid].GetTeam( );
+							if( team == Team )
+								CountAlly++;
+							else
+								CountEnemy++;
+						}			
 					}
-				
-					if( BanType == "dota" && CountAlly >= 4 && CountEnemy >= 4 )
-						m_AutoBans.push_back( player->GetName( ) );
-					
-					else if( BanType == "3v3" && CountAlly == 3 && CountEnemy >= 2 )
-						m_AutoBans.push_back( player->GetName( ) );
-					
-					else if( BanType == "4v4" && CountAlly == 4 && CountEnemy >= 3 )
-						m_AutoBans.push_back( player->GetName( ) );
 				}
+				
+				if( CountAlly >= m_GHost->m_AutobanMinAllies && CountEnemy >= m_GHost->m_AutobanMinEnemies )
+					m_AutoBans.push_back( player->GetName( ) );
 			}
 		}
 	}

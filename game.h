@@ -86,6 +86,8 @@ protected:
 	uint32_t m_ForfeitTime;						// time that players forfeited, or 0 if not forfeited
 	uint32_t m_ForfeitTeam;						// id of team that forfeited
 	
+	uint32_t m_AutobanFirstNumber;				// number of first leavers autobanned
+	
 	bool IsAutoBanned( string name );
 
 public:
