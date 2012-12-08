@@ -254,25 +254,25 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( GamePlayerSummary && GamePlayerSummary->GetTotalGames( ) > 0 )
 			{
 				if( i->first.empty( ) )
-					SendAllChat( "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Average stay: " + UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) + " percent." );
+					SendAllChat( m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsName, UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) ) );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, "[" + StatsName + "] has played " + UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ) + " games on this bot. Average stay: " + UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) + " percent." );
+						Send( Player, m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsName, UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) ) );
 				}
 			}
 			else
 			{
 				if( i->first.empty( ) )
-					SendAllChat( "[" + StatsName + "] hasn't played any games on this bot." );
+					SendAllChat( m_GHost->m_Language->HasntPlayedGamesWithThisBot( StatsName ) );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, "[" + StatsName + "] hasn't played any games on this bot." );
+						SendChat( Player, m_GHost->m_Language->HasntPlayedGamesWithThisBot( StatsName ) );
 				}
 			}
 
@@ -305,7 +305,35 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else if( i->second->GetSaveType( ) == "eihl" )
 					DotaCategory = "DotA League";
 				
-				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ) + " " + DotaCategory + " games here (ELO: " + UTIL_ToString( DotAPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ) + ". Hero K/D/A: " + UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ) + " (" + UTIL_ToString( DotAPlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgDeaths( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgAssists( ), 2 ) + "). Creep K/D/N: " + UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ) + " (" + UTIL_ToString( DotAPlayerSummary->GetAvgCreepKills( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgCreepDenies( ), 2 ) + "/" + UTIL_ToString( DotAPlayerSummary->GetAvgNeutralKills( ), 2 ) + "). T/R/C: " + UTIL_ToString( DotAPlayerSummary->GetTotalTowerKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalRaxKills( ) ) + "/" + UTIL_ToString( DotAPlayerSummary->GetTotalCourierKills( ) ) + ".";
+				
+				string user, string totalgames, string totalwins, string totallosses, string totalkills, string totaldeaths, string totalcreepkills, string totalcreepdenies, string totalassists, string totalneutralkills, string totaltowerkills, string totalraxkills, string totalcourierkills, string avgkills, string avgdeaths, string avgcreepkills, string avgcreepdenies, string avgassists, string avgneutralkills, string avgtowerkills, string avgraxkills, string avgcourierkills, string score, string category
+				
+				
+				string Summary = m_GHost->m_Language->HasPlayedDotAGamesWithThisBot(
+									StatsName,
+									UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ),
+									UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ),
+									UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ),
+									UTIL_ToString( DotAPlayerSummary->GetTotalKills( ) ),
+									UTIL_ToString( DotAPlayerSummary->GetTotalDeaths( ) ),
+									UTIL_ToString( DotAPlayerSummary->GetTotalCreepKills( ) ),
+									UTIL_ToString( DotAPlayerSummary->GetTotalCreepDenies( ) ),
+									UTIL_ToString( DotAPlayerSummary->GetTotalAssists( ) ),
+									UTIL_ToString( DotAPlayerSummary->GetTotalNeutralKills( ) ),
+									UTIL_ToString( DotAPlayerSummary->GetTotalTowerKills( ) ),
+									UTIL_ToString( DotAPlayerSummary->GetTotalRaxKills( ) ),
+									UTIL_ToString( DotAPlayerSummary->GetTotalCourierKills( ) ),
+									UTIL_ToString( DotAPlayerSummary->GetAvgKills( ), 2 ),
+									UTIL_ToString( DotAPlayerSummary->GetAvgDeaths( ), 2 ),
+									UTIL_ToString( DotAPlayerSummary->GetAvgCreepKills( ), 2 ),
+									UTIL_ToString( DotAPlayerSummary->GetAvgCreepDenies( ), 2 ),
+									UTIL_ToString( DotAPlayerSummary->GetAvgAssists( ), 2 ),
+									UTIL_ToString( DotAPlayerSummary->GetAvgNeutralKills( ), 2 ),
+									UTIL_ToString( DotAPlayerSummary->GetAvgTowerKills( ), 2 ),
+									UTIL_ToString( DotAPlayerSummary->GetAvgRaxKills( ), 2 ),
+									UTIL_ToString( DotAPlayerSummary->GetAvgCourierKills( ), 2 ),
+									UTIL_ToString( DotAPlayerSummary->GetScore( ), 2 ), DotaCategory
+									);
 
 				if( i->first.empty( ) )
 					SendAllChat( Summary );
@@ -1541,7 +1569,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						SendAllChat( m_GHost->m_Language->UnableToKickFoundMoreThanOneMatch( Payload ) );
 				}
 				else
-					SendAllChat( "Error: you cannot kick players in game. Please use the !votekick or !ban commands." );
+					SendAllChat( m_GHost->m_Language->CantKickPlayers( ) );
 			}
 
 			//
@@ -1852,7 +1880,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						SendAllChat( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ) );
 				}
 				else
-					SendAllChat( "Unable to create game [" + Payload + "]. The game name contains invalid characters." );
+					SendAllChat( m_GHost->m_Language->UnableToCreateGameInvalidCharacters( Payload ) );
 			}
 			//
 			// !REFRESH (turn on or off refresh messages)
@@ -2743,14 +2771,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					m_Stats->SetWinner( ( playerTeam + 1 ) % 2 + 1 );
 					m_ForfeitTime = GetTime( );
 				
-					SendAllChat( "The " + ForfeitTeamString + " has forfeited" );
-					SendAllChat( "Wait ten seconds before leaving or stats will not be properly recorded!" );
+					SendAllChat( m_GHost->m_Language->TeamForfeited( ForfeitTeamString ) );
+					SendAllChat( m_GHost->m_Language->ForfeitStatsWarning( ) );
 				}
 			
 				else
 				{
-					SendAllChat( "[" + player->GetName( ) + "] has voted to forfeit." );
-					SendAllChat( UTIL_ToString( numVoted ) + "/" + UTIL_ToString( numTotal ) + " players on the " + ForfeitTeamString + " have voted to forfeit." );
+					SendAllChat( m_GHost->m_Language->ForfeitVote( player->GetName( ) ) );
+					SendAllChat( m_GHost->m_Language->ForfeitVotesNeeded( UTIL_ToString( numVoted ), + UTIL_ToString( numTotal ), ForfeitTeamString ) );
 				}
 			}
 		}

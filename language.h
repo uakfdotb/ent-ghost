@@ -99,7 +99,7 @@ public:
 	string SettingLatencyToMaximum( string max );
 	string SettingLatencyTo( string latency );
 	string KickingPlayersWithPingsGreaterThan( string total, string ping );
-	string HasPlayedGamesWithThisBot( string user, string firstgame, string lastgame, string totalgames, string avgloadingtime, string avgstay );
+	string HasPlayedGamesWithThisBot( string user, string totalgames, string avgstay );
 	string HasntPlayedGamesWithThisBot( string user );
 	string AutokickingPlayerForExcessivePing( string victim, string ping );
 	string SpoofCheckAcceptedFor( string server, string user );
@@ -112,10 +112,10 @@ public:
 	string ShortestLoadByPlayer( string user, string loadingtime );
 	string LongestLoadByPlayer( string user, string loadingtime );
 	string YourLoadingTimeWas( string loadingtime );
-	string HasPlayedDotAGamesWithThisBot( string user, string totalgames, string totalwins, string totallosses, string totalkills, string totaldeaths, string totalcreepkills, string totalcreepdenies, string totalassists, string totalneutralkills, string totaltowerkills, string totalraxkills, string totalcourierkills, string avgkills, string avgdeaths, string avgcreepkills, string avgcreepdenies, string avgassists, string avgneutralkills, string avgtowerkills, string avgraxkills, string avgcourierkills, string score );
+	string HasPlayedDotAGamesWithThisBot( string user, string totalgames, string totalwins, string totallosses, string totalkills, string totaldeaths, string totalcreepkills, string totalcreepdenies, string totalassists, string totalneutralkills, string totaltowerkills, string totalraxkills, string totalcourierkills, string avgkills, string avgdeaths, string avgcreepkills, string avgcreepdenies, string avgassists, string avgneutralkills, string avgtowerkills, string avgraxkills, string avgcourierkills, string score, string category );
 	string HasPlayedVampGamesWithThisBot( string user, string totalgames, string humangames, string vampgames, string humanwins, string vampwins, string humanlosses, string vamplosses, string vampkills, string mincc, string avgcc, string minbase, string avgbase );
 	string HasPlayedTreeGamesWithThisBot( string user, string totalgames, string totalwins, string totallosses, string totalkills, string totaltks, string totaldeaths, string totalsaves, string avgkills, string avgtks, string avgdeaths, string avgsaves, string totalentgames, string totalinfernalgames );
-	string HasntPlayedDotAGamesWithThisBot( string user );
+	string HasntPlayedDotAGamesWithThisBot( string user, string category );
 	string HasntPlayedVampGamesWithThisBot( string user );
 	string HasntPlayedTreeGamesWithThisBot( string user );
 	string WasKickedForReservedPlayer( string reserved );
@@ -263,6 +263,12 @@ public:
 	string WaitForReconnectSecondsRemain( string seconds );
 	string WasUnrecoverablyDroppedFromGProxy( );
 	string PlayerReconnectedWithGProxy( string name );
+	string CantKickPlayers( );
+	string UnableToCreateGameInvalidCharacters( string gamename );
+	string TeamForfeited( string team );
+	string ForfeitStatsWarning( );
+	string ForfeitVote( string user );
+	string ForfeitVotesNeeded( string votes, string total, string team );
 };
 
 #endif
