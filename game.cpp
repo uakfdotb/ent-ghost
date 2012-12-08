@@ -260,7 +260,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						Send( Player, m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsName, UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) ) );
+						SendChat( Player, m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsName, UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) ) );
 				}
 			}
 			else
@@ -305,10 +305,6 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else if( i->second->GetSaveType( ) == "eihl" )
 					DotaCategory = "DotA League";
 				
-				
-				string user, string totalgames, string totalwins, string totallosses, string totalkills, string totaldeaths, string totalcreepkills, string totalcreepdenies, string totalassists, string totalneutralkills, string totaltowerkills, string totalraxkills, string totalcourierkills, string avgkills, string avgdeaths, string avgcreepkills, string avgcreepdenies, string avgassists, string avgneutralkills, string avgtowerkills, string avgraxkills, string avgcourierkills, string score, string category
-				
-				
 				string Summary = m_GHost->m_Language->HasPlayedDotAGamesWithThisBot(
 									StatsName,
 									UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ),
@@ -348,13 +344,13 @@ bool CGame :: Update( void *fd, void *send_fd )
 			else
 			{
 				if( i->first.empty( ) )
-					SendAllChat( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( StatsName ) );
+					SendAllChat( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( StatsName, "DotA" ) );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( StatsName ) );
+						SendChat( Player, m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( StatsName, "DotA" ) );
 				}
 			}
 
@@ -2778,7 +2774,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				else
 				{
 					SendAllChat( m_GHost->m_Language->ForfeitVote( player->GetName( ) ) );
-					SendAllChat( m_GHost->m_Language->ForfeitVotesNeeded( UTIL_ToString( numVoted ), + UTIL_ToString( numTotal ), ForfeitTeamString ) );
+					SendAllChat( m_GHost->m_Language->ForfeitVotesNeeded( UTIL_ToString( numVoted ), UTIL_ToString( numTotal ), ForfeitTeamString ) );
 				}
 			}
 		}
