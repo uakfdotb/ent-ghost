@@ -704,7 +704,7 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	CGamePlayer *Player = CBaseGame :: EventPlayerJoined( potential, joinPlayer, score );
 	
 	// show player statistics if enabled
-	if( m_GHost->m_StatsOnJoin )
+	if( Player && m_GHost->m_StatsOnJoin )
 	{
 		if( m_MapType == "dota" || m_MapType == "eihl" || m_MapType == "lod" || ( m_MapType == "dota2" && score != NULL ) )
 		{
