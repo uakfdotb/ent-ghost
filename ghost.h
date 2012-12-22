@@ -52,6 +52,7 @@ class CCallableCommandList;
 class CCallableGameUpdate;
 class CCallableBanList;
 class CCallableWhiteList;
+class CCallableSpoofList;
 class CDBBan;
 struct DenyInfo;
 
@@ -182,6 +183,11 @@ public:
 	CCallableWhiteList *m_CallableWhiteList;	// threaded database white list in progress
 	boost::mutex m_BansMutex;
 	uint32_t m_LastDenyCleanTime;			// last time we cleaned the deny table
+	
+	boost::mutex m_SpoofMutex;
+	map<string, string> m_SpoofList; 		// donators can opt to spoof their name
+	uint32_t m_LastSpoofRefreshTime;		// refresh spoof list every 2 hours
+	CCallableSpoofList *m_CallableSpoofList; // spoof list refresh in progress
 
 	CGHost( CConfig *CFG );
 	~CGHost( );
@@ -219,6 +225,7 @@ public:
 	void DenyIP( string ip, uint32_t duration, string reason );
 	bool CheckDeny( string ip );
 	bool FlameCheck( string message );
+	string GetSpoofName( string name );
 };
 
 struct DenyInfo {

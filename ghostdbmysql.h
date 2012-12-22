@@ -206,6 +206,7 @@ public:
 	virtual CCallableBanRemove *ThreadedBanRemove( string user, string context );
 	virtual CCallableBanList *ThreadedBanList( string server );
 	virtual CCallableWhiteList *ThreadedWhiteList( );
+	virtual CCallableSpoofList *ThreadedSpoofList( );
 	virtual CCallableBanListFast *ThreadedBanListFast( CBNET *bnet );
 	virtual CCallableReconUpdate *ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds );
 	virtual CCallableCommandList *ThreadedCommandList(  );
@@ -254,6 +255,7 @@ bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, s
 bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user, string context );
 vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string server );
 vector<string> MySQLWhiteList( void *conn, string *error, uint32_t botid );
+map<string, string> MySQLSpoofList( void *conn, string *error, uint32_t botid );
 void MySQLBanListFast( void *conn, string *error, uint32_t botid, CBNET *bnet );
 void MySQLReconUpdate( void *conn, string *error, uint32_t botid, uint32_t hostcounter, uint32_t seconds );
 vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid );
@@ -421,6 +423,17 @@ class CMySQLCallableWhiteList : public CCallableWhiteList, public CMySQLCallable
 public:
 	CMySQLCallableWhiteList( void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableWhiteList( ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
 	virtual ~CMySQLCallableWhiteList( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableSpoofList : public CCallableSpoofList, public CMySQLCallable
+{
+public:
+	CMySQLCallableSpoofList( void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableSpoofList( ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
+	virtual ~CMySQLCallableSpoofList( ) { }
 
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }

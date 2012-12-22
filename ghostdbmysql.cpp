@@ -313,6 +313,19 @@ CCallableWhiteList *CGHostDBMySQL :: ThreadedWhiteList( )
 	return Callable;
 }
 
+CCallableSpoofList *CGHostDBMySQL :: ThreadedSpoofList( )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableSpoofList *Callable = new CMySQLCallableSpoofList( Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
 CCallableBanListFast *CGHostDBMySQL :: ThreadedBanListFast( CBNET *bnet )
 {
 	void *Connection = GetIdleConnection( );
@@ -1028,6 +1041,36 @@ vector<string> MySQLWhiteList( void *conn, string *error, uint32_t botid )
 	}
 
 	return WhiteList;
+}
+
+map<string, string> MySQLSpoofList( void *conn, string *error, uint32_t botid )
+{
+	map<string, string> SpoofList;
+	string Query = "SELECT name, spoof FROM spoof";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			while( Row.size( ) == 2 )
+			{
+				SpoofList[Row[0]] = Row[1];
+				Row = MySQLFetchRow( Result );
+			}
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+
+	return SpoofList;
 }
 
 void MySQLBanListFast( void *conn, string *error, uint32_t botid, CBNET *bnet )
@@ -2488,6 +2531,16 @@ void CMySQLCallableWhiteList :: operator( )( )
 
 	if( m_Error.empty( ) )
 		m_Result = MySQLWhiteList( m_Connection, &m_Error, m_SQLBotID );
+
+	Close( );
+}
+
+void CMySQLCallableSpoofList :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		m_Result = MySQLSpoofList( m_Connection, &m_Error, m_SQLBotID );
 
 	Close( );
 }
