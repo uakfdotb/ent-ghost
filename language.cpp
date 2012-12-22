@@ -478,12 +478,13 @@ string CLanguage :: KickingPlayersWithPingsGreaterThan( string total, string pin
 	return Out;
 }
 
-string CLanguage :: HasPlayedGamesWithThisBot( string user, string totalgames, string avgstay )
+string CLanguage :: HasPlayedGamesWithThisBot( string user, string totalgames, string avgstay, string playtime )
 {
 	string Out = m_CFG->GetString( "lang_0061", "lang_0061" );
 	UTIL_Replace( Out, "$USER$", user );
 	UTIL_Replace( Out, "$TOTALGAMES$", totalgames );
 	UTIL_Replace( Out, "$AVGSTAY$", avgstay );
+	UTIL_Replace( Out, "$PLAYTIME$", playtime );
 	return Out;
 }
 

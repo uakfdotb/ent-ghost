@@ -99,7 +99,7 @@ public:
 	string SettingLatencyToMaximum( string max );
 	string SettingLatencyTo( string latency );
 	string KickingPlayersWithPingsGreaterThan( string total, string ping );
-	string HasPlayedGamesWithThisBot( string user, string totalgames, string avgstay );
+	string HasPlayedGamesWithThisBot( string user, string totalgames, string avgstay, string playtime );
 	string HasntPlayedGamesWithThisBot( string user );
 	string AutokickingPlayerForExcessivePing( string victim, string ping );
 	string SpoofCheckAcceptedFor( string server, string user );
