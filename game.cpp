@@ -254,13 +254,13 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( GamePlayerSummary && GamePlayerSummary->GetTotalGames( ) > 0 )
 			{
 				if( i->first.empty( ) )
-					SendAllChat( m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsName, UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) ) );
+					SendAllChat( m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsName, UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ), UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) ) );
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
 
 					if( Player )
-						SendChat( Player, m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsName, UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ) ) );
+						SendChat( Player, m_GHost->m_Language->HasPlayedGamesWithThisBot( StatsName, UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( GamePlayerSummary->GetLeftPercent( ), 2 ), UTIL_ToString( GamePlayerSummary->GetPlayingTime( ) ) ) );
 				}
 			}
 			else
@@ -714,6 +714,18 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 		{
 			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), m_MapType ) ) );
 		}
+	}
+	else if( Player && m_MapType == "castlefight" )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "castlefight" ) ) );
+	}
+	else if( Player && m_MapType == "legionmega" )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega" ) ) );
+	}
+	else if( Player && m_MapType == "civwars" )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "civwars" ) ) );
 	}
 	
 	return Player;

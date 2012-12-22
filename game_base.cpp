@@ -2413,6 +2413,14 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 		Player->SetGarenaUser( potential->GetGarenaUser( ) );
 		potential->SetGarenaUser( NULL );
 	}
+	
+	string SpoofName = m_GHost->GetSpoofName( Player->GetName( ) + "@" + JoinedRealm );
+	
+	if( !SpoofName.empty( ) )
+	{
+		CONSOLE_Print( "[GAME: " + m_GameName + "] spoofing new player as [" + SpoofName + "]" );
+		Player->SetFriendlyName( SpoofName );
+	}
 
 	// consider LAN players to have already spoof checked since they can't
 	// since so many people have trouble with this feature we now use the JoinedRealm to determine LAN status
@@ -2490,17 +2498,17 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 			if( (*i)->GetSocket( ) )
 			{
 				if( m_GHost->m_HideIPAddresses )
-					(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), BlankIP, BlankIP ) );
+					(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetFriendlyName( ), BlankIP, BlankIP ) );
 				else
-					(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetName( ), Player->GetExternalIP( ), Player->GetInternalIP( ) ) );
+					(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( Player->GetPID( ), Player->GetFriendlyName( ), Player->GetExternalIP( ), Player->GetInternalIP( ) ) );
 			}
 
 			// send info about every other player to the new player
 
 			if( m_GHost->m_HideIPAddresses )
-				Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), BlankIP, BlankIP ) );
+				Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetFriendlyName( ), BlankIP, BlankIP ) );
 			else
-				Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetName( ), (*i)->GetExternalIP( ), (*i)->GetInternalIP( ) ) );
+				Player->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*i)->GetPID( ), (*i)->GetFriendlyName( ), (*i)->GetExternalIP( ), (*i)->GetInternalIP( ) ) );
 		}
 	}
 

@@ -100,6 +100,7 @@ class CGamePlayer : public CPotentialPlayer
 private:
 	unsigned char m_PID;
 	string m_Name;								// the player's name
+	string m_FriendlyName;						// the player's name to other players (in case spoofed with donate)
 	BYTEARRAY m_InternalIP;						// the player's internal IP address as reported by the player when connecting
 	vector<uint32_t> m_Pings;					// store the last few (20) pings received so we can take an average
 	queue<uint32_t> m_CheckSums;				// the last few checksums the player has sent (for detecting desyncs)
@@ -160,6 +161,7 @@ public:
 
 	unsigned char GetPID( )						{ return m_PID; }
 	string GetName( )							{ return m_Name; }
+	string GetFriendlyName( )					{ return m_FriendlyName; }
 	BYTEARRAY GetInternalIP( )					{ return m_InternalIP; }
 	unsigned int GetNumPings( )					{ return m_Pings.size( ); }
 	unsigned int GetNumCheckSums( )				{ return m_CheckSums.size( ); }
@@ -205,6 +207,7 @@ public:
 	bool GetGProxyDisconnectNoticeSent( )		{ return m_GProxyDisconnectNoticeSent; }
 	uint32_t GetGProxyReconnectKey( )			{ return m_GProxyReconnectKey; }
 
+	void SetFriendlyName( string nFriendlyName )									{ m_FriendlyName = nFriendlyName; }
 	void SetLeftReason( string nLeftReason )										{ m_LeftReason = nLeftReason; }
 	void SetSpoofedRealm( string nSpoofedRealm )									{ m_SpoofedRealm = nSpoofedRealm; }
 	void SetLeftCode( uint32_t nLeftCode )											{ m_LeftCode = nLeftCode; }

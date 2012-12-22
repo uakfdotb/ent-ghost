@@ -313,6 +313,19 @@ CCallableWhiteList *CGHostDBMySQL :: ThreadedWhiteList( )
 	return Callable;
 }
 
+CCallableSpoofList *CGHostDBMySQL :: ThreadedSpoofList( )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableSpoofList *Callable = new CMySQLCallableSpoofList( Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
 CCallableBanListFast *CGHostDBMySQL :: ThreadedBanListFast( CBNET *bnet )
 {
 	void *Connection = GetIdleConnection( );
@@ -1030,6 +1043,36 @@ vector<string> MySQLWhiteList( void *conn, string *error, uint32_t botid )
 	return WhiteList;
 }
 
+map<string, string> MySQLSpoofList( void *conn, string *error, uint32_t botid )
+{
+	map<string, string> SpoofList;
+	string Query = "SELECT name, spoof FROM spoof";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			while( Row.size( ) == 2 )
+			{
+				SpoofList[Row[0]] = Row[1];
+				Row = MySQLFetchRow( Result );
+			}
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+
+	return SpoofList;
+}
+
 void MySQLBanListFast( void *conn, string *error, uint32_t botid, CBNET *bnet )
 {
 	string EscServer = MySQLEscapeString( conn, bnet->GetServer( ) );
@@ -1239,7 +1282,7 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 	string EscName = MySQLEscapeString( conn, name );
 	string EscRealm = MySQLEscapeString( conn, realm );
 	CDBGamePlayerSummary *GamePlayerSummary = NULL;
-	string Query = "SELECT IFNULL(SUM(num_games), 0), (IFNULL(SUM(total_leftpercent), 1) / IFNULL(SUM(num_games), 1) * 100) FROM gametrack WHERE name='" + EscName + "'";
+	string Query = "SELECT IFNULL(SUM(num_games), 0), (IFNULL(SUM(total_leftpercent), 1) / IFNULL(SUM(num_games), 1) * 100), ROUND(playingtime / 3600) FROM gametrack WHERE name='" + EscName + "'";
 	
 	if( !realm.empty( ) )
 		Query += " AND realm = '" + EscRealm + "'";
@@ -1254,14 +1297,15 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 		{
 			vector<string> Row = MySQLFetchRow( Result );
 
-			if( Row.size( ) == 2 )
+			if( Row.size( ) == 3 )
 			{
 				uint32_t TotalGames = UTIL_ToUInt32( Row[0] );
 				double LeftPercent = UTIL_ToDouble( Row[1] );
-				GamePlayerSummary = new CDBGamePlayerSummary( realm, name, TotalGames, LeftPercent );
+				uint32_t PlayingTime = UTIL_ToUInt32( Row[2] );
+				GamePlayerSummary = new CDBGamePlayerSummary( realm, name, TotalGames, LeftPercent, PlayingTime );
 			}
 			else
-				*error = "error checking gameplayersummary [" + name + "] - row doesn't have 2 columns";
+				*error = "error checking gameplayersummary [" + name + "] - row doesn't have 3 columns";
 
 			mysql_free_result( Result );
 		}
@@ -2462,6 +2506,16 @@ void CMySQLCallableWhiteList :: operator( )( )
 
 	if( m_Error.empty( ) )
 		m_Result = MySQLWhiteList( m_Connection, &m_Error, m_SQLBotID );
+
+	Close( );
+}
+
+void CMySQLCallableSpoofList :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		m_Result = MySQLSpoofList( m_Connection, &m_Error, m_SQLBotID );
 
 	Close( );
 }

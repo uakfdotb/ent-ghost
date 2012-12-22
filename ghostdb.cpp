@@ -118,6 +118,11 @@ vector<string> CGHostDB :: WhiteList( )
 	return vector<string>( );
 }
 
+map<string, string> CGHostDB :: SpoofList( )
+{
+	return map<string, string>( );
+}
+
 void CGHostDB :: BanListFast( CBNET *bnet )
 {
 
@@ -299,6 +304,11 @@ CCallableBanList *CGHostDB :: ThreadedBanList( string server )
 }
 
 CCallableWhiteList *CGHostDB :: ThreadedWhiteList( )
+{
+	return NULL;
+}
+
+CCallableSpoofList *CGHostDB :: ThreadedSpoofList( )
 {
 	return NULL;
 }
@@ -503,6 +513,11 @@ CCallableWhiteList :: ~CCallableWhiteList( )
 	// don't delete anything in m_Result here, it's the caller's responsibility
 }
 
+CCallableSpoofList :: ~CCallableSpoofList( )
+{
+	// don't delete anything in m_Result here, it's the caller's responsibility
+}
+
 CCallableBanListFast :: ~CCallableBanListFast( )
 {
 	// don't delete anything in m_Result here, it's the caller's responsibility
@@ -684,8 +699,8 @@ CDBGamePlayer :: ~CDBGamePlayer( )
 // CDBGamePlayerSummary
 //
 
-CDBGamePlayerSummary :: CDBGamePlayerSummary( string nServer, string nName, uint32_t nTotalGames, double nLeftPercent )
-    : m_Server( nServer ), m_Name( nName ), m_TotalGames( nTotalGames ), m_LeftPercent( nLeftPercent )
+CDBGamePlayerSummary :: CDBGamePlayerSummary( string nServer, string nName, uint32_t nTotalGames, double nLeftPercent, uint32_t nPlayingTime )
+    : m_Server( nServer ), m_Name( nName ), m_TotalGames( nTotalGames ), m_LeftPercent( nLeftPercent ), m_PlayingTime( nPlayingTime )
 {
 
 }

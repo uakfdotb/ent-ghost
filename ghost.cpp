@@ -438,6 +438,10 @@ CGHost :: CGHost( CConfig *CFG )
 	m_LastBanRefreshTime = 0;
 	m_LastWhiteListRefreshTime = 0;
 	m_LastDenyCleanTime = 0;
+
+	m_CallableSpoofList = NULL;
+	m_LastSpoofRefreshTime = 0;
+	
 	string DBType = CFG->GetString( "db_type", "sqlite3" );
 	CONSOLE_Print( "[GHOST] opening primary database" );
 
@@ -1253,12 +1257,16 @@ bool CGHost :: Update( long usecBlock )
 	}
 
 	// refresh the ban list every 20 minutes
+	// also refresh whitelist and spoof list and some intervals
 
 	if( !m_CallableBanList && GetTime( ) - m_LastBanRefreshTime >= 1200 )
 		m_CallableBanList = m_DB->ThreadedBanList( "entconnect" );
 
 	if( !m_CallableWhiteList && GetTime( ) - m_LastWhiteListRefreshTime >= 1200 )
 		m_CallableWhiteList = m_DB->ThreadedWhiteList( );
+
+	if( !m_CallableSpoofList && GetTime( ) - m_LastSpoofRefreshTime >= 1200 )
+		m_CallableSpoofList = m_DB->ThreadedSpoofList( );
 
 	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
 	{
@@ -1289,6 +1297,19 @@ bool CGHost :: Update( long usecBlock )
 		delete m_CallableWhiteList;
 		m_CallableWhiteList = NULL;
 		m_LastWhiteListRefreshTime = GetTime( );
+		
+		lock.unlock( );
+	}
+
+	if( m_CallableSpoofList && m_CallableSpoofList->GetReady( ) )
+	{
+		boost::mutex::scoped_lock lock( m_SpoofMutex );
+		
+		m_SpoofList = m_CallableSpoofList->GetResult( );
+		m_DB->RecoverCallable( m_CallableSpoofList );
+		delete m_CallableSpoofList;
+		m_CallableSpoofList = NULL;
+		m_LastSpoofRefreshTime = GetTime( );
 		
 		lock.unlock( );
 	}
@@ -1462,6 +1483,18 @@ bool CGHost :: IsWhiteList( string name )
 	bansLock.unlock( );
 
 	return false;
+}
+
+string CGHost :: GetSpoofName( string name )
+{
+	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
+	
+	boost::mutex::scoped_lock lock( m_SpoofMutex );
+	if( m_SpoofList.count( name ) > 0 )
+		return m_SpoofList[name];
+	lock.unlock( );
+
+	return string( );
 }
 
 CDBBan *CGHost :: IsBannedIP( string ip, string context )

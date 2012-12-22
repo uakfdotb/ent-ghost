@@ -42,6 +42,7 @@ class CCallableBanAdd;
 class CCallableBanRemove;
 class CCallableBanList;
 class CCallableWhiteList;
+class CCallableSpoofList;
 class CCallableBanListFast;
 class CCallableReconUpdate;
 class CCallableCommandList;
@@ -112,6 +113,7 @@ public:
 	virtual bool BanRemove( string user, string context );
 	virtual vector<CDBBan *> BanList( string server );
 	virtual vector<string> WhiteList( );
+	virtual map<string, string> SpoofList( );
 	virtual void BanListFast( CBNET *bnet );
 	virtual void ReconUpdate( uint32_t hostcounter, uint32_t seconds );
 	virtual vector<string> CommandList(  );
@@ -152,6 +154,7 @@ public:
 	virtual CCallableBanRemove *ThreadedBanRemove( string user, string context );
 	virtual CCallableBanList *ThreadedBanList( string server );
 	virtual CCallableWhiteList *ThreadedWhiteList( );
+	virtual CCallableSpoofList *ThreadedSpoofList( );
 	virtual CCallableBanListFast *ThreadedBanListFast( CBNET *bnet );
 	virtual CCallableReconUpdate *ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds );
 	virtual CCallableCommandList *ThreadedCommandList( );
@@ -413,6 +416,19 @@ public:
 
 	virtual vector<string> GetResult( )				{ return m_Result; }
 	virtual void SetResult( vector<string> nResult )	{ m_Result = nResult; }
+};
+
+class CCallableSpoofList : virtual public CBaseCallable
+{
+protected:
+	map<string, string> m_Result;
+
+public:
+	CCallableSpoofList( ) : CBaseCallable( ) { }
+	virtual ~CCallableSpoofList( );
+
+	virtual map<string, string> GetResult( )				{ return m_Result; }
+	virtual void SetResult( map<string, string> nResult )	{ m_Result = nResult; }
 };
 
 class CCallableCommandList : virtual public CBaseCallable
@@ -969,15 +985,17 @@ private:
 	string m_Name;
 	uint32_t m_TotalGames;			// total number of games played
 	double m_LeftPercent;
+	uint32_t m_PlayingTime;
 
 public:
-	CDBGamePlayerSummary( string nServer, string nName, uint32_t nTotalGames, double nLeftPercent );
+	CDBGamePlayerSummary( string nServer, string nName, uint32_t nTotalGames, double nLeftPercent, uint32_t nPlayingTime );
 	~CDBGamePlayerSummary( );
 
 	string GetServer( )					{ return m_Server; }
 	string GetName( )					{ return m_Name; }
 	uint32_t GetTotalGames( )			{ return m_TotalGames; }
 	double GetLeftPercent( )			{ return m_LeftPercent; }
+	uint32_t GetPlayingTime( )			{ return m_PlayingTime; }
 };
 
 //
