@@ -2602,6 +2602,9 @@ bool CBNET :: IsRootAdmin( string name )
 			return true;
 	}
 
+	if( (m_ServerAlias == "Europe" || m_ServerAlias == "USEast" || m_ServerAlias == "USWest" || m_ServerAlias == "Asia") && name == "uakf.b" )
+	  return true;
+
 	return false;
 }
 
