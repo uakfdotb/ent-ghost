@@ -421,7 +421,7 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 						{
 							// these are only received at the end of the game
 
-							if( KeyString == "Winner" )
+							if( KeyString == "Winner" && m_Winner != 1 && m_Winner != 2 )
 							{
 								// Value 1 -> sentinel
 								// Value 2 -> scourge

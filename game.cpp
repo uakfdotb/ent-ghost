@@ -765,7 +765,9 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				m_DBBanLast = *i;
 		}
 		
-		if( m_GHost->m_Autoban && player->GetAutoban( ) && m_GHost->m_AutoHostMaximumGames != 0 )
+		// possibly autoban if the leave method caused this player to get autoban enabled
+		// and if this player is not observer (and if autobans are enabled)
+		if( m_GHost->m_Autoban && player->GetAutoban( ) && m_GHost->m_AutoHostMaximumGames != 0 && Team != 12 )
 		{
 			// ban if game is loading or if it's dota and player has left >= 4v4 situation
 			if( m_GameLoading || ( m_AutobanFirstNumber + 1 < m_GHost->m_AutobanFirstLeavers && m_GameTicks < m_GHost->m_AutobanFirstLimit * 1000 ) ) {
