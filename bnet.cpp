@@ -651,14 +651,22 @@ bool CBNET :: Update( void *fd, void *send_fd )
 
 		uint32_t WaitTicks = 0;
 
-		if( m_LastOutPacketSize < 10 )
-			WaitTicks = 1200;
-		else if( m_LastOutPacketSize < 30 )
-			WaitTicks = 3500;
-		else if( m_LastOutPacketSize < 100 )
-			WaitTicks = 3700;
+		if( PacketSize < 10 )
+			WaitTicks = 1700;
+		else if( PacketSize < 30 )
+			WaitTicks = 4000;
+		else if( PacketSize < 50 )
+			WaitTicks = 4400;
+		else if( PacketSize < 70 )
+			WaitTicks = 5000;
+		else if( PacketSize < 100 )
+			WaitTicks = 6500;
+		else if( PacketSize < 150 )
+			WaitTicks = 7000;
+		else if( PacketSize < 200 )
+			WaitTicks = 7400;
 		else
-			WaitTicks = 4300;
+			WaitTicks = 7800;
 
 		boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
 		
