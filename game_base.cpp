@@ -820,13 +820,13 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		lock.unlock( );
 	}
 
-	// kick players who don't spoof check within 26 seconds when spoof checks are required and the game is autohosted
+	// kick players who don't spoof check within 30 seconds when spoof checks are required and the game is autohosted
 
 	if( !m_CountDownStarted && m_GHost->m_RequireSpoofChecks && m_GameState == GAME_PUBLIC && !m_GHost->m_AutoHostGameName.empty( ) && m_GHost->m_AutoHostMaximumGames != 0 && m_GHost->m_AutoHostAutoStartPlayers != 0 && m_AutoStartPlayers != 0 )
 	{
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 		{
-			if( !(*i)->GetSpoofed( ) && GetTime( ) - (*i)->GetJoinTime( ) >= 26 )
+			if( !(*i)->GetSpoofed( ) && GetTime( ) - (*i)->GetJoinTime( ) >= 30 )
 			{
 				(*i)->SetDeleteMe( true );
 				(*i)->SetLeftReason( m_GHost->m_Language->WasKickedForNotSpoofChecking( ) );
