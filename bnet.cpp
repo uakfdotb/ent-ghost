@@ -651,19 +651,19 @@ bool CBNET :: Update( void *fd, void *send_fd )
 
 		uint32_t WaitTicks = 0;
 
-		if( PacketSize < 10 )
+		if( m_LastOutPacketSize < 10 )
 			WaitTicks = 1700;
-		else if( PacketSize < 30 )
+		else if( m_LastOutPacketSize < 30 )
 			WaitTicks = 4000;
-		else if( PacketSize < 50 )
+		else if( m_LastOutPacketSize < 50 )
 			WaitTicks = 4400;
-		else if( PacketSize < 70 )
+		else if( m_LastOutPacketSize < 70 )
 			WaitTicks = 5000;
-		else if( PacketSize < 100 )
+		else if( m_LastOutPacketSize < 100 )
 			WaitTicks = 6500;
-		else if( PacketSize < 150 )
+		else if( m_LastOutPacketSize < 150 )
 			WaitTicks = 7000;
-		else if( PacketSize < 200 )
+		else if( m_LastOutPacketSize < 200 )
 			WaitTicks = 7400;
 		else
 			WaitTicks = 7800;
