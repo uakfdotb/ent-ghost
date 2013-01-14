@@ -957,15 +957,22 @@ bool CGHost :: Update( long usecBlock )
 		if( !m_ReconnectSocket )
 		{
 			m_ReconnectSocket = new CTCPServer( );
+			bool Success = false;
 
-			if( m_ReconnectSocket->Listen( m_BindAddress, m_ReconnectPort ) )
-				CONSOLE_Print( "[GHOST] listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort ) );
-			else
+			for( unsigned int i = 0; i < 50; i++ )
 			{
-				CONSOLE_Print( "[GHOST] error listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort ) );
+				if( m_ReconnectSocket->Listen( m_BindAddress, m_ReconnectPort + i ) )
+				{
+					CONSOLE_Print( "[GHOST] listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort ) );
+					break;
+				}
+			}
+			
+			if( !Success )
+			{
+				CONSOLE_Print( "[GHOST] failed to listen for GProxy++ reconnects too many times, giving up" );
 				delete m_ReconnectSocket;
 				m_ReconnectSocket = NULL;
-
 				m_Reconnect = false;
 			}
 		}
