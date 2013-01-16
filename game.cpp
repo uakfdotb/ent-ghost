@@ -1489,10 +1489,11 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !END
 			//
 
-                        else if( Command == "end" && m_GameLoaded && ( AdminCheck || RootAdminCheck ) )
+			else if( Command == "end" && m_GameLoaded && ( AdminCheck || RootAdminCheck ) )
 			{
-				CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
-				StopPlayers( "was disconnected (admin ended game)" );
+				player->SetDeleteMe( true );
+				player->SetLeftReason( "was disconnected (admin ended self from game)" );
+				player->SetLeftCode( PLAYERLEAVE_LOST );
 			}
 
 			//
