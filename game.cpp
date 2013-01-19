@@ -676,7 +676,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 	
 	//update gamelist every 10 seconds
 	if( !m_CallableGameUpdate && GetTime() - m_LastGameUpdateTime >= 10 ) {
-		m_CallableGameUpdate = m_GHost->m_DB->ThreadedGameUpdate(m_GameUpdateID, GetMapName(), GetGameName(), GetOwnerName(), GetCreatorName(), GetNumHumanPlayers(), GetPlayerList( ), GetNumHumanPlayers() + GetSlotsOpen(), 0, 0, true);
+		m_CallableGameUpdate = m_GHost->m_DB->ThreadedGameUpdate(m_GameUpdateID, GetMapName(), GetGameName(), GetOwnerName(), GetCreatorName(), GetNumHumanPlayers(), GetPlayerList( ), GetNumHumanPlayers() + GetSlotsOpen(), m_GameLoaded ? 1 : 0, 0, true);
 		m_LastGameUpdateTime = GetTime();
 	}
 
