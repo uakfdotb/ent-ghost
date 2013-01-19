@@ -2299,6 +2299,8 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 						}
 					}
 				}
+				else
+					CONSOLE_Print( "[GAME: " + m_GameName + "] Error: invalid team for incoming user " + joinPlayer->GetName( ) );
 			}
 			else if( AnyAdminCheck )
 			{
@@ -2312,6 +2314,8 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 					}
 				}
 			}
+			else
+				CONSOLE_Print( "[GAME: " + m_GameName + "] Error: found no team for incoming user " + joinPlayer->GetName( ) );
 		}
 		else
 		{
@@ -3043,11 +3047,28 @@ void CBaseGame :: EventPlayerChangeTeam( CGamePlayer *player, unsigned char team
 	if( m_SaveGame )
 		return;
 	
-	if( m_League )
+	if( m_League && !m_Tournament )
 		return;
 
 	if( m_Map->GetMapOptions( ) & MAPOPT_CUSTOMFORCES )
 	{
+		if( m_Tournament )
+		{
+			// if tournament, have to make sure target team is same as source team
+			unsigned char SID = GetSIDFromPID( player->GetPID( ) );
+			
+			if( SID < m_Slots.size( ) )
+			{
+				if( m_Slots[SID].GetTeam( ) != team )
+					return;
+			}
+			else
+			{
+				CONSOLE_Print( "[GAME: " + m_GameName + "] Tournament problem: player has no slot while changing team?" );
+				return;
+			}
+		}
+		
 		unsigned char oldSID = GetSIDFromPID( player->GetPID( ) );
 		unsigned char newSID = GetEmptySlot( team, player->GetPID( ) );
 		SwapSlots( oldSID, newSID );
