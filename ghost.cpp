@@ -557,6 +557,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_LANWar3Version = CFG->GetInt( "lan_war3version", 26 );
 	m_ReplayWar3Version = CFG->GetInt( "replay_war3version", 26 );
 	m_ReplayBuildNumber = CFG->GetInt( "replay_buildnumber", 6059 );
+	bool IPToCountry = CFG->GetInt( "bot_iptocountry", 0 ) == 0 ? false : true;
 	SetConfigs( CFG );
 
 	// load the battle.net connections
@@ -707,7 +708,8 @@ CGHost :: CGHost( CConfig *CFG )
 
 	// load the iptocountry data
 
-	//LoadIPToCountryData( );
+	if( IPToCountry )
+		LoadIPToCountryData( );
 
 	// create the admin game
 
