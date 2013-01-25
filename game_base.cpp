@@ -4520,6 +4520,8 @@ void CBaseGame :: BalanceSlots( )
 		if( TeamHasPlayers )
 			SendAllChat( m_GHost->m_Language->TeamCombinedScore( UTIL_ToString( i + 1 ), UTIL_ToString( TeamScore, 2 ) ) );
 	}
+	
+	ShowTeamScores( );
 }
 
 void CBaseGame :: AddToSpoofed( string server, string name, bool sendMessage )
@@ -4904,4 +4906,62 @@ void CBaseGame :: DeleteFakePlayer( )
 	SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( m_FakePlayerPID, PLAYERLEAVE_LOBBY ) );
 	SendAllSlotInfo( );
 	m_FakePlayerPID = 255;
+}
+
+void CBaseGame :: ShowTeamScores( )
+{
+	vector<double> Team1;
+	double Team1Total = 0;
+	vector<double> Team2;
+	double Team2Total = 0;
+	
+	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
+	{
+		CGamePlayer *Player = GetPlayerFromPID( m_Slots[i].GetPID( ) );
+		
+		if( Player )
+		{
+			double Score = Player->GetScore( );
+
+			if( Score < -99999.0 )
+				Score = m_Map->GetMapDefaultPlayerScore( );
+			
+			if( m_Slots[i].GetTeam( ) == 0 )
+			{
+				Team1.push_back( Score );
+				Team1Total += Score;
+			}
+			else if( m_Slots[i].GetTeam( ) == 1 )
+			{
+				Team2.push_back( Score );
+				Team2Total += Score;
+			}
+		}
+	}
+	
+	if( Team1.size( ) > 0 && Team2.size( ) > 0 )
+	{
+		string Team1String = "Sentinel/West";
+		string Team2String = "Scourge/East";
+	
+		for( int i = 0; i < Team1.size( ); i++ )
+		{
+			Team1String += " " + UTIL_ToString( Team1[i], 2 );
+		}
+	
+		for( int i = 0; i < Team2.size( ); i++ )
+		{
+			Team2String += " " + UTIL_ToString( Team2[i], 2 );
+		}
+		
+		Team1String += " Avg: " + UTIL_ToString( Team1Total / Team1.size( ), 2 );
+		Team2String += " Avg: " + UTIL_ToString( Team2Total / Team2.size( ), 2 );
+	
+		SendAllChat( Team1String );
+		SendAllChat( Team2String );
+	}
+	else
+	{
+		SendAllChat( "Error in showing team scores: there must be at least one player on each team!" );
+	}
 }
