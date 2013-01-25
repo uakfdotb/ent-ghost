@@ -1994,6 +1994,13 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			}
 
 			//
+			// !SCORES
+			//
+
+			else if( Command == "scores" )
+				ShowTeamScores( );
+
+			//
 			// !SENDLAN
 			//
 
