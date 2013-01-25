@@ -2269,7 +2269,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
         // !SLAP
         //
         
-		else if( (Command == "slap" )&& !Payload.empty() )
+		else if( (Command == "slap" )&& !Payload.empty() && !m_GHost->m_SlapPhrases.empty() )
 		{
 			//pick a phrase
 			uint32_t numPhrases = m_GHost->m_SlapPhrases.size();

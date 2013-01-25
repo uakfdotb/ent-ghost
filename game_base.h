@@ -304,6 +304,7 @@ public:
 	virtual void CreateFakePlayer( );
 	virtual void CreateFakePlayer( unsigned char SID );
 	virtual void DeleteFakePlayer( );
+	virtual void ShowTeamScores( );
 };
 
 struct QueuedSpoofAdd {
