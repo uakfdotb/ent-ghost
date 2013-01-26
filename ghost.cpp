@@ -533,6 +533,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostAutoStartPlayers = CFG->GetInt( "autohost_startplayers", 0 );
 	m_AutoHostGameName = CFG->GetString( "autohost_gamename", string( ) );
 	m_AutoHostOwner = CFG->GetString( "autohost_owner", string( ) );
+	m_LocalIPs = CFG->GetString( "bot_local", "127.0.0.1 127.0.1.1" );
 	m_LastAutoHostTime = GetTime( );
 	m_LastGameUpdateTime  = GetTime( );
 	m_AutoHostMatchMaking = false;
@@ -2001,6 +2002,9 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 void CGHost :: DenyIP( string ip, uint32_t duration, string reason )
 {
+	if( IsLocal( ip ) )
+		return;
+	
 	CONSOLE_Print( "[DENY] Denying connections from " + ip + " for " + UTIL_ToString( duration ) + " milliseconds: " + reason );
 	
 	// check to see if already in table
@@ -2077,5 +2081,24 @@ bool CGHost :: FlameCheck( string message )
 			return true;
 	}
 	
+	return false;
+}
+
+bool CBNET :: IsLocal( string ip )
+{
+	// multiple local IP's are space separated
+
+	stringstream SS;
+	string s;
+	SS << m_LocalIPs;
+
+	while( !SS.eof( ) )
+	{
+		SS >> s;
+
+		if( ip == s )
+			return true;
+	}
+
 	return false;
 }
