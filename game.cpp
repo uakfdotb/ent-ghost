@@ -2670,6 +2670,20 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	}
 
 	//
+	// !RULES
+	//
+
+	else if( Command == "rules" )
+	{
+		SendChat(player, "* Don't flame and afk grief");
+		SendChat(player, "* Don't leave before the throne dies (in DotA)");
+		SendChat(player, "* Don't fountain farm excessively ");
+		SendChat(player, "* Don't abuse the !votekick command");
+		SendChat(player, "* Don't feed, ruin, spam, or cheat!");
+		SendChat(player, "* !yes the !votekick command against excessive feeder's");
+	}
+
+	//
 	// !SLAP
 	//
 
