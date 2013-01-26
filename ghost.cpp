@@ -963,17 +963,18 @@ bool CGHost :: Update( long usecBlock )
 			{
 				m_ReconnectSocket = new CTCPServer( );
 				
-				if( m_ReconnectSocket->Listen( m_BindAddress, m_ReconnectPort + i ) )
+				if( m_ReconnectSocket->Listen( m_BindAddress, m_ReconnectPort ) )
 				{
-					CONSOLE_Print( "[GHOST] listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort + i ) );
+					CONSOLE_Print( "[GHOST] listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort ) );
 					Success = true;
 					break;
 				}
 				else
 				{
-					CONSOLE_Print( "[GHOST] error listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort + i ) );
+					CONSOLE_Print( "[GHOST] error listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort ) );
 					delete m_ReconnectSocket;
 					m_ReconnectSocket = NULL;
+					m_ReconnectPort++;
 				}
 			}
 			
