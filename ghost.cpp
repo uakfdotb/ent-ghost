@@ -2084,7 +2084,7 @@ bool CGHost :: FlameCheck( string message )
 	return false;
 }
 
-bool CBNET :: IsLocal( string ip )
+bool CGHost :: IsLocal( string ip )
 {
 	// multiple local IP's are space separated
 
