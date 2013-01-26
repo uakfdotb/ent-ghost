@@ -214,7 +214,7 @@ void CPotentialPlayer :: ProcessPackets( )
 		
 		else if( Packet->GetPacketType( ) == GCBI_HEADER_CONSTANT )
 		{
-			if( Packet->GetID( ) == CGCBIProtocol :: GCBI_INIT )
+			if( Packet->GetID( ) == CGCBIProtocol :: GCBI_INIT && m_Game->m_GHost->IsLocal( GetExternalIPString( ) ) )
 			{
 				delete m_IncomingGarenaUser;
 				m_IncomingGarenaUser = m_Game->m_GHost->m_GCBIProtocol->RECEIVE_GCBI_INIT( Packet->GetData( ) );

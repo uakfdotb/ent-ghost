@@ -185,6 +185,7 @@ public:
 	
 	bool m_StatsOnJoin;						// config value: attempt to show stats on join?
 	
+    string m_LocalIPs;						// config value: list of local IP's (which Garena is allowed from)
 	vector<string> m_FlameTriggers;			// triggers for antiflame system
 	
 	vector<CDBBan *> m_Bans;				// bans not tied to other realms (entconnect realm)
@@ -238,6 +239,7 @@ public:
 	bool CheckDeny( string ip );
 	bool FlameCheck( string message );
 	string GetSpoofName( string name );
+	bool IsLocal( string ip );
 };
 
 struct DenyInfo {

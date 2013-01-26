@@ -532,6 +532,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostAutoStartPlayers = CFG->GetInt( "autohost_startplayers", 0 );
 	m_AutoHostGameName = CFG->GetString( "autohost_gamename", string( ) );
 	m_AutoHostOwner = CFG->GetString( "autohost_owner", string( ) );
+	m_LocalIPs = CFG->GetString( "bot_local", "127.0.0.1 127.0.1.1" );
 	m_LastAutoHostTime = GetTime( );
 	m_AutoHostMatchMaking = CFG->GetInt( "autohost_matchmaking", 0 );
 	m_LastCommandListTime = GetTime( );
@@ -965,17 +966,18 @@ bool CGHost :: Update( long usecBlock )
 			{
 				m_ReconnectSocket = new CTCPServer( );
 				
-				if( m_ReconnectSocket->Listen( m_BindAddress, m_ReconnectPort + i ) )
+				if( m_ReconnectSocket->Listen( m_BindAddress, m_ReconnectPort ) )
 				{
-					CONSOLE_Print( "[GHOST] listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort + i ) );
+					CONSOLE_Print( "[GHOST] listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort ) );
 					Success = true;
 					break;
 				}
 				else
 				{
-					CONSOLE_Print( "[GHOST] error listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort + i ) );
+					CONSOLE_Print( "[GHOST] error listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort ) );
 					delete m_ReconnectSocket;
 					m_ReconnectSocket = NULL;
+					m_ReconnectPort++;
 				}
 			}
 			
@@ -1971,6 +1973,9 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 void CGHost :: DenyIP( string ip, uint32_t duration, string reason )
 {
+	if( IsLocal( ip ) )
+		return;
+	
 	CONSOLE_Print( "[DENY] Denying connections from " + ip + " for " + UTIL_ToString( duration ) + " milliseconds: " + reason );
 	
 	// check to see if already in table
@@ -2047,5 +2052,24 @@ bool CGHost :: FlameCheck( string message )
 			return true;
 	}
 	
+	return false;
+}
+
+bool CGHost :: IsLocal( string ip )
+{
+	// multiple local IP's are space separated
+
+	stringstream SS;
+	string s;
+	SS << m_LocalIPs;
+
+	while( !SS.eof( ) )
+	{
+		SS >> s;
+
+		if( ip == s )
+			return true;
+	}
+
 	return false;
 }
