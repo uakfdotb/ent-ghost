@@ -228,6 +228,7 @@ public:
 	virtual CCallableGetTournament *ThreadedGetTournament( string gamename );
 	virtual CCallableTournamentChat *ThreadedTournamentChat( uint32_t chatid, string message );
 	virtual CCallableTournamentUpdate *ThreadedTournamentUpdate( uint32_t matchid, string gamename, uint32_t status );
+	virtual CCallableAdminCommand *ThreadedAdminCommand( string admin, string command, string description, string gamename );
 	virtual CCallableConnectCheck *ThreadedConnectCheck( string name, uint32_t sessionkey );
 	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing, string saveType );
 	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints, string saveType );
@@ -277,6 +278,7 @@ uint32_t MySQLLeagueCheck( void *conn, string *error, uint32_t botid, string cat
 vector<string> MySQLGetTournament( void *conn, string *error, uint32_t botid, string gamename );
 void MySQLTournamentChat( void *conn, string *error, uint32_t botid, uint32_t chatid, string message );
 void MySQLTournamentUpdate( void *conn, string *error, uint32_t botid, uint32_t matchid, string gamename, uint32_t status );
+void MySQLAdminCommand( void *conn, string *error, uint32_t botid, string admin, string command, string description, string gamename );
 bool MySQLConnectCheck( void *conn, string *error, uint32_t botid, string name, uint32_t sessionkey );
 uint32_t MySQLW3MMDPlayerAdd( void *conn, string *error, uint32_t botid, string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing, string saveType );
 bool MySQLW3MMDVarAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, map<VarP,int32_t> var_ints, string saveType );
@@ -666,6 +668,17 @@ class CMySQLCallableTournamentUpdate : public CCallableTournamentUpdate, public 
 public:
 	CMySQLCallableTournamentUpdate( uint32_t nMatchID, string nGameName, uint32_t nStatus, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableTournamentUpdate( nMatchID, nGameName, nStatus ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
 	virtual ~CMySQLCallableTournamentUpdate( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableAdminCommand : public CCallableAdminCommand, public CMySQLCallable
+{
+public:
+	CMySQLCallableAdminCommand( string nAdmin, string nCommand, string nDescription, string nGameName, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableAdminCommand( nAdmin, nCommand, nDescription, nGameName ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+	virtual ~CMySQLCallableAdminCommand( ) { }
 
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }

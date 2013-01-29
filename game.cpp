@@ -1494,6 +1494,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				player->SetDeleteMe( true );
 				player->SetLeftReason( "was disconnected (admin ended self from game)" );
 				player->SetLeftCode( PLAYERLEAVE_LOST );
+						
+				m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!end", "ended self from the game", m_GameName ) );
 			}
 
 			//
@@ -1646,6 +1648,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 						if( !m_GameLoading && !m_GameLoaded )
 							OpenSlot( GetSIDFromPID( LastMatch->GetPID( ) ), false );
+						
+						m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!kick", "kicked player [" + LastMatch->GetName( ) + "]", m_GameName ) );
 					}
 					else
 						SendAllChat( m_GHost->m_Language->UnableToKickFoundMoreThanOneMatch( Payload ) );
@@ -1724,6 +1728,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				{
 					SendAllChat( m_GHost->m_Language->MutedPlayer( LastMatch->GetName( ), User ) );
 					LastMatch->SetMuted( true );
+						
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!mute", "muted player [" + LastMatch->GetName( ) + "]", m_GameName ) );
 				}
 				else
 					SendAllChat( m_GHost->m_Language->UnableToMuteFoundMoreThanOneMatch( Payload ) );
@@ -1760,6 +1766,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			{
 				SendAllChat( m_GHost->m_Language->GlobalChatMuted( ) );
 				m_MuteAll = true;
+				
+				
+						
+				m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!muteall", "muted global chat", m_GameName ) );
 			}
 
 			//

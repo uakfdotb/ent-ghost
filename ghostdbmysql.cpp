@@ -612,6 +612,19 @@ CCallableTournamentUpdate *CGHostDBMySQL :: ThreadedTournamentUpdate( uint32_t m
 	return Callable;
 }
 
+CCallableAdminCommand *CGHostDBMySQL :: ThreadedAdminCommand( string admin, string command, string description, string gamename )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableAdminCommand *Callable = new CMySQLCallableAdminCommand( admin, command, description, gamename, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port, this );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
 CCallableW3MMDPlayerAdd *CGHostDBMySQL :: ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing, string saveType )
 {
 	void *Connection = GetIdleConnection( );
@@ -2232,6 +2245,22 @@ void MySQLTournamentUpdate( void *conn, string *error, uint32_t botid, uint32_t 
 		*error = mysql_error( (MYSQL *)conn );
 }
 
+void MySQLAdminCommand( void *conn, string *error, uint32_t botid, string admin, string command, string description, string gamename )
+{
+	string EscAdmin = MySQLEscapeString( conn, admin );
+	string EscCommand = MySQLEscapeString( conn, command + " (in-game)" );
+	
+	time_t Now = time( NULL );
+	string Time = asctime( localtime( &Now ) );
+	Time.erase( Time.size( ) - 1 );
+	
+	string EscDescription = MySQLEscapeString( conn, "[" + Time + "]: " + admin + " used " + command + ": " + description + " (in " + gamename + ")" );
+	string Query = "INSERT INTO admin_actions (action, `desc`, admin) VALUES ('" + EscCommand + "', '" + EscDescription + "', '" + EscAdmin + "')";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+}
+
 bool MySQLConnectCheck( void *conn, string *error, uint32_t botid, string name, uint32_t sessionkey )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
@@ -2763,6 +2792,16 @@ void CMySQLCallableTournamentUpdate :: operator( )( )
 
 	if( m_Error.empty( ) )
 		MySQLTournamentUpdate( m_Connection, &m_Error, m_SQLBotID, m_MatchID, m_GameName, m_Status );
+
+	Close( );
+}
+
+void CMySQLCallableAdminCommand :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		MySQLAdminCommand( m_Connection, &m_Error, m_SQLBotID, m_Admin, m_Command, m_Description, m_GameName );
 
 	Close( );
 }

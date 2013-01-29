@@ -44,6 +44,7 @@ class CCallableTreePlayerSummaryCheck;
 class CCallableSnipePlayerSummaryCheck;
 class CCallableShipsPlayerSummaryCheck;
 class CCallableW3MMDPlayerSummaryCheck;
+class CCallableAdminCommand;
 
 typedef pair<string,CCallableBanCheck *> PairedBanCheck;
 typedef pair<string,CCallableBanAdd *> PairedBanAdd;

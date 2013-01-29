@@ -64,6 +64,7 @@ class CCallableLeagueCheck;
 class CCallableGetTournament;
 class CCallableTournamentChat;
 class CCallableTournamentUpdate;
+class CCallableAdminCommand;
 class CCallableConnectCheck;
 class CCallableW3MMDPlayerAdd;
 class CCallableW3MMDVarAdd;
@@ -176,6 +177,7 @@ public:
 	virtual CCallableGetTournament *ThreadedGetTournament( string gamename );
 	virtual CCallableTournamentChat *ThreadedTournamentChat( uint32_t chatid, string message );
 	virtual CCallableTournamentUpdate *ThreadedTournamentUpdate( uint32_t matchid, string gamename, uint32_t status );
+	virtual CCallableAdminCommand *ThreadedAdminCommand( string admin, string command, string description, string gamename );
 	virtual CCallableConnectCheck *ThreadedConnectCheck( string name, uint32_t sessionkey );
 	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing, string saveType );
 	virtual CCallableW3MMDVarAdd *ThreadedW3MMDVarAdd( uint32_t gameid, map<VarP,int32_t> var_ints, string saveType );
@@ -799,6 +801,19 @@ protected:
 public:
 	CCallableTournamentUpdate( uint32_t nMatchID, string nGameName, uint32_t nStatus ) : CBaseCallable( ), m_MatchID( nMatchID ), m_GameName( nGameName), m_Status( nStatus ) { }
 	virtual ~CCallableTournamentUpdate( );
+};
+
+class CCallableAdminCommand : virtual public CBaseCallable
+{
+protected:
+	string m_Admin;
+	string m_Command;
+	string m_Description;
+	string m_GameName;
+
+public:
+	CCallableAdminCommand( string nAdmin, string nCommand, string nDescription, string nGameName ) : CBaseCallable( ), m_Admin( nAdmin ), m_Command( nCommand ), m_Description( nDescription ), m_GameName( nGameName ) { }
+	virtual ~CCallableAdminCommand( );
 };
 
 class CCallableConnectCheck : virtual public CBaseCallable
