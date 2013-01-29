@@ -2763,6 +2763,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] started by player [" + User + "]" );
 					SendAllChat( m_GHost->m_Language->StartedVoteKick( LastMatch->GetName( ), User, UTIL_ToString( (uint32_t)ceil( ( GetNumHumanPlayers( ) - 1 ) * (float)m_GHost->m_VoteKickPercentage / 100 ) - 1 ) ) );
 					SendAllChat( m_GHost->m_Language->TypeYesToVote( string( 1, m_GHost->m_CommandTrigger ) ) );
+					SendAllChat( "** Note: !votekick should only be used to kick players breaking a rule. You should not votekick players new to the game!" );
 				}
 			}
 			else
