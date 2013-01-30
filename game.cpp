@@ -336,10 +336,16 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
-
+					
 					if( Player )
 						SendChat( Player, Summary );
 				}
+				
+				// update player's score
+				CGamePlayer *CheckedPlayer = GetPlayerFromName( i->second->GetName( ), false );
+				
+				if( CheckedPlayer )
+					CheckedPlayer->SetScore( DotAPlayerSummary->GetScore( ) );
 			}
 			else
 			{
@@ -459,10 +465,16 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
-
+					
 					if( Player )
 						SendChat( Player, Summary );
 				}
+				
+				// update player's score
+				CGamePlayer *CheckedPlayer = GetPlayerFromName( i->second->GetName( ), false );
+				
+				if( CheckedPlayer )
+					CheckedPlayer->SetScore( TreePlayerSummary->GetScore( ) );
 			}
 			else
 			{
@@ -504,10 +516,16 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
-
+					
 					if( Player )
 						SendChat( Player, Summary );
 				}
+				
+				// update player's score
+				CGamePlayer *CheckedPlayer = GetPlayerFromName( i->second->GetName( ), false );
+				
+				if( CheckedPlayer )
+					CheckedPlayer->SetScore( SnipePlayerSummary->GetScore( ) );
 			}
 			else
 			{
@@ -549,10 +567,16 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
-
+					
 					if( Player )
 						SendChat( Player, Summary );
 				}
+				
+				// update player's score
+				CGamePlayer *CheckedPlayer = GetPlayerFromName( i->second->GetName( ), false );
+				
+				if( CheckedPlayer )
+					CheckedPlayer->SetScore( ShipsPlayerSummary->GetScore( ) );
 			}
 			else
 			{
@@ -603,10 +627,16 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else
 				{
 					CGamePlayer *Player = GetPlayerFromName( i->first, true );
-
+					
 					if( Player )
 						SendChat( Player, Summary );
 				}
+				
+				// update player's score
+				CGamePlayer *CheckedPlayer = GetPlayerFromName( i->second->GetName( ), false );
+				
+				if( CheckedPlayer )
+					CheckedPlayer->SetScore( W3MMDPlayerSummary->GetScore( ) );
 			}
 			else
 			{
