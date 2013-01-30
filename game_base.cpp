@@ -4942,14 +4942,19 @@ void CBaseGame :: ShowTeamScores( )
 	
 	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 	{
-		CGamePlayer *Player = GetPlayerFromPID( m_Slots[i].GetPID( ) );
+		CGamePlayer *Player = GetPlayerFromSID( i );
 		
 		if( Player )
 		{
 			double Score = Player->GetScore( );
 
 			if( Score < -99999.0 )
-				Score = m_Map->GetMapDefaultPlayerScore( );
+			{
+				if( m_Map )
+					Score = m_Map->GetMapDefaultPlayerScore( );
+				else
+					Score = 1000;
+			}
 			
 			if( m_Slots[i].GetTeam( ) == 0 )
 			{
@@ -4964,7 +4969,7 @@ void CBaseGame :: ShowTeamScores( )
 		}
 	}
 	
-	if( Team1.size( ) > 0 && Team2.size( ) > 0 )
+	if( !Team1.empty( ) && !Team2.empty( ) )
 	{
 		string Team1String = "Sentinel/West";
 		string Team2String = "Scourge/East";
