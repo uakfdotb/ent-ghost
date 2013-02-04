@@ -183,6 +183,7 @@ public:
 	uint32_t m_PBanDuration;				// config value: pban duration (hours)
 	uint32_t m_WBanDuration;				// config value: wban duration (hours)
 	
+	uint32_t m_AutoMuteSpammer;				// config value: auto mute spammers?
 	bool m_StatsOnJoin;						// config value: attempt to show stats on join?
 	
     string m_LocalIPs;						// config value: list of local IP's (which Garena is allowed from)

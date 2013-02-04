@@ -604,7 +604,7 @@ void CGamePlayer :: ProcessPackets( )
 								RecentCount++;
 						}
 					
-						if( !GetMuted( ) && RecentCount >= 7 )
+						if( m_Game->m_GHost->m_AutoMuteSpammer && !GetMuted( ) && RecentCount >= 7 )
 						{
 							SetMuted( true );
 							m_MutedAuto = true;
