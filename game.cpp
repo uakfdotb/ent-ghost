@@ -408,7 +408,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				// update player's score
 				CGamePlayer *CheckedPlayer = GetPlayerFromName( i->second->GetName( ), false );
 				
-				if( CheckedPlayer )
+				if( CheckedPlayer && CheckedPlayer->GetScore( ) < -99999.0 )
 					CheckedPlayer->SetScore( DotAPlayerSummary->GetScore( ) );
 			}
 			else
@@ -537,7 +537,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				// update player's score
 				CGamePlayer *CheckedPlayer = GetPlayerFromName( i->second->GetName( ), false );
 				
-				if( CheckedPlayer )
+				if( CheckedPlayer && CheckedPlayer->GetScore( ) < -99999.0 )
 					CheckedPlayer->SetScore( TreePlayerSummary->GetScore( ) );
 			}
 			else
@@ -588,7 +588,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				// update player's score
 				CGamePlayer *CheckedPlayer = GetPlayerFromName( i->second->GetName( ), false );
 				
-				if( CheckedPlayer )
+				if( CheckedPlayer && CheckedPlayer->GetScore( ) < -99999.0 )
 					CheckedPlayer->SetScore( SnipePlayerSummary->GetScore( ) );
 			}
 			else
@@ -639,7 +639,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				// update player's score
 				CGamePlayer *CheckedPlayer = GetPlayerFromName( i->second->GetName( ), false );
 				
-				if( CheckedPlayer )
+				if( CheckedPlayer && CheckedPlayer->GetScore( ) < -99999.0 )
 					CheckedPlayer->SetScore( ShipsPlayerSummary->GetScore( ) );
 			}
 			else
@@ -699,7 +699,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				// update player's score
 				CGamePlayer *CheckedPlayer = GetPlayerFromName( i->second->GetName( ), false );
 				
-				if( CheckedPlayer )
+				if( CheckedPlayer && CheckedPlayer->GetScore( ) < -99999.0 )
 					CheckedPlayer->SetScore( W3MMDPlayerSummary->GetScore( ) );
 			}
 			else
