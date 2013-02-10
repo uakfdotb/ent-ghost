@@ -192,7 +192,7 @@ CGame :: ~CGame( )
 				
 				if( m_MapType == "eihl" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-eihl", CustomReason, 3600 * 12, "ttr.cloud" ));
-				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" )
+				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" || m_MapType == "cfone" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
 				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "civwars" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600, "ttr.cloud" ));
@@ -680,6 +680,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				
 				if( Category == "civwars" ) CategoryName = "civilization wars";
 				else if( Category == "castlefight" ) CategoryName = "castle fight";
+				else if( Category == "cfone" ) CategoryName = "castle fight (1v1)";
 				else if( Category == "castlefight2" ) CategoryName = "high-ranked CF";
 				else if( Category == "legionmega2" ) CategoryName = "high-ranked Legion TD";
 				else if( Category == "legionmega" ) CategoryName = "Legion TD Mega";
@@ -800,6 +801,10 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	else if( Player && m_MapType == "castlefight" )
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "castlefight" ) ) );
+	}
+	else if( Player && m_MapType == "cfone" )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "cfone" ) ) );
 	}
 	else if( Player && m_MapType == "legionmega" )
 	{
@@ -2477,11 +2482,16 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		
 		string StatsRealm = "";
 		GetStatsUser( &StatsUser, &StatsRealm );
+		
+		string Category = "castlefight";
+		
+		if( m_MapType == "cfone" )
+			Category = "cfone";
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "castlefight" ) ) );
+			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, Category ) ) );
 		else
-			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "castlefight" ) ) );
+			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, Category ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
