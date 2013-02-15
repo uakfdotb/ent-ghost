@@ -143,7 +143,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_PublicCommands = nPublicCommands;
 	m_LastInviteCreation = false;
 	m_ServerReconnectCount = 0;
-	m_CDKeyUseCount = 0;
+	m_AuthFailCount = 0;
 	m_BanListFastTime = 0;
 }
 
@@ -219,11 +219,11 @@ BYTEARRAY CBNET :: GetUniqueName( )
 
 uint32_t CBNET :: GetReconnectTime( )
 {
-	if( m_CDKeyUseCount == 0 )
+	if( m_AuthFailCount == 0 )
 		return 90;
 	else
 	{
-		uint32_t Time = 180 + m_CDKeyUseCount * 90;
+		uint32_t Time = 180 + m_AuthFailCount * 90;
 		
 		if( Time < 600 )
 		{
@@ -946,7 +946,6 @@ void CBNET :: ProcessPackets( )
 					m_Socket->PutBytes( m_Protocol->SEND_SID_AUTH_ACCOUNTLOGON( m_BNCSUtil->GetClientKey( ), m_UserName ) );
 					
 					m_ServerReconnectCount = 0;
-					m_CDKeyUseCount = 0;
 				}
 				else
 				{
@@ -956,7 +955,7 @@ void CBNET :: ProcessPackets( )
 					{
 					case CBNETProtocol :: KR_ROC_KEY_IN_USE:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - ROC CD key in use by user [" + m_Protocol->GetKeyStateDescription( ) + "], disconnecting" );
-						m_CDKeyUseCount++;
+						m_AuthFailCount++;
 						
 						if( m_Protocol->GetKeyStateDescription( ) == "ur5949" )
 							UxReconnected( );
@@ -964,7 +963,7 @@ void CBNET :: ProcessPackets( )
 						break;
 					case CBNETProtocol :: KR_TFT_KEY_IN_USE:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - TFT CD key in use by user [" + m_Protocol->GetKeyStateDescription( ) + "], disconnecting" );
-						m_CDKeyUseCount++;
+						m_AuthFailCount++;
 						
 						if( m_Protocol->GetKeyStateDescription( ) == "ur5949" )
 							UxReconnected( );
@@ -978,7 +977,7 @@ void CBNET :: ProcessPackets( )
 						break;
 					default:
 						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - cd keys not accepted, disconnecting" );
-						m_CDKeyUseCount++;
+						m_AuthFailCount++;
 						break;
 					}
 
@@ -1014,6 +1013,7 @@ void CBNET :: ProcessPackets( )
 				else
 				{
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - invalid username, disconnecting" );
+					m_AuthFailCount++;
 					m_Socket->Disconnect( );
 					delete Packet;
 					return;
@@ -1028,6 +1028,7 @@ void CBNET :: ProcessPackets( )
 
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon successful" );
 					m_LoggedIn = true;
+					m_AuthFailCount = 0;
 					m_GHost->EventBNETLoggedIn( this );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_NETGAMEPORT( m_GHost->m_HostPort ) );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_ENTERCHAT( ) );
@@ -1037,6 +1038,7 @@ void CBNET :: ProcessPackets( )
 				else
 				{
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] logon failed - invalid password, disconnecting" );
+					m_AuthFailCount++;
 
 					// try to figure out if the user might be using the wrong logon type since too many people are confused by this
 
