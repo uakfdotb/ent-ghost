@@ -104,7 +104,12 @@ CGame :: ~CGame( )
 			if( EndTime - LeftTime > m_GHost->m_AutobanGameLimit )
 			{
 				string CustomReason = "autoban: left at " + UTIL_ToString( LeftTime ) + "/" + UTIL_ToString( EndTime );
-				m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * m_GHost->m_Autoban, "ttr.cloud" ));
+				string BanRealm = (*i)->GetSpoofedRealm( );
+				
+				if( BanRealm.empty( ) )
+					BanRealm = (*i)->GetJoinedRealm( );
+				
+				m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( BanRealm, (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * m_GHost->m_Autoban, "ttr.cloud" ));
 			}
 		}
 	}
