@@ -107,7 +107,7 @@ CGame :: ~CGame( )
 				string BanRealm = (*i)->GetSpoofedRealm( );
 				
 				if( BanRealm.empty( ) && !m_GHost->m_BNETs.empty( ) )
-				  BanRealm = m_GHost->m_BNETs.front( )->GetServer( );
+					BanRealm = m_GHost->m_BNETs.front( )->GetServer( );
 				
 				m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( BanRealm, (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * m_GHost->m_Autoban, "ttr.cloud" ));
 			}
