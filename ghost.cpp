@@ -1263,7 +1263,7 @@ bool CGHost :: Update( long usecBlock )
 		{
 			CONSOLE_Print("[GHOST] Executing command from MYSQL: " + *i);
 			
-			if( !m_BNETs.empty( ) )
+			if( !m_BNETs.empty( ) && !(*i).empty( ) )
 				m_BNETs[0]->BotCommand( *i, m_BNETs[0]->GetUserName(), true, true );
 		}
 		
