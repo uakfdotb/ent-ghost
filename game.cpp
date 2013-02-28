@@ -161,6 +161,16 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_MinimumScore = 1100;
 		m_MaximumScore = 99999;
 	}
+	else if( m_Map->GetMapType( ) == "legionmega_ab" )
+	{
+	    m_Stats = new CStatsW3MMD( this, "legionmega", "" );
+		m_MapType = "legionmega_ab";
+		
+		// match making settings for autobalanced games
+		m_MatchMaking = true;
+		m_MinimumScore = 200;
+		m_MaximumScore = 99999;
+	}
 	else if( m_Map->GetMapType( ) == "eihl" )
 	{
 		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "eihl" );
@@ -194,7 +204,7 @@ CGame :: ~CGame( )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-eihl", CustomReason, 3600 * 12, "ttr.cloud" ));
 				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" || m_MapType == "cfone" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
-				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "civwars" )
+				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "legionmega_ab" || m_MapType == "civwars" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600, "ttr.cloud" ));
 				else
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 1800, "ttr.cloud" ));
@@ -683,7 +693,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else if( Category == "cfone" ) CategoryName = "castle fight (1v1)";
 				else if( Category == "castlefight2" ) CategoryName = "high-ranked CF";
 				else if( Category == "legionmega2" ) CategoryName = "high-ranked Legion TD";
-				else if( Category == "legionmega" ) CategoryName = "Legion TD Mega";
+				else if( Category == "legionmega" || Category == "legionmega_ab" ) CategoryName = "Legion TD Mega";
 				
 				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( W3MMDPlayerSummary->GetTotalGames( ) ) + " " + CategoryName + " games here (ELO: " + UTIL_ToString( W3MMDPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( W3MMDPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( W3MMDPlayerSummary->GetTotalLosses( ) ) + ".";
 
@@ -806,7 +816,7 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "cfone" ) ) );
 	}
-	else if( Player && m_MapType == "legionmega" )
+	else if( Player && ( m_MapType == "legionmega" || m_MapType == "legionmega_ab" ) )
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega" ) ) );
 	}
@@ -869,7 +879,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "civwars" )
 					BanType = "3v3";
 				
-				else if( m_MapType == "legionmega" || m_MapType == "legionmega2" )
+				else if( m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "legionmega_ab" )
 					BanType = "4v4";
 				
 				if( !BanType.empty( ) )
