@@ -617,7 +617,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 			if( W3MMDPlayerSummary && W3MMDPlayerSummary->GetTotalGames( ) > 0 )
 			{
 				string Category = W3MMDPlayerSummary->GetCategory( );
-				string CategoryName = "unknown";
+				string CategoryName = "";
 				
 				if( Category == "civwars" ) CategoryName = "civilization wars";
 				else if( Category == "castlefight" ) CategoryName = "castle fight";
