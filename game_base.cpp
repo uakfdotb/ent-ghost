@@ -326,6 +326,17 @@ uint32_t CBaseGame :: GetSlotsOccupied( )
 	return NumSlotsOccupied;
 }
 
+uint32_t CBaseGame :: GetSlotsAllocated( )
+{
+	uint32_t SlotsOccupied = GetSlotsOccupied( );
+	uint32_t NumPlayers = m_Players.size( );
+	
+	if( NumPlayers > SlotsOccupied )
+		return NumPlayers;
+	else
+		return SlotsOccupied;
+}
+
 uint32_t CBaseGame :: GetSlotsOpen( )
 {
 	uint32_t NumSlotsOpen = 0;
@@ -568,7 +579,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// create the virtual host player
 
-	if( !m_GameLoading && !m_GameLoaded && GetSlotsOccupied() < m_Slots.size() )
+	if( !m_GameLoading && !m_GameLoaded && GetSlotsAllocated() < m_Slots.size() )
 		CreateVirtualHost( );
 
 	// unlock the game
@@ -2406,7 +2417,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	// we have a slot for the new player
 	// make room for them by deleting the virtual host player if we have to
 
-	if( GetSlotsOccupied( ) >= m_Slots.size() - 1 || EnforcePID == m_VirtualHostPID )
+	if( GetSlotsAllocated( ) >= m_Slots.size() - 1 || EnforcePID == m_VirtualHostPID )
 		DeleteVirtualHost( );
 
 	// turning the CPotentialPlayer into a CGamePlayer is a bit of a pain because we have to be careful not to close the socket
@@ -4834,7 +4845,7 @@ void CBaseGame :: CreateFakePlayer( )
 
 	if( SID < m_Slots.size( ) )
 	{
-		if( GetSlotsOccupied( ) >= m_Slots.size() - 1 )
+		if( GetSlotsAllocated( ) >= m_Slots.size() - 1 )
 			DeleteVirtualHost( );
 
 		m_FakePlayerPID = GetNewPID( );
@@ -4856,7 +4867,7 @@ void CBaseGame :: CreateFakePlayer( unsigned char SID )
 
 	if( SID < m_Slots.size( ) && m_Slots[SID].GetSlotStatus( ) == SLOTSTATUS_OPEN )
 	{
-		if( GetSlotsOccupied( ) >= m_Slots.size() - 1 )
+		if( GetSlotsAllocated( ) >= m_Slots.size() - 1 )
 			DeleteVirtualHost( );
 
 		m_FakePlayerPID = GetNewPID( );
