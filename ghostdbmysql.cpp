@@ -1171,7 +1171,7 @@ void MySQLReconUpdate( void *conn, string *error, uint32_t botid, uint32_t hostc
 vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid )
 {
 	vector<string> CommandList;
-	string Query = "SELECT command FROM commands WHERE botid='" + UTIL_ToString(botid) + "'";
+	string Query = "SELECT command FROM commands WHERE botid='" + UTIL_ToString(botid) + "' ORDER BY id";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
