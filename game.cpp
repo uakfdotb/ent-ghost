@@ -2784,12 +2784,42 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 	else if( Command == "rules" )
 	{
-		SendChat(player, "* Don't flame and afk grief");
-		SendChat(player, "* Don't leave before the throne dies (in DotA)");
-		SendChat(player, "* Don't fountain farm excessively ");
-		SendChat(player, "* Don't abuse the !votekick command");
-		SendChat(player, "* Don't feed, ruin, spam, or cheat!");
-		SendChat(player, "* !yes the !votekick command against excessive feeder's");
+		if( Payload == "dota" )
+		{
+			SendChat(player, "* Leaving: you may not leave on a 5v5, 5v4, 4v5, or 4v4");
+			SendChat(player, "* Item destruction: destroying, hiding, selling, stealing, or destroying team items; purposely wasting gold.");
+			SendChat(player, "* Excessive fountain farming: fountain farming for over three minutes or so is not allowed; end the game as soon as possible.");
+			SendChat(player, "* Unsharing: of a courier that has been crowed by another player (unless control was abused)");
+			SendChat(player, "* Backdooring: this is a legitimate strategy [allowed]");
+			SendChat(player, "* Taking enemy team's items when dropped (such as Divine Rapier) [allowed].");
+			SendChat(player, "* Tossing/Forcestaff allies into enemy fountain while fountain farming [allowed]");
+		}
+		else if( Payload == "legion" || Payload == "ltd" )
+		{
+			SendChat(player, "* Pause/unpause to ruin chance of healing king");
+			SendChat(player, "* Selling towers in an attempt to lose the game");
+			SendChat(player, "* Preventing king from attacking with intent on killing the king.");
+			SendChat(player, "* Leaking a wave then leaving without using heal that may or may not save the king");
+		}
+		else if( Payload == "aaa" )
+		{
+			SendChat(player, "* Using Dark Seers Ultimate spell to kill chaos and/or Fenrir");
+			SendChat(player, "* Using Ogre Magi (Blue Ogre)'s Ultimate Copy spell on Chaos to kill Chaos and/or Fenrir");
+			SendChat(player, "* Using Fists/Rockets after being warned not to");
+			SendChat(player, "* Killing Chaos with Fists/rockets");
+			SendChat(player, "* Using the game mode -WTF without a general consensus");
+			SendChat(player, "* Camping outside of opposing teams base for the first 15 levels");
+			SendChat(player, "* Using Saber to kill Chaos Not sure why this is a rule, it only works in -wtf mode");
+			SendChat(player, "* Stealing/Destroying teammates items without permission");
+		}
+		else {
+			SendChat(player, "* Don't flame and afk grief.");
+			SendChat(player, "* Don't leave before the game is over.");
+			SendChat(player, "* Don't fountain farm excessively.");
+			SendChat(player, "* Don't abuse the !votekick command.");
+			SendChat(player, "* Don't feed, ruin, spam, or cheat!");
+			SendChat(player, "* !yes the !votekick command against excessive feeder's.");
+		}
 	}
 
 	//
