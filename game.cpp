@@ -801,7 +801,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		}
 		
 		// if this was early leave, suggest to draw the game
-		if( !m_MapType.empty( ) && m_GameTicks < 1000 * 60 )
+		if( !m_MapType.empty( ) && m_GameTicks < 1000 * 60 && false )
 			SendAllChat( "Use !draw to vote to draw the game." );
 		
 		// possibly autoban if the leave method caused this player to get autoban enabled
@@ -862,7 +862,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				}
 			}
 			
-			if( CountAlly == 0 && CountEnemy >= 2 )
+			if( CountAlly == 0 && CountEnemy >= 2 && false )
 			{
 				// if less than one minute has elapsed, draw the game
 				// this may be abused for mode voting and such, but hopefully not (and that's what bans are for)
