@@ -862,9 +862,14 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				m_DBBanLast = *i;
 		}
 		
+		// if this was early leave, suggest to draw the game
+		if( !m_MapType.empty( ) && m_GameTicks < 1000 * 60 )
+			SendAllChat( "Use !draw to vote to draw the game." );
+		
 		// possibly autoban if the leave method caused this player to get autoban enabled
 		// and if this player is not observer (and if autobans are enabled)
-		if( player->GetAutoban( ) && m_GHost->m_AutoHostMaximumGames != 0 && Team != 12 )
+		// and if we haven't "soft" ended the game
+		if( player->GetAutoban( ) && m_GHost->m_AutoHostMaximumGames != 0 && Team != 12 && !m_SoftGameOver )
 		{
 			// ban if game is loading or if it's dota and player has left >= 4v4 situation
 			if( m_GameLoading || ( m_FirstLeaver && m_GameTicks < 1000 * 60 * 3 ) ) {
@@ -900,7 +905,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 									CountAlly++;
 								else
 									CountEnemy++;
-							}			
+							}
 						}
 					}
 				
@@ -912,6 +917,50 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 					
 					else if( BanType == "4v4" && CountAlly == 4 && CountEnemy >= 3 )
 						m_AutoBans.push_back( player->GetName( ) );
+				}
+			}
+		}
+		
+		// set the winner if appropriate, or draw the game
+		if( !m_MapType.empty( ) )
+		{
+			// check if everyone on leaver's team left but other team has more than two players
+			uint32_t CountAlly = 0;
+			uint32_t CountEnemy = 0;
+
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
+			{
+				if( *i && !(*i)->GetLeftMessageSent( ) )
+				{
+					char sid = GetSIDFromPID( (*i)->GetPID( ) );
+					if( sid != 255 )
+					{
+						char team = m_Slots[sid].GetTeam( );
+						if( team == Team )
+							CountAlly++;
+						else
+							CountEnemy++;
+					}
+				}
+			}
+			
+			if( CountAlly == 0 && CountEnemy >= 2 )
+			{
+				// if less than one minute has elapsed, draw the game
+				// this may be abused for mode voting and such, but hopefully not (and that's what bans are for)
+				if( m_GameTicks < 1000 * 60 )
+				{
+					SendAllChat( "Only one team is remaining, this game will end in sixty seconds and be recorded as a draw." );
+					m_GameOverTime = GetTime( );
+				}
+				
+				// otherwise, if more than fifteen minutes have elapsed, give the other team the win
+				else if( m_GameTicks > 1000 * 60 * 15 && m_Stats )
+				{
+					SendAllChat( "The other team has left, this game will be recorded as your win. You may leave at any time." );
+					m_Stats->SetWinner( ( Team + 1 ) % 2 );
+					m_Stats->LockStats( );
+					m_SoftGameOver = true;
 				}
 			}
 		}
@@ -2925,6 +2974,40 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	}
 	
 	//
+	// !DRAW
+	//
+	if( m_GameLoaded && !m_MapType.empty( ) && ( Command == "draw" || Command == "undraw" ) )
+	{
+		if( Command == "draw" && !player->GetDrawVote( ) )
+		{
+			player->SetDrawVote( true );
+			uint32_t VotesNeeded = (uint32_t)ceil( GetNumHumanPlayers( ) * (float)m_GHost->m_VoteKickPercentage / 100 );
+			uint32_t Votes = 0;
+			
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
+			{
+				if( (*i)->GetDrawVote( ) )
+				{
+					Votes++;
+				}
+			}
+			
+			if( Votes >= VotesNeeded )
+				StopPlayers( "players voted to draw the game" );
+			else
+			{
+				SendAllChat( "Player [" + player->GetName( ) + "] has voted to draw the game. " + UTIL_ToString( VotesNeeded - Votes ) + " more votes are needed to pass the draw vote." );
+				SendChat( player, "Use !undraw to recall your vote to draw the game." );
+			}
+		}
+		else if( Command == "undraw" && player->GetDrawVote( ) )
+		{
+			player->SetDrawVote( false );
+			SendAllChat( "[" + player->GetName( ) + "] recalled vote to draw the game." );
+		}
+	}
+	
+	//
 	// !FORFEIT
 	//
 	
@@ -2970,7 +3053,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			
 				if( AllVoted )
 				{
-					m_Stats->SetWinner( ( playerTeam + 1 ) % 2 + 1 );
+					m_Stats->SetWinner( ( playerTeam + 1 ) % 2 );
 					m_ForfeitTime = GetTime( );
 				
 					SendAllChat( "The " + ForfeitTeamString + " has forfeited" );

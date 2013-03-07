@@ -30,7 +30,7 @@
 // CStats
 //
 
-CStats :: CStats( CBaseGame *nGame ) : m_Game( nGame )
+CStats :: CStats( CBaseGame *nGame ) : m_Game( nGame ), m_Locked( false )
 {
 
 }

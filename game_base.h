@@ -52,13 +52,13 @@ class CBaseGame
 {
 public:
 	CGHost *m_GHost;
+	vector<CGamePlayer *> m_Players;				// vector of players
+	vector<CGameSlot> m_Slots;						// vector of slots
 
 protected:
 	CTCPServer *m_Socket;							// listening socket
 	CGameProtocol *m_Protocol;						// game protocol
-	vector<CGameSlot> m_Slots;						// vector of slots
 	vector<CPotentialPlayer *> m_Potentials;		// vector of potential players (connections that haven't sent a W3GS_REQJOIN packet yet)
-	vector<CGamePlayer *> m_Players;				// vector of players
 	map<uint32_t, CPotentialPlayer*> m_BannedPlayers;
 	vector<CCallableScoreCheck *> m_ScoreChecks;
 	vector<CCallableLeagueCheck *> m_LeagueChecks;
@@ -138,6 +138,7 @@ protected:
 	bool m_AutoSave;								// if we should auto save the game before someone disconnects
 	bool m_MatchMaking;								// if matchmaking mode is enabled
 	bool m_LocalAdminMessages;						// if local admin messages should be relayed or not
+	bool m_SoftGameOver;							// whether the game is soft ended
     uint32_t m_DatabaseID;                          // the ID number from the database, which we'll use to save replay
 	int m_DoDelete;									// notifies thread to exit
 	uint32_t m_LastReconnectHandleTime;				// last time we tried to handle GProxy reconnects
