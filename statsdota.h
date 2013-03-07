@@ -58,7 +58,11 @@ public:
 
 	virtual bool ProcessAction( CIncomingAction *Action );
 	virtual void Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID );
-	virtual void SetWinner( uint32_t nWinner ) { m_Winner = nWinner; }
+	
+	// set the winner of the game
+	// we add one here because nWinner is the winning team while
+	//  m_Winner is 0 for draw, 1 for Sentinel, 2 for Scourge
+	virtual void SetWinner( uint32_t nWinner ) { m_Winner = nWinner + 1; }
 };
 
 #endif

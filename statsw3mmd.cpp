@@ -27,6 +27,7 @@
 #include "util.h"
 #include "ghostdb.h"
 #include "gameprotocol.h"
+#include "gameplayer.h"
 #include "game_base.h"
 #include "stats.h"
 #include "statsw3mmd.h"
@@ -48,6 +49,9 @@ CStatsW3MMD :: ~CStatsW3MMD( )
 
 bool CStatsW3MMD :: ProcessAction( CIncomingAction *Action )
 {
+	if( m_Locked )
+		return false;
+
 	unsigned int i = 0;
 	BYTEARRAY *ActionData = Action->GetAction( );
 	BYTEARRAY MissionKey;
@@ -459,4 +463,20 @@ vector<string> CStatsW3MMD :: TokenizeKey( string key )
 
 	Tokens.push_back( Token );
 	return Tokens;
+}
+
+void CStatsW3MMD :: SetWinner( uint32_t nWinner )
+{
+	for( vector<CGamePlayer *> :: iterator i = m_Game->m_Players.begin( ); i != m_Game->m_Players.end( ); i++)
+	{
+		char playerSID = m_Game->GetSIDFromPID( (*i)->GetPID( ) );
+		
+		if( playerSID < m_Game->m_Slots.size( ) )
+		{
+			char playerTeam = m_Game->m_Slots[playerSID].GetTeam( );
+			
+			if( playerTeam == nWinner )
+				m_Flags[(*i)->GetPID( )] = "winner";
+		}
+	}
 }

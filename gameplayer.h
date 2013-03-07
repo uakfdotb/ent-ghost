@@ -139,6 +139,7 @@ private:
 	bool m_DropVote;							// if the player voted to drop the laggers or not (on the lag screen)
 	bool m_KickVote;							// if the player voted to kick a player or not
 	bool m_ForfeitVote;
+	bool m_DrawVote;
 	bool m_StartVote;							// if the player voted to start or not
 	bool m_Muted;								// if the player is muted or not
 	bool m_Autoban;								// whether or not this player should be consider for autobanning
@@ -200,6 +201,7 @@ public:
 	bool GetKickVote( )							{ return m_KickVote; }
 	bool GetStartVote( )						{ return m_StartVote; }
 	bool GetForfeitVote( )						{ return m_ForfeitVote; }
+	bool GetDrawVote( )							{ return m_DrawVote; }
 	bool GetMuted( )							{ return m_Muted; }
 	bool GetAutoban( )							{ return m_Autoban; }
 	bool GetLeftMessageSent( )					{ return m_LeftMessageSent; }
@@ -235,6 +237,7 @@ public:
 	void SetDropVote( bool nDropVote )												{ m_DropVote = nDropVote; }
 	void SetKickVote( bool nKickVote )												{ m_KickVote = nKickVote; }
 	void SetForfeitVote( bool nForfeitVote )										{ m_ForfeitVote = nForfeitVote; }
+	void SetDrawVote( bool nDrawVote )												{ m_DrawVote = nDrawVote; }
 	void SetStartVote( bool nStartVote )											{ m_StartVote = nStartVote; }
 	void SetMuted( bool nMuted )													{ m_Muted = nMuted; m_MutedTicks = GetTicks( ); m_MutedAuto = false; }
 	void SetAutoban( bool nAutoban )												{ m_Autoban = nAutoban; }
