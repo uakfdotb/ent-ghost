@@ -48,7 +48,7 @@
 // CBaseGame
 //
 
-CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : m_GHost( nGHost ), m_SaveGame( nSaveGame ), m_Replay( NULL ), m_Exiting( false ), m_Saving( false ), m_HostPort( nHostPort ), m_GameState( nGameState ), m_VirtualHostPID( 255 ), m_FakePlayerPID( 255 ), m_GProxyEmptyActions( 0 ), m_GameName( nGameName ), m_LastGameName( nGameName ), m_VirtualHostName( m_GHost->m_VirtualHostName ), m_OwnerName( nOwnerName ), m_CreatorName( nCreatorName ), m_CreatorServer( nCreatorServer ), m_HCLCommandString( nMap->GetMapDefaultHCL( ) ), m_RandomSeed( GetTicks( ) ), m_HostCounter( m_GHost->m_HostCounter++ ), m_EntryKey( rand( ) ), m_Latency( m_GHost->m_Latency ), m_SyncLimit( m_GHost->m_SyncLimit ), m_SyncCounter( 0 ), m_GameTicks( 0 ), m_CreationTime( GetTime( ) ), m_LastPingTime( GetTime( ) ), m_LastRefreshTime( GetTime( ) ), m_LastDownloadTicks( GetTime( ) ), m_DownloadCounter( 0 ), m_LastDownloadCounterResetTicks( GetTime( ) ), m_LastAnnounceTime( 0 ), m_AnnounceInterval( 0 ), m_LastAutoStartTime( GetTime( ) ), m_AutoStartPlayers( 0 ), m_LastCountDownTicks( 0 ), m_CountDownCounter( 0 ), m_StartedLoadingTicks( 0 ), m_StartPlayers( 0 ), m_LastLagScreenResetTime( 0 ), m_LastActionSentTicks( 0 ), m_LastActionLateBy( 0 ), m_StartedLaggingTime( 0 ), m_LastLagScreenTime( 0 ), m_LastReservedSeen( GetTime( ) ), m_StartedKickVoteTime( 0 ), m_StartedVoteStartTime( 0 ), m_GameOverTime( 0 ), m_LastPlayerLeaveTicks( 0 ), m_MinimumScore( 0. ), m_MaximumScore( 0. ), m_SlotInfoChanged( false ), m_Locked( false ), m_RefreshMessages( m_GHost->m_RefreshMessages ), m_RefreshError( false ), m_RefreshRehosted( false ), m_MuteAll( false ), m_MuteLobby( false ), m_CountDownStarted( false ), m_GameLoading( false ), m_GameLoaded( false ), m_LoadInGame( nMap->GetMapLoadInGame( ) ), m_Lagging( false ), m_AutoSave( m_GHost->m_AutoSave ), m_MatchMaking( false ), m_LocalAdminMessages( m_GHost->m_LocalAdminMessages ), m_DoDelete( 0 ), m_LastReconnectHandleTime( 0 ), m_League( false ), m_Tournament( false ), m_TournamentMatchID( 0 ), m_TournamentChatID( 0 ), m_FakePlayerName( "FakePlayer" )
+CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : m_GHost( nGHost ), m_SaveGame( nSaveGame ), m_Replay( NULL ), m_Exiting( false ), m_Saving( false ), m_HostPort( nHostPort ), m_GameState( nGameState ), m_VirtualHostPID( 255 ), m_FakePlayerPID( 255 ), m_GProxyEmptyActions( 0 ), m_GameName( nGameName ), m_LastGameName( nGameName ), m_VirtualHostName( m_GHost->m_VirtualHostName ), m_OwnerName( nOwnerName ), m_CreatorName( nCreatorName ), m_CreatorServer( nCreatorServer ), m_HCLCommandString( nMap->GetMapDefaultHCL( ) ), m_RandomSeed( GetTicks( ) ), m_HostCounter( m_GHost->m_HostCounter++ ), m_EntryKey( rand( ) ), m_Latency( m_GHost->m_Latency ), m_SyncLimit( m_GHost->m_SyncLimit ), m_SyncCounter( 0 ), m_GameTicks( 0 ), m_CreationTime( GetTime( ) ), m_LastPingTime( GetTime( ) ), m_LastRefreshTime( GetTime( ) ), m_LastDownloadTicks( GetTime( ) ), m_DownloadCounter( 0 ), m_LastDownloadCounterResetTicks( GetTime( ) ), m_LastAnnounceTime( 0 ), m_AnnounceInterval( 0 ), m_LastAutoStartTime( GetTime( ) ), m_AutoStartPlayers( 0 ), m_LastCountDownTicks( 0 ), m_CountDownCounter( 0 ), m_StartedLoadingTicks( 0 ), m_StartPlayers( 0 ), m_LastLagScreenResetTime( 0 ), m_LastActionSentTicks( 0 ), m_LastActionLateBy( 0 ), m_StartedLaggingTime( 0 ), m_LastLagScreenTime( 0 ), m_LastReservedSeen( GetTime( ) ), m_StartedKickVoteTime( 0 ), m_StartedVoteStartTime( 0 ), m_GameOverTime( 0 ), m_LastPlayerLeaveTicks( 0 ), m_MinimumScore( 0. ), m_MaximumScore( 0. ), m_SlotInfoChanged( false ), m_Locked( false ), m_RefreshMessages( m_GHost->m_RefreshMessages ), m_RefreshError( false ), m_RefreshRehosted( false ), m_MuteAll( false ), m_MuteLobby( false ), m_CountDownStarted( false ), m_GameLoading( false ), m_GameLoaded( false ), m_LoadInGame( nMap->GetMapLoadInGame( ) ), m_Lagging( false ), m_AutoSave( m_GHost->m_AutoSave ), m_MatchMaking( false ), m_LocalAdminMessages( m_GHost->m_LocalAdminMessages ), m_DoDelete( 0 ), m_LastReconnectHandleTime( 0 ), m_League( false ), m_Tournament( false ), m_TournamentMatchID( 0 ), m_TournamentChatID( 0 ), m_FakePlayerName( "FakePlayer" ), m_SoftGameOver( false )
 {
 	m_Socket = new CTCPServer( );
 	m_Protocol = new CGameProtocol( m_GHost );
@@ -322,6 +322,17 @@ uint32_t CBaseGame :: GetSlotsOccupied( )
 	return NumSlotsOccupied;
 }
 
+uint32_t CBaseGame :: GetSlotsAllocated( )
+{
+	uint32_t SlotsOccupied = GetSlotsOccupied( );
+	uint32_t NumPlayers = m_Players.size( );
+	
+	if( NumPlayers > SlotsOccupied )
+		return NumPlayers;
+	else
+		return SlotsOccupied;
+}
+
 uint32_t CBaseGame :: GetSlotsOpen( )
 {
 	uint32_t NumSlotsOpen = 0;
@@ -564,7 +575,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	// create the virtual host player
 
-	if( !m_GameLoading && !m_GameLoaded && GetSlotsOccupied() < m_Slots.size() )
+	if( !m_GameLoading && !m_GameLoaded && GetSlotsAllocated() < m_Slots.size() )
 		CreateVirtualHost( );
 
 	// unlock the game
@@ -2399,7 +2410,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	// we have a slot for the new player
 	// make room for them by deleting the virtual host player if we have to
 
-	if( GetSlotsOccupied( ) >= m_Slots.size() - 1 || EnforcePID == m_VirtualHostPID )
+	if( GetSlotsAllocated( ) >= m_Slots.size() - 1 || EnforcePID == m_VirtualHostPID )
 		DeleteVirtualHost( );
 
 	// turning the CPotentialPlayer into a CGamePlayer is a bit of a pain because we have to be careful not to close the socket
@@ -4827,7 +4838,7 @@ void CBaseGame :: CreateFakePlayer( )
 
 	if( SID < m_Slots.size( ) )
 	{
-		if( GetSlotsOccupied( ) >= m_Slots.size() - 1 )
+		if( GetSlotsAllocated( ) >= m_Slots.size() - 1 )
 			DeleteVirtualHost( );
 
 		m_FakePlayerPID = GetNewPID( );
@@ -4849,7 +4860,7 @@ void CBaseGame :: CreateFakePlayer( unsigned char SID )
 
 	if( SID < m_Slots.size( ) && m_Slots[SID].GetSlotStatus( ) == SLOTSTATUS_OPEN )
 	{
-		if( GetSlotsOccupied( ) >= m_Slots.size() - 1 )
+		if( GetSlotsAllocated( ) >= m_Slots.size() - 1 )
 			DeleteVirtualHost( );
 
 		m_FakePlayerPID = GetNewPID( );

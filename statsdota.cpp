@@ -86,6 +86,9 @@ CStatsDOTA :: ~CStatsDOTA( )
 
 bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 {
+	if( m_Locked )
+		return m_Winner != 0;
+
 	unsigned int i = 0;
 	BYTEARRAY *ActionData = Action->GetAction( );
 	BYTEARRAY Data;
