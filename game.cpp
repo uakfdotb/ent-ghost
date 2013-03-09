@@ -955,7 +955,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				}
 				
 				// otherwise, if more than fifteen minutes have elapsed, give the other team the win
-				else if( m_GameTicks > 1000 * 60 * 15 && m_Stats )
+				else if( m_GameTicks > 1000 * 60 * 5 && m_Stats )
 				{
 					SendAllChat( "The other team has left, this game will be recorded as your win. You may leave at any time." );
 					m_Stats->SetWinner( ( Team + 1 ) % 2 );
