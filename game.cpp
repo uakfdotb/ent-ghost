@@ -2787,9 +2787,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		if( Payload == "dota" )
 		{
 			SendChat(player, "* Leaving: you may not leave on a 5v5, 5v4, 4v5, or 4v4");
-			SendChat(player, "* Item destruction: destroying, hiding, selling, stealing, or destroying team items; purposely wasting gold.");
-			SendChat(player, "* Excessive fountain farming: fountain farming for over three minutes or so is not allowed; end the game as soon as possible.");
-			SendChat(player, "* Unsharing: of a courier that has been crowed by another player (unless control was abused)");
+			SendChat(player, "* Item destruction: hiding, destroying, selling, or stealing team items; purposely wasting gold.");
+			SendChat(player, "* Excessive fountain farming: fountain farming for over three minutes is prohibited.");
+			SendChat(player, "* Unsharing: of a courier crowed by another player (unless control was abused)");
 			SendChat(player, "* Backdooring: this is a legitimate strategy [allowed]");
 			SendChat(player, "* Taking enemy team's items when dropped (such as Divine Rapier) [allowed].");
 			SendChat(player, "* Tossing/Forcestaff allies into enemy fountain while fountain farming [allowed]");
@@ -2813,6 +2813,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			SendChat(player, "* Stealing/Destroying teammates items without permission");
 		}
 		else {
+			if( !Payload.empty( ) )
+				SendChat( player, "*** Unrecognized category: [" + Payload + "]; showing general rules instead ***" );
+			
 			SendChat(player, "* Don't flame and afk grief.");
 			SendChat(player, "* Don't leave before the game is over.");
 			SendChat(player, "* Don't fountain farm excessively.");
