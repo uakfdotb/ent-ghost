@@ -3036,6 +3036,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				SendAllChat( "The game has now been recorded as a draw. You may leave at any time." );
 				m_Stats->LockStats( );
 				m_SoftGameOver = true;
+				m_Stats->LockStats( );
 			}
 			else if( ChangedVote ) //only display message if they actually changed vote
 			{
