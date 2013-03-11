@@ -465,6 +465,17 @@ vector<string> CStatsW3MMD :: TokenizeKey( string key )
 	return Tokens;
 }
 
+bool CStatsW3MMD :: IsWinner( )
+{
+	for( map<uint32_t, string> :: iterator i = m_Flags.begin( ); i != m_Flags.end( ); ++i )
+	{
+		if( i->second == "winner" )
+			return true;
+	}
+
+	return false;
+}
+
 void CStatsW3MMD :: SetWinner( uint32_t nWinner )
 {
 	for( vector<CGamePlayer *> :: iterator i = m_Game->m_Players.begin( ); i != m_Game->m_Players.end( ); i++)
