@@ -469,14 +469,14 @@ void CStatsW3MMD :: SetWinner( uint32_t nWinner )
 {
 	for( vector<CGamePlayer *> :: iterator i = m_Game->m_Players.begin( ); i != m_Game->m_Players.end( ); i++)
 	{
-		char playerSID = m_Game->GetSIDFromPID( (*i)->GetPID( ) );
+		unsigned char playerSID = m_Game->GetSIDFromPID( (*i)->GetPID( ) );
 		
 		if( playerSID < m_Game->m_Slots.size( ) )
 		{
-			char playerTeam = m_Game->m_Slots[playerSID].GetTeam( );
+			unsigned char playerTeam = m_Game->m_Slots[playerSID].GetTeam( );
 			
 			if( playerTeam == nWinner )
-				m_Flags[(*i)->GetPID( )] = "winner";
+				m_Flags[m_Game->m_Slots[playerSID].GetColour( )] = "winner";
 		}
 	}
 }
