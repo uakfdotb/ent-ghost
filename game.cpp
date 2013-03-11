@@ -840,7 +840,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		}
 		
 		// set the winner if appropriate, or draw the game
-		if( !m_MapType.empty( ) && Team != 12 )
+		if( !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && Team != 12 )
 		{
 			// check if everyone on leaver's team left but other team has more than two players
 			uint32_t CountAlly = 0;
@@ -2862,7 +2862,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			{
 				SendAllChat( "The game has now been recorded as a draw. You may leave at any time." );
 				m_SoftGameOver = true;
-				m_Stats->LockStats( );
 			}
 			else if( ChangedVote ) //only display message if they actually changed vote
 			{
