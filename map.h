@@ -134,6 +134,7 @@ private:
 	vector<uint32_t> m_TournamentLayout;		// tournament layout from config
 	vector<uint32_t> m_FakePlayers;				// fake players layout from config
 	string m_Conditions;						// win conditions, used for some stats processing
+	string m_GameName;
 
 public:
 	CMap( CGHost *nGHost );
@@ -173,6 +174,7 @@ public:
 	vector<uint32_t> GetTournamentLayout( )	{ return m_TournamentLayout; }
 	vector<uint32_t> GetFakePlayers( )		{ return m_FakePlayers; }
 	string GetConditions( )					{ return m_Conditions; }
+	string GetGameName( )					{ return m_GameName; }
 
 	void Load( CConfig *CFG, string nCFGFile );
 	void CheckValid( );

@@ -712,7 +712,34 @@ CGHost :: CGHost( CConfig *CFG )
 		m_AdminMap = new CMap( this );
 	}
 
-	m_AutoHostMap = new CMap( *m_Map );
+	for( int i = 0; i < 100; i++)
+	{
+		string AMKey = "autohost_map";
+		
+		if( i != 0 )
+			AMKey += UTIL_ToString( i );
+		
+		string AutoHostMapCFGString = CFG->GetString( AMKey , string( ) );
+		
+		if( AutoHostMapCFGString.empty( ) )
+		{
+			continue;
+		}
+		
+		if( AutoHostMapCFGString.size( ) < 4 || AutoHostMapCFGString.substr( AutoHostMapCFGString.size( ) - 4 ) != ".cfg" )
+		{
+			AutoHostMapCFGString += ".cfg";
+			CONSOLE_Print( "[GHOST] adding \".cfg\" to autohost game map -> new name is [" + AutoHostMapCFGString + "]" );
+		}
+		
+		CConfig AutoHostMapCFG;
+		AutoHostMapCFG.Read( m_MapCFGPath + AutoHostMapCFGString );
+		CMap *AutoHostMap = new CMap( this, &AutoHostMapCFG, m_MapCFGPath + AutoHostMapCFGString );
+		m_AutoHostMap.push_back( new CMap( *AutoHostMap ) );
+	}
+	
+	m_AutoHostMapCounter = 0;
+
 	m_SaveGame = new CSaveGame( );
 
 	// load the iptocountry data
@@ -844,7 +871,9 @@ CGHost :: ~CGHost( )
 	delete m_Language;
 	delete m_Map;
 	delete m_AdminMap;
-	delete m_AutoHostMap;
+	
+	ClearAutoHostMap( );
+	
 	delete m_SaveGame;
 }
 
@@ -1300,17 +1329,23 @@ bool CGHost :: Update( long usecBlock )
 		// instead we fail silently and try again soon
 		boost::mutex::scoped_lock gamesLock( m_GamesMutex );
 
-		if( !m_ExitingNice && m_Enabled && !m_CurrentGame && m_Games.size( ) < m_MaxGames && m_Games.size( ) < m_AutoHostMaximumGames )
+		if( !m_ExitingNice && m_Enabled && !m_CurrentGame && m_Games.size( ) < m_MaxGames && m_Games.size( ) < m_AutoHostMaximumGames && !m_AutoHostMap.empty( ) )
 		{
-			if( m_AutoHostMap->GetValid( ) )
+			if( m_AutoHostMapCounter >= m_AutoHostMap.size( ) )
+				m_AutoHostMapCounter = 0;
+			
+			CMap *AutoHostMap = m_AutoHostMap[m_AutoHostMapCounter];
+			m_AutoHostMapCounter = ( m_AutoHostMapCounter + 1 ) % m_AutoHostMap.size( );
+			
+			if( AutoHostMap->GetValid( ) )
 			{
-				string GameName = m_AutoHostGameName + " #" + UTIL_ToString( m_HostCounter % 100 );
+				string GameName = ( AutoHostMap->GetGameName( ).empty( ) ? m_AutoHostGameName : AutoHostMap->GetGameName( ) ) + " #" + UTIL_ToString( m_HostCounter % 100 );
 
 				if( GameName.size( ) <= 31 )
 				{
 					// CreateGame handles its own locking on games mutex, so release lock here
 					gamesLock.unlock( );
-					CreateGame( m_AutoHostMap, GAME_PUBLIC, false, GameName, m_AutoHostOwner, m_AutoHostOwner, m_AutoHostServer, false );
+					CreateGame( AutoHostMap, GAME_PUBLIC, false, GameName, m_AutoHostOwner, m_AutoHostOwner, m_AutoHostServer, false );
 
 					if( m_CurrentGame )
 					{
@@ -1351,7 +1386,7 @@ bool CGHost :: Update( long usecBlock )
 			}
 			else
 			{
-				CONSOLE_Print( "[GHOST] stopped auto hosting, map config file [" + m_AutoHostMap->GetCFGFile( ) + "] is invalid" );
+				CONSOLE_Print( "[GHOST] stopped auto hosting, map config file [" + AutoHostMap->GetCFGFile( ) + "] is invalid" );
 				m_AutoHostGameName.clear( );
 				m_AutoHostOwner.clear( );
 				m_AutoHostServer.clear( );
@@ -1726,6 +1761,14 @@ CDBBan *CGHost :: IsBannedIP( string ip, string context )
 	bansLock.unlock( );
 
 	return NULL;
+}
+
+void CGHost :: ClearAutoHostMap( )
+{
+	for( vector<CMap *> :: iterator i = m_AutoHostMap.begin( ); i != m_AutoHostMap.end( ); ++i )
+		delete *i;
+	
+	m_AutoHostMap.clear( );
 }
 
 void CGHost :: ReloadConfigs( )
