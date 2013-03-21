@@ -83,6 +83,8 @@ protected:
 	uint32_t m_ForfeitTime;						// time that players forfeited, or 0 if not forfeited
 	uint32_t m_ForfeitTeam;						// id of team that forfeited
 	bool m_FirstLeaver;							// first leaver more likely to be banned
+	uint32_t m_SetWinnerTicks;
+	uint32_t m_SetWinnerTeam;
 	
 	bool IsAutoBanned( string name );
 

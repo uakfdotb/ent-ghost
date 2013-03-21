@@ -71,7 +71,7 @@ public:
 // CGame
 //
 
-CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ), m_CallableGameAdd( NULL ), m_ForfeitTime( 0 ), m_ForfeitTeam( 0 ), m_CallableGetTournament( NULL )
+CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ), m_CallableGameAdd( NULL ), m_ForfeitTime( 0 ), m_ForfeitTeam( 0 ), m_CallableGetTournament( NULL ), m_SetWinnerTicks( 0 ), m_SetWinnerTeam( 0 )
 {
     m_DBGame = new CDBGame( 0, string( ), m_Map->GetMapPath( ), string( ), string( ), string( ), 0 );
     m_MapType = "";
@@ -779,6 +779,16 @@ bool CGame :: Update( void *fd, void *send_fd )
 		m_CallableGetTournament = NULL;
 	}
 
+	// set winner if appropriate
+	if( !m_SoftGameOver && m_SetWinnerTicks != 0 && m_GameTicks - m_SetWinnerTicks > 15000 && !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && !m_Stats->IsWinner( ) )
+	{
+		SendAllChat( "The other team has left, this game will be recorded as your win. You may leave at any time." );
+		m_Stats->SetWinner( ( m_SetWinnerTeam + 1 ) % 2 );
+		m_Stats->LockStats( );
+		m_SoftGameOver = true;
+		m_SetWinnerTicks = 0;
+	}
+
 	return CBaseGame :: Update( fd, send_fd );
 }
 
@@ -922,7 +932,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		}
 		
 		// set the winner if appropriate, or draw the game
-		if( !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && !m_Stats->IsWinner( ) )
+		if( !m_SoftGameOver && !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && !m_Stats->IsWinner( ) )
 		{
 			// check if everyone on leaver's team left but other team has more than two players
 			uint32_t CountAlly = 0;
@@ -954,13 +964,12 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 					m_GameOverTime = GetTime( );
 				}
 				
-				// otherwise, if more than fifteen minutes have elapsed, give the other team the win
+				// otherwise, if more than five minutes have elapsed, give the other team the win
+				// this is now delayed by fifteen seconds to prevent setting winner on lag and such
 				else if( m_GameTicks > 1000 * 60 * 5 )
 				{
-					SendAllChat( "The other team has left, this game will be recorded as your win. You may leave at any time." );
-					m_Stats->SetWinner( ( Team + 1 ) % 2 );
-					m_Stats->LockStats( );
-					m_SoftGameOver = true;
+					m_SetWinnerTicks = m_GameTicks;
+					m_SetWinnerTeam = Team;
 				}
 			}
 		}
