@@ -196,7 +196,7 @@ CGame :: ~CGame( )
 		{
 			uint32_t LeftTime = (*i)->GetLeft( );
 			
-			if( EndTime - LeftTime > 300 )
+			if( EndTime - LeftTime > 300 || ( m_MapType == "cfone" && LeftTime < 60 ) )
 			{
 				string CustomReason = "autoban: left at " + UTIL_ToString( LeftTime ) + "/" + UTIL_ToString( EndTime );
 				
