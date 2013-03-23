@@ -36,7 +36,7 @@
 // CStatsDOTA
 //
 
-CStatsDOTA :: CStatsDOTA( CBaseGame *nGame, string nConditions, string nSaveType ) : CStats( nGame ), m_SaveType( nSaveType ), m_Winner( 0 ), m_Min( 0 ), m_Sec( 0 ), m_TowerLimit( false ), m_KillLimit( 0 ), m_TimeLimit( 0 ), m_SentinelTowers( 0 ), m_ScourgeTowers( 0 ), m_SentinelKills( 0 ), m_ScourgeKills( 0 ), m_LastCreepTime( 0 )
+CStatsDOTA :: CStatsDOTA( CBaseGame *nGame, string nConditions, string nSaveType ) : CStats( nGame ), m_SaveType( nSaveType ), m_Winner( 0 ), m_Min( 0 ), m_Sec( 0 ), m_TowerLimit( false ), m_KillLimit( 0 ), m_TimeLimit( 0 ), m_SentinelTowers( 0 ), m_ScourgeTowers( 0 ), m_SentinelKills( 0 ), m_ScourgeKills( 0 ), m_LastCreepTime( 0 ), m_FakeWinner( 0 )
 {
 	CONSOLE_Print( "[STATSDOTA] using dota stats" );
 
@@ -341,12 +341,24 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 								// the frozen throne got hurt
 
 								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Frozen Throne is now at " + UTIL_ToString( ValueInt ) + "% HP" );
+								
+								if( ValueInt <= 25 )
+								{
+									// in case something weird happens, set this as the "fake" winner
+									m_FakeWinner = 1;
+								}
 							}
 							else if( KeyString.size( ) >= 4 && KeyString.substr( 0, 4 ) == "Tree" )
 							{
 								// the world tree got hurt
 
 								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the World Tree is now at " + UTIL_ToString( ValueInt ) + "% HP" );
+								
+								if( ValueInt <= 25 )
+								{
+									// in case something weird happens, set this as the "fake" winner
+									m_FakeWinner = 2;
+								}
 							}
 							else if( KeyString.size( ) >= 2 && KeyString.substr( 0, 2 ) == "CK" )
 							{
@@ -624,6 +636,9 @@ void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 
 		// save the dotagame
 		// no need to ask for lock on callables mutex: we already have it from CGame
+		
+		if( m_Winner == 0 && m_FakeWinner != 0 )
+			m_Winner = m_FakeWinner;
 		
 		GHost->m_Callables.push_back( DB->ThreadedDotAGameAdd( GameID, m_Winner, m_Min, m_Sec, m_SaveType ) );
 

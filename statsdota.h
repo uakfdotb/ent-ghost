@@ -36,6 +36,7 @@ class CStatsDOTA : public CStats
 {
 private:
 	CDBDotAPlayer *m_Players[12];
+	uint32_t m_FakeWinner;
 	uint32_t m_Winner;
 	uint32_t m_Min;
 	uint32_t m_Sec;
@@ -58,7 +59,7 @@ public:
 
 	virtual bool ProcessAction( CIncomingAction *Action );
 	virtual void Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID );
-	virtual bool IsWinner( ) { return m_Winner != 0; }
+	virtual bool IsWinner( ) { return m_Winner != 0 || m_FakeWinner != 0; }
 	
 	// set the winner of the game
 	// we add one here because nWinner is the winning team while
