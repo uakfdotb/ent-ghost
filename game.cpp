@@ -1095,7 +1095,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					// try to match each player with the passed string (e.g. "Varlock" would be matched with "lock")
 					// we use the m_DBBans vector for this in case the player already left and thus isn't in the m_Players vector anymore
 
-				for( vector<CDBBan *> :: iterator i = m_DBBans.begin( ); i != m_DBBans.end( ); ++i )
+					for( vector<CDBBan *> :: iterator i = m_DBBans.begin( ); i != m_DBBans.end( ); ++i )
 					{
 						string TestName = (*i)->GetName( );
 						transform( TestName.begin( ), TestName.end( ), TestName.begin( ), (int(*)(int))tolower );
@@ -1118,7 +1118,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					if( Matches == 0 )
 						SendAllChat( m_GHost->m_Language->UnableToBanNoMatchesFound( Victim ) );
 					else if( Matches == 1 )
+					{
 						m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason, BanDuration, userContext ) ) );
+						m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!" + Command, "banned player [" + LastMatch->GetName( ) + "]", m_GameName ) );
+					}
 					else
 						SendAllChat( m_GHost->m_Language->UnableToBanFoundMoreThanOneMatch( Victim ) );
 				}
@@ -1130,7 +1133,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					if( Matches == 0 )
 						SendAllChat( m_GHost->m_Language->UnableToBanNoMatchesFound( Victim ) );
 					else if( Matches == 1 )
+					{
 						m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetJoinedRealm( ), LastMatch->GetName( ), LastMatch->GetExternalIPString( ), m_GameName, User, Reason, BanDuration, userContext ) ) );
+						m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!" + Command, "banned player [" + LastMatch->GetName( ) + "]", m_GameName ) );
+					}
 					else
 						SendAllChat( m_GHost->m_Language->UnableToBanFoundMoreThanOneMatch( Victim ) );
 				}
@@ -1831,7 +1837,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				{
 					SendAllChat( m_GHost->m_Language->MutedPlayer( LastMatch->GetName( ), User ) );
 					LastMatch->SetMuted( true );
-						
+					
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!mute", "muted player [" + LastMatch->GetName( ) + "]", m_GameName ) );
 				}
 				else
