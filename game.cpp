@@ -2393,7 +2393,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !STATSDOTA
 	//
 
-	else if( ( Command == "statsdota" || Command == "sd" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( ( Command == "statsdota" || Command == "sd" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -2415,7 +2415,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !STATSDOTAHR
 	//
 
-	else if( ( Command == "statsdotahr" || Command == "sdhr" || Command == "statsdota2" || Command == "sd2" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( ( Command == "statsdotahr" || Command == "sdhr" || Command == "statsdota2" || Command == "sd2" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -2437,7 +2437,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !IHSTATS
 	//
 
-	else if( ( Command == "statsih" || Command == "ihstats" || Command == "ihs" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( ( Command == "statsih" || Command == "ihstats" || Command == "ihs" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -2459,7 +2459,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !STATSLOD
 	//
 
-	else if( ( Command == "statslod" || Command == "sl" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( ( Command == "statslod" || Command == "sl" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -2481,7 +2481,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !TREESTATS
 	//
 
-	else if( (Command == "treestats" || Command == "ts" || Command == "statstree" || Command == "st") && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( (Command == "treestats" || Command == "ts" || Command == "statstree" || Command == "st") && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -2503,7 +2503,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !SNIPESTATS
 	//
 
-	else if( (Command == "snipestats" || Command == "ss" || Command == "sniperstats" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( (Command == "snipestats" || Command == "ss" || Command == "sniperstats" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -2525,7 +2525,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !SHIPSTATS
 	//
 
-	else if( (Command == "shipstats" || Command == "bs" || Command == "bshipstats" || Command == "bsstats" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( (Command == "shipstats" || Command == "bs" || Command == "bshipstats" || Command == "bsstats" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -2547,7 +2547,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !CASTLESTATS
 	//
 
-	else if( (Command == "castlestats" || Command == "cfstats" || Command == "cfs" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( (Command == "castlestats" || Command == "cfstats" || Command == "cfs" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -2574,7 +2574,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !CASTLESTATSHR
 	//
 
-	else if( (Command == "castlestatshr" || Command == "cfstatshr" || Command == "cfshr" || Command == "cfs2" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( (Command == "castlestatshr" || Command == "cfstatshr" || Command == "cfshr" || Command == "cfs2" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -2596,7 +2596,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !CIVSTATS
 	//
 
-	else if( (Command == "civstats" || Command == "cwstats" || Command == "cws" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( (Command == "civstats" || Command == "cwstats" || Command == "cws" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -2618,7 +2618,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !LEGIONSTATS
 	//
 
-	else if( (Command == "legionstats" || Command == "legiontdstats" || Command == "lms" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( (Command == "legionstats" || Command == "legiontdstats" || Command == "lms" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -2640,7 +2640,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !LEGIONSTATSHR
 	//
 
-	else if( (Command == "legionstatshr" || Command == "lmshr" || Command == "lhr" || Command == "ls2" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( (Command == "legionstatshr" || Command == "lmshr" || Command == "lhr" || Command == "ls2" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -2662,7 +2662,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !STATS
 	//
 
-	else if( Command == "stats" && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	else if( Command == "stats" && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
