@@ -619,7 +619,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		// see the !sendlan code later in this file for some more information about how this works
 		// todotodo: should we send a game cancel message somewhere? we'll need to implement a host counter for it to work
 
-		if( !m_CountDownStarted )
+		if( !m_CountDownStarted && m_GameState != GAME_PRIVATE )
 		{
 			// construct a fixed host counter which will be used to identify players from this "realm" (i.e. LAN)
 			// the fixed host counter's 4 most significant bits will contain a 4 bit ID (0-15)
