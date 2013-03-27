@@ -3013,6 +3013,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				if(Votes < VotesNeeded) {
 				    SendAllChat( UTIL_ToString(VotesNeeded - Votes) + " more votes needed to votestart.");
 				} else {
+					if( m_MatchMaking && m_AutoStartPlayers != 0 )
+						BalanceSlots( );
+
 				    StartCountDown( true );
 				}
 			}
