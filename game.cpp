@@ -2846,15 +2846,58 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 	else if( (Command == "slap" )&& !Payload.empty() && !m_GHost->m_SlapPhrases.empty() )
 	{
-	  //pick a phrase
-	  uint32_t numPhrases = m_GHost->m_SlapPhrases.size();
-	  uint32_t randomPhrase = rand() % numPhrases;
-	  
-	  string phrase = m_GHost->m_SlapPhrases[randomPhrase];
-	  uint32_t nameIndex = phrase.find_first_of("[") + 1;
-	  SendAllChat("[" + User + "] " + phrase.insert(nameIndex, Payload));
-	  
-	  HideCommand = true;
+		//pick a phrase
+		uint32_t numPhrases = m_GHost->m_SlapPhrases.size();
+		uint32_t randomPhrase = rand() % numPhrases;
+
+		string phrase = m_GHost->m_SlapPhrases[randomPhrase];
+		uint32_t nameIndex = phrase.find_first_of("[") + 1;
+		SendAllChat("[" + User + "] " + phrase.insert(nameIndex, Payload));
+		player->SetStatsDotASentTime( GetTime( ) );
+
+		HideCommand = true;
+	}
+
+	//
+	// !ROLL (!FLIP)
+	//
+
+	else if( ( Command == "roll" || Command == "flip" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
+	{
+		uint64_t RandMax = 6;
+		
+		if( Command == "flip" )
+			RandMax = 2;
+		
+		if( !Payload.empty( ) )
+			RandMax = UTIL_ToUInt64( Payload );
+		
+		if( RandMax <= RAND_MAX && RandMax >= 2 )
+		{
+			uint64_t RandResult = rand( ) % RandMax;
+			SendAllChat( "Random result: " + UTIL_ToString( RandResult ) + " (from 0 to " + UTIL_ToString( RandMax - 1 ) + ")." );
+			player->SetStatsDotASentTime( GetTime( ) );
+		}
+		else
+			SendChat( player, "Error: maximum number to roll from is " + UTIL_ToString( RAND_MAX ) + "." );
+	}
+
+	//
+	// !GAMETIME
+	//
+
+	else if( Command == "gametime" )
+	{
+		string MinString = UTIL_ToString( ( m_GameTicks / 1000 ) / 60 );
+		string SecString = UTIL_ToString( ( m_GameTicks / 1000 ) % 60 );
+
+		if( MinString.size( ) == 1 )
+			MinString.insert( 0, "0" );
+
+		if( SecString.size( ) == 1 )
+			SecString.insert( 0, "0" );
+		
+		SendChat( player, "Current game time: " + UTIL_ToString( m_GameTicks ) + " ms (" + MinString + "m" + SecString + "s" + ")." );
 	}
 
 	//
