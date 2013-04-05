@@ -1739,7 +1739,7 @@ void CBaseGame :: SendEndMessage( )
 	}
 }
 
-void CBaseGame :: SendBannedInfo( CPotentialPlayer *player, CDBBan *Ban )
+void CBaseGame :: SendBannedInfo( CPotentialPlayer *player, CDBBan *Ban, string type )
 {
 	// send slot info to the banned player
 	
@@ -1758,13 +1758,23 @@ void CBaseGame :: SendBannedInfo( CPotentialPlayer *player, CDBBan *Ban )
 	
 	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_MAPCHECK( m_Map->GetMapPath( ), m_Map->GetMapSize( ), m_Map->GetMapInfo( ), m_Map->GetMapCRC( ), m_Map->GetMapSHA1( ) ) );
 	
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "Sorry, but you are currently banned." ) );
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Admin: " + Ban->GetAdmin( ) ) );
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Reason: " + Ban->GetReason( ) ) );
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Gamename: " + Ban->GetGameName( ) ) );
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "Most bans are temporary; register on clanent.net and validate your account for more details on your ban." ) );
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "You can also appeal your ban on clanent.net." ) );
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "You will be automatically kicked in a few seconds." ) );
+	if(type == "banned")
+	{
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "Sorry, but you are currently banned." ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Admin: " + Ban->GetAdmin( ) ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Reason: " + Ban->GetReason( ) ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Gamename: " + Ban->GetGameName( ) ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "Most bans are temporary; register on clanent.net and validate your account for more details on your ban." ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "You can also appeal your ban on clanent.net." ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "You will be automatically kicked in a few seconds." ) );
+	}
+	else if(type == "score") {
+		
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "Error: you do not have the required score or number of games to join this game." ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "For autobalanced games, you need to play ten games of the same type." ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "For DotA HR, you need to have 1150+ ELO and at least 20 wins." ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "For Legion TD Mega HR, you need to have 1100+ ELO and at least 15 wins." ) );
+	}
 }
 
 void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
@@ -2037,8 +2047,15 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	if( m_MatchMaking && score != NULL && ( score[0] < m_MinimumScore || score[0] > m_MaximumScore ) )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but has a rating [" + UTIL_ToString( score[0], 2 ) + "] outside the limits [" + UTIL_ToString( m_MinimumScore, 2 ) + "] to [" + UTIL_ToString( m_MaximumScore, 2 ) + "]" );
-		potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
+		
+		CPotentialPlayer *potentialCopy = new CPotentialPlayer( m_Protocol, this, potential->GetSocket( ) );
+		potentialCopy->SetBanned( );
+		potential->SetSocket( NULL );
 		potential->SetDeleteMe( true );
+		
+		m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
+		SendBannedInfo( potentialCopy, NULL, "score" );
+		m_GHost->DenyIP( potentialCopy->GetExternalIPString( ), 30000, "score out of range" );
 		return NULL;
 	}
 
@@ -2133,7 +2150,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 						potential->SetDeleteMe( true );
 						
 						m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
-						SendBannedInfo( potentialCopy, Ban );
+						SendBannedInfo( potentialCopy, Ban, "banned" );
 						m_GHost->DenyIP( potentialCopy->GetExternalIPString( ), 30000, "banned player message" );
 						delete Ban;
 						return NULL;
@@ -2168,7 +2185,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 					potential->SetDeleteMe( true );
 					
 					m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
-					SendBannedInfo( potentialCopy, Ban );
+					SendBannedInfo( potentialCopy, Ban, "banned" );
 					m_GHost->DenyIP( potentialCopy->GetExternalIPString( ), 30000, "banned player message" );
 					delete Ban;
 					return NULL;
@@ -2210,7 +2227,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 			potential->SetDeleteMe( true );
 			
 			m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
-			SendBannedInfo( potentialCopy, Ban );
+			SendBannedInfo( potentialCopy, Ban, "banned" );
 			m_GHost->DenyIP( potentialCopy->GetExternalIPString( ), 30000, "banned player message" );
 			
 			delete Ban;

@@ -1978,15 +1978,13 @@ double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string categ
 	}
 	else if( category == "dota" )
 	{
-		Score[0] = 1000.0;
-		Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "'";
-		Query2 = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "'";
+		Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND games >= 10";
+		Query2 = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND games >= 10";
 	}
 	else if( category == "legionmega" )
 	{
-		Score[0] = 1000.0;
-		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "'";
-		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "'";
+		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "' AND games >= 10";
+		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "' AND games >= 10";
 	}
 	else
 		CONSOLE_Print( "[MYSQL] Requested score check on invalid category: " + category );
