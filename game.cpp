@@ -1120,7 +1120,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					else if( Matches == 1 )
 					{
 						m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason, BanDuration, userContext ) ) );
-						m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!" + Command, "banned player [" + LastMatch->GetName( ) + "]", m_GameName ) );
+						
+						if( userContext == "ttr.cloud" )
+							m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!" + Command, "banned player [" + LastMatch->GetName( ) + "]", m_GameName ) );
 					}
 					else
 						SendAllChat( m_GHost->m_Language->UnableToBanFoundMoreThanOneMatch( Victim ) );
@@ -1135,7 +1137,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					else if( Matches == 1 )
 					{
 						m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetJoinedRealm( ), LastMatch->GetName( ), LastMatch->GetExternalIPString( ), m_GameName, User, Reason, BanDuration, userContext ) ) );
-						m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!" + Command, "banned player [" + LastMatch->GetName( ) + "]", m_GameName ) );
+						
+						if( userContext == "ttr.cloud" )
+							m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!" + Command, "banned player [" + LastMatch->GetName( ) + "]", m_GameName ) );
 					}
 					else
 						SendAllChat( m_GHost->m_Language->UnableToBanFoundMoreThanOneMatch( Victim ) );
@@ -1758,7 +1762,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						if( !m_GameLoading && !m_GameLoaded )
 							OpenSlot( GetSIDFromPID( LastMatch->GetPID( ) ), false );
 						
-						m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!kick", "kicked player [" + LastMatch->GetName( ) + "]", m_GameName ) );
+						if( AdminCheck || RootAdminCheck )
+							m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!kick", "kicked player [" + LastMatch->GetName( ) + "]", m_GameName ) );
 					}
 					else
 						SendAllChat( m_GHost->m_Language->UnableToKickFoundMoreThanOneMatch( Payload ) );
@@ -1838,7 +1843,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					SendAllChat( m_GHost->m_Language->MutedPlayer( LastMatch->GetName( ), User ) );
 					LastMatch->SetMuted( true );
 					
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!mute", "muted player [" + LastMatch->GetName( ) + "]", m_GameName ) );
+					if( AdminCheck || RootAdminCheck )
+						m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!mute", "muted player [" + LastMatch->GetName( ) + "]", m_GameName ) );
 				}
 				else
 					SendAllChat( m_GHost->m_Language->UnableToMuteFoundMoreThanOneMatch( Payload ) );
@@ -1876,9 +1882,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				SendAllChat( m_GHost->m_Language->GlobalChatMuted( ) );
 				m_MuteAll = true;
 				
-				
-						
-				m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!muteall", "muted global chat", m_GameName ) );
+				if( AdminCheck || RootAdminCheck )
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!muteall", "muted global chat", m_GameName ) );
 			}
 
 			//
