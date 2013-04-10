@@ -538,7 +538,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 	
 	if( m_CallableBanListFast && m_CallableBanListFast->GetReady( ) )
 	{
-		boost::mutex::scoped_lock lock( m_BansMutex );
 		vector<CDBBan *> ChangedBans = m_CallableBanListFast->GetResult( );
 		
 		for( vector<CDBBan *>::iterator i = ChangedBans.begin( ); i != ChangedBans.end( ); ++i )
@@ -556,8 +555,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			delete *i;
 		}
 		
-		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (new size: " + UTIL_ToString( m_Bans.size( ) ) + ")" );
-		lock.unlock( );
+		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (new size: " + UTIL_ToString( m_Bans.size( ) ) + "; changed: " + UTIL_ToString( ChangedBans.size( ) ) + ")" );
 		
 		m_GHost->m_DB->RecoverCallable( m_CallableBanListFast );
 		delete m_CallableBanListFast;
