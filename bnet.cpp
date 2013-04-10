@@ -514,11 +514,28 @@ bool CBNET :: Update( void *fd, void *send_fd )
 	// fast-refresh the ban list every 3 minutes
 
 	if( !m_CallableBanListFast && GetTime( ) - m_LastBanRefreshTime >= 180 )
-		m_CallableBanListFast = m_GHost->m_DB->ThreadedBanListFast( this );
+		m_CallableBanListFast = m_GHost->m_DB->ThreadedBanListFast( m_Server, m_BanListFastTime );
 	
 	if( m_CallableBanListFast && m_CallableBanListFast->GetReady( ) )
 	{
 		boost::mutex::scoped_lock lock( m_BansMutex );
+		vector<CDBBan *> ChangedBans = m_CallableBanListFast->GetResult( );
+		
+		for( vector<CDBBan *>::iterator i = ChangedBans.begin( ); i != ChangedBans.end( ); ++i )
+		{
+			if( (*i)->GetDelete( ) )
+				DeleteBanFast( (*i)->GetId( ) );
+			else
+			{
+				AddBan( (*i)->GetId( ), (*i)->GetName( ), (*i)->GetIP( ), (*i)->GetDate( ), (*i)->GetGameName( ), (*i)->GetAdmin( ), (*i)->GetReason( ), (*i)->GetExpireDate( ), (*i)->GetContext( ) );
+				
+				if( m_BanListFastTime < (*i)->GetCacheTime( ) )
+					m_BanListFastTime = (*i)->GetCacheTime( );
+			}
+			
+			delete *i;
+		}
+		
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (new size: " + UTIL_ToString( m_Bans.size( ) ) + ")" );
 		lock.unlock( );
 		
@@ -2671,7 +2688,7 @@ void CBNET :: AddBan( uint32_t id, string name, string ip, string gamename, stri
 	
 	// add the new ban
 	boost::mutex::scoped_lock lock( m_BansMutex );
-	m_Bans.push_back( new CDBBan( id, m_Server, name, ip, "N/A", gamename, admin, reason, "", "ttr.cloud" ) );
+	m_Bans.push_back( new CDBBan( id, m_Server, name, ip, "N/A", gamename, admin, reason, "", "ttr.cloud", 0 ) );
 	lock.unlock( );
 }
 
@@ -2684,7 +2701,7 @@ void CBNET :: AddBan( uint32_t id, string name, string ip, string date, string g
 	
 	// add the new ban
 	boost::mutex::scoped_lock lock( m_BansMutex );
-	m_Bans.push_back( new CDBBan( id, m_Server, name, ip, date, gamename, admin, reason, expiredate, context ) );
+	m_Bans.push_back( new CDBBan( id, m_Server, name, ip, date, gamename, admin, reason, expiredate, context, 0 ) );
 	lock.unlock( );
 }
 

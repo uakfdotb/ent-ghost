@@ -207,7 +207,7 @@ public:
 	virtual CCallableBanList *ThreadedBanList( string server );
 	virtual CCallableWhiteList *ThreadedWhiteList( );
 	virtual CCallableSpoofList *ThreadedSpoofList( );
-	virtual CCallableBanListFast *ThreadedBanListFast( CBNET *bnet );
+	virtual CCallableBanListFast *ThreadedBanListFast( string server, uint32_t banlistfasttime );
 	virtual CCallableReconUpdate *ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds );
 	virtual CCallableCommandList *ThreadedCommandList(  );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype );
@@ -256,7 +256,7 @@ bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user, str
 vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string server );
 vector<string> MySQLWhiteList( void *conn, string *error, uint32_t botid );
 map<string, string> MySQLSpoofList( void *conn, string *error, uint32_t botid );
-void MySQLBanListFast( void *conn, string *error, uint32_t botid, CBNET *bnet );
+vector<CDBBan *> MySQLBanListFast( void *conn, string *error, uint32_t botid, string server, uint32_t banlistfasttime );
 void MySQLReconUpdate( void *conn, string *error, uint32_t botid, uint32_t hostcounter, uint32_t seconds );
 vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid );
 uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype );
@@ -455,7 +455,7 @@ public:
 class CMySQLCallableBanListFast : public CCallableBanListFast, public CMySQLCallable
 {
 public:
-	CMySQLCallableBanListFast( CBNET *nBnet, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableBanListFast( nBnet ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+	CMySQLCallableBanListFast( string nServer, uint32_t nBanListFastTime, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableBanListFast( nServer, nBanListFastTime ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
 	virtual ~CMySQLCallableBanListFast( ) { }
 
 	virtual void operator( )( );
