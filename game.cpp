@@ -3200,8 +3200,8 @@ void CGame :: EventGameStarted( )
 	// but since the player has already left the game we don't have access to their information anymore
 	// so we create a "potential ban" for each player and only store it in the database if requested to by an admin
 
-	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
-		m_DBBans.push_back( new CDBBan( 0, (*i)->GetJoinedRealm( ), (*i)->GetName( ), (*i)->GetExternalIPString( ), string( ), string( ), string( ), string( ), string( ), string( ) ) );
+        for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+		m_DBBans.push_back( new CDBBan( 0, (*i)->GetJoinedRealm( ), (*i)->GetName( ), (*i)->GetExternalIPString( ), string( ), string( ), string( ), string( ), string( ), string( ), 0 ) );
 }
 
 bool CGame :: IsGameDataSaved( )
