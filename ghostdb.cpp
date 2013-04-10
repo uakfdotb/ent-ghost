@@ -123,7 +123,7 @@ map<string, string> CGHostDB :: SpoofList( )
 	return map<string, string>( );
 }
 
-void CGHostDB :: BanListFast( CBNET *bnet )
+vector<CDBBan *> CGHostDB :: BanListFast( string server, uint32_t banlistfasttime )
 {
 
 }
@@ -313,7 +313,7 @@ CCallableSpoofList *CGHostDB :: ThreadedSpoofList( )
 	return NULL;
 }
 
-CCallableBanListFast *CGHostDB :: ThreadedBanListFast( CBNET *bnet )
+CCallableBanListFast *CGHostDB :: ThreadedBanListFast( string server, uint32_t banlistfasttime )
 {
 	return NULL;
 }
@@ -642,7 +642,12 @@ CCallableW3MMDVarAdd :: ~CCallableW3MMDVarAdd( )
 // CDBBan
 //
 
-CDBBan :: CDBBan( uint32_t nId, string nServer, string nName, string nIP, string nDate, string nGameName, string nAdmin, string nReason, string nExpireDate, string nContext ) : m_Id( nId ), m_Server( nServer ), m_Name( nName ), m_IP( nIP ), m_Date( nDate ), m_GameName( nGameName ), m_Admin( nAdmin ), m_Reason( nReason ), m_ExpireDate( nExpireDate ), m_Context( nContext )
+CDBBan :: CDBBan( uint32_t nId ) : m_Id( nId ), m_Delete( true ), m_CacheTime( 0 )
+{
+
+}
+
+CDBBan :: CDBBan( uint32_t nId, string nServer, string nName, string nIP, string nDate, string nGameName, string nAdmin, string nReason, string nExpireDate, string nContext, uint32_t nCacheTime ) : m_Id( nId ), m_Server( nServer ), m_Name( nName ), m_IP( nIP ), m_Date( nDate ), m_GameName( nGameName ), m_Admin( nAdmin ), m_Reason( nReason ), m_ExpireDate( nExpireDate ), m_Context( nContext ), m_Delete( false ), m_CacheTime( nCacheTime )
 {
 
 }
@@ -659,6 +664,8 @@ CDBBan :: CDBBan( CDBBan *copy )
 	m_Reason = copy->m_Reason;
 	m_ExpireDate = copy->m_ExpireDate;
 	m_Context = copy->m_Context;
+	m_Delete = copy->m_Delete;
+	m_CacheTime = copy->m_CacheTime;
 }
 
 CDBBan :: ~CDBBan( )

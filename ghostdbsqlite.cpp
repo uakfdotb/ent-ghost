@@ -746,7 +746,7 @@ CDBBan *CGHostDBSQLite :: BanCheck( string server, string user, string ip )
 			vector<string> *Row = m_DB->GetRow( );
 
 			if( Row->size( ) == 6 )
-				Ban = new CDBBan( 0, server, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4], (*Row)[5], "unknown", "unknown" );
+				Ban = new CDBBan( 0, server, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4], (*Row)[5], "unknown", "unknown", 0 );
 			else
 				CONSOLE_Print( "[SQLITE3] error checking ban [" + server + " : " + user + " : " + ip + "] - row doesn't have 6 columns" );
 		}
@@ -859,7 +859,7 @@ vector<CDBBan *> CGHostDBSQLite :: BanList( string server )
 			vector<string> *Row = m_DB->GetRow( );
 
 			if( Row->size( ) == 6 )
-				BanList.push_back( new CDBBan( 0, server, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4], (*Row)[5], "unknown", "unknown" ) );
+				BanList.push_back( new CDBBan( 0, server, (*Row)[0], (*Row)[1], (*Row)[2], (*Row)[3], (*Row)[4], (*Row)[5], "unknown", "unknown", 0 ) );
 
 			RC = m_DB->Step( Statement );
 		}
