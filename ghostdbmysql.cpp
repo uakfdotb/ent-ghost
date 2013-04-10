@@ -2540,7 +2540,7 @@ void CMySQLCallableBanListFast :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		MySQLBanListFast( m_Connection, &m_Error, m_SQLBotID, m_Server, m_BanListFastTime );
+		m_Result = MySQLBanListFast( m_Connection, &m_Error, m_SQLBotID, m_Server, m_BanListFastTime );
 
 	Close( );
 }
