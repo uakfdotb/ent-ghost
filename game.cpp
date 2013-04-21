@@ -178,6 +178,13 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		
 		m_League = true; 
 	}
+	else if( m_Map->GetMapType( ) == "lihl" )
+	{
+		m_Stats = new CStatsW3MMD( this, "lihl", "" );
+		m_MapType = "lihl";
+		
+		m_League = true; 
+	}
 
 	m_Guess = 0;
 	m_FirstLeaver = true;
@@ -202,6 +209,8 @@ CGame :: ~CGame( )
 				
 				if( m_MapType == "eihl" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-eihl", CustomReason, 3600 * 12, "ttr.cloud" ));
+				else if( m_MapType == "lihl" )
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-lihl", CustomReason, 3600 * 12, "ttr.cloud" ));
 				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" || m_MapType == "cfone" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
 				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "legionmega_ab" || m_MapType == "civwars" )
@@ -694,6 +703,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else if( Category == "castlefight2" ) CategoryName = "high-ranked CF";
 				else if( Category == "legionmega2" ) CategoryName = "high-ranked Legion TD";
 				else if( Category == "legionmega" || Category == "legionmega_ab" ) CategoryName = "Legion TD Mega";
+				else if( Category == "lihl" ) CategoryName = "LIHL";
 				
 				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( W3MMDPlayerSummary->GetTotalGames( ) ) + " " + CategoryName + " games here (ELO: " + UTIL_ToString( W3MMDPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( W3MMDPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( W3MMDPlayerSummary->GetTotalLosses( ) ) + ".";
 
@@ -818,6 +828,10 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega2" ) ) );
 	}
+	else if( Player && m_MapType == "lihl" && score != NULL )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "lihl" ) ) );
+	}
 	else if( Player && m_MapType == "castlefight" )
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "castlefight" ) ) );
@@ -894,7 +908,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "civwars" )
 					BanType = "3v3";
 				
-				else if( m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "legionmega_ab" )
+				else if( m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "legionmega_ab" || m_MapType == "lihl" )
 					BanType = "4v4";
 				
 				if( !BanType.empty( ) )
@@ -2452,10 +2466,20 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		string StatsRealm = "";
 		GetStatsUser( &StatsUser, &StatsRealm );
 
-		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "eihl" ) ) );
+		if( m_MapType == "lihl" )
+		{
+			if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+				m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "lihl" ) ) );
+			else
+				m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "lihl" ) ) );
+		}
 		else
-			m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "eihl" ) ) );
+		{
+			if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+				m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "eihl" ) ) );
+			else
+				m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, StatsRealm, "eihl" ) ) );
+		}
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
