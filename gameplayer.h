@@ -154,6 +154,7 @@ private:
 	uint32_t m_GProxyReconnectKey;
 	uint32_t m_LastGProxyAckTime;
 	vector<string> m_IgnoreList;				// list of usernames this player is ignoring
+	bool m_Fun;
 
 public:
 	CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );
@@ -208,6 +209,7 @@ public:
 	bool GetGProxy( )							{ return m_GProxy; }
 	bool GetGProxyDisconnectNoticeSent( )		{ return m_GProxyDisconnectNoticeSent; }
 	uint32_t GetGProxyReconnectKey( )			{ return m_GProxyReconnectKey; }
+	bool GetFun( )								{ return m_Fun; }
 
 	void SetFriendlyName( string nFriendlyName )									{ m_FriendlyName = nFriendlyName; }
 	void SetLeftReason( string nLeftReason )										{ m_LeftReason = nLeftReason; }
@@ -243,6 +245,7 @@ public:
 	void SetAutoban( bool nAutoban )												{ m_Autoban = nAutoban; }
 	void SetLeftMessageSent( bool nLeftMessageSent )								{ m_LeftMessageSent = nLeftMessageSent; }
 	void SetGProxyDisconnectNoticeSent( bool nGProxyDisconnectNoticeSent )			{ m_GProxyDisconnectNoticeSent = nGProxyDisconnectNoticeSent; }
+	void SetFun( bool nFun )														{ m_Fun = nFun; }
 
 	string GetNameTerminated( );
 	uint32_t GetPing( bool LCPing );

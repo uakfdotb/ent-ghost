@@ -683,6 +683,10 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		else
 			WaitTicks = 7800;
 
+		//disable waitticks for our own server
+		if( m_Server == "hive.clanent.net" )
+			WaitTicks = 0;
+
 		boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
 		
 		if( !m_OutPackets.empty( ) && GetTicks( ) - m_LastOutPacketTicks >= WaitTicks )
@@ -2186,7 +2190,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		// !SAYGAMES
 		//
 
-		else if( Command == "saygames" && !Payload.empty( ) )
+		else if( ( Command == "saygames" || Command == "saylobby" ) && !Payload.empty( ) )
 		{
 			if( IsRootAdmin( User ) || ForceRoot )
 			{
@@ -2198,12 +2202,15 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 					m_GHost->m_CurrentGame->m_DoSayGames.push_back( Payload );
 					sayLock.unlock( );
 				}
-
-				for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
+				
+				if( Command == "saygames" )
 				{
-					boost::mutex::scoped_lock sayLock( (*i)->m_SayGamesMutex );
-					(*i)->m_DoSayGames.push_back( Payload );
-					sayLock.unlock( );
+					for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
+					{
+						boost::mutex::scoped_lock sayLock( (*i)->m_SayGamesMutex );
+						(*i)->m_DoSayGames.push_back( Payload );
+						sayLock.unlock( );
+					}
 				}
 				
 				lock.unlock( );

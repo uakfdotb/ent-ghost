@@ -820,6 +820,39 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		{
 			if( (*i)[0] == ':' )
 				SendAllChat( (*i).substr(1) );
+			else if( (*i)[0] == '*' )
+			{
+				if( !m_GameLoading && !m_GameLoaded )
+				{
+					string Target;
+					string Message;
+					stringstream SS;
+					SS << (*i).substr(1);
+					SS >> Target;
+
+					if( !SS.eof( ) )
+						getline( SS, Message );
+				
+					if( !Message.empty( ) )
+					{
+						if( Target == "*" )
+						{
+							for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); ++j )
+							{
+								if( (*j)->GetFun( ) )
+									SendChat( (*j), Message );
+							}
+						}
+						else
+						{
+							CGamePlayer *player = GetPlayerFromName( Target, false );
+						
+							if( player )
+								SendChat( player, Message );
+						}
+					}
+				}
+			}
 			else
 				SendAllChat( "ANNOUNCEMENT: " + *i );
 		}
@@ -3025,6 +3058,18 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 					
 					// also append to our cached lobby chat data
 					m_LobbyChat.push_back( "[" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
+					
+					// decide if we should broadcast this to ent fun
+					if( player->GetFun( ) )
+					{
+						for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+						{
+							if( (*i)->GetServer( ) == "hive.clanent.net" )
+							{
+								(*i)->QueueChatCommand( "announcefun " + player->GetName( ) + " " + chatPlayer->GetMessage( ) );
+							}
+						}
+					}
 				}
 			}
 

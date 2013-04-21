@@ -2409,6 +2409,21 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		SendChat( player, m_GHost->m_Language->CheckedPlayer( User, player->GetNumPings( ) > 0 ? UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "ms" : "N/A", m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( player->GetExternalIP( ), true ) ), AdminCheck || RootAdminCheck ? "Yes" : "No", IsOwner( User ) ? "Yes" : "No", player->GetSpoofed( ) ? "Yes" : "No", player->GetSpoofedRealm( ).empty( ) ? "N/A" : player->GetSpoofedRealm( ), player->GetReserved( ) ? "Yes" : "No" ) );
 
 	//
+	// !FUN
+	//
+
+	if( Command == "fun" )
+	{
+		bool Fun = player->GetFun( );
+		player->SetFun( !Fun );
+		
+		if( Fun )
+			SendChat( player, "You have unsubscribed from <fun>." );
+		else
+			SendChat( player, "You have subscribed from <fun>. Type !fun again to unsubscribe." );
+	}
+
+	//
 	// !STATSDOTA
 	//
 
