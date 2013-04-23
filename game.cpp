@@ -158,7 +158,7 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		
 		// match making settings for tier 2
 		m_MatchMaking = true;
-		m_MinimumScore = 1100;
+		m_MinimumScore = 1300;
 		m_MaximumScore = 99999;
 	}
 	else if( m_Map->GetMapType( ) == "legionmega_ab" )
