@@ -2157,7 +2157,10 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 		CDBBan *Ban = NULL;
 		
 		if( JoinedRealm == "entconnect" )
-			Ban = m_GHost->IsBannedName( joinPlayer->GetName( ), m_OwnerName );
+			Ban = m_GHost->IsBannedName( joinPlayer->GetName( ), m_OwnerName, "entconnect" );
+		
+		if( JoinedRealm == "" )
+			Ban = m_GHost->IsBannedName( joinPlayer->GetName( ), m_OwnerName, "" );
 		
 		// if still NULL, search by IP too
 		if( !Ban && !WhiteList )
@@ -2167,7 +2170,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 		
 		if( Ban )
 		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned via entconnect" );
+			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned via entconnect/lan/garena" );
 
 			if( m_IgnoredNames.find( joinPlayer->GetName( ) ) == m_IgnoredNames.end( ) )
 			{

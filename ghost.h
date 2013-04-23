@@ -188,11 +188,14 @@ public:
 	
     string m_LocalIPs;						// config value: list of local IP's (which Garena is allowed from)
 	vector<string> m_FlameTriggers;			// triggers for antiflame system
-	vector<CDBBan *> m_Bans;				// bans not tied to other realms (entconnect realm)
+	vector<CDBBan *> m_BansConnect;			// bans not tied to other realms (entconnect realm)
+	vector<CDBBan *> m_BansGarena;			// bans not tied to other realms (lan/garena realm)
 	vector<string> m_WhiteList;				// entconnect whitelist
-	uint32_t m_LastBanRefreshTime;			// refresh ban list every 5 minutes
+    uint32_t m_LastBanRefreshTimeConnect;	// refresh ban list every 5 minutes
+    uint32_t m_LastBanRefreshTimeGarena;	// refresh ban list every 5 minutes
 	uint32_t m_LastWhiteListRefreshTime;	// refresh white list every 5 minutes
-	CCallableBanList *m_CallableBanList;	// threaded database ban list in progress
+	CCallableBanList *m_CallableBanListConnect;	// threaded database ban list in progress (entconnect)
+	CCallableBanList *m_CallableBanListGarena;	// threaded database ban list in progress (LAN/garena)
 	CCallableWhiteList *m_CallableWhiteList;	// threaded database white list in progress
 	boost::mutex m_BansMutex;
 	uint32_t m_LastDenyCleanTime;			// last time we cleaned the deny table
@@ -225,7 +228,7 @@ public:
 	void EventBNETEmote( CBNET *bnet, string user, string message );
 	void EventGameDeleted( CBaseGame *game );
 
-	CDBBan *IsBannedName( string name, string context );
+	CDBBan *IsBannedName( string name, string context, string realm );
 	bool IsWhiteList( string name );
 	CDBBan *IsBannedIP( string ip, string context );
 
