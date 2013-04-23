@@ -434,9 +434,11 @@ CGHost :: CGHost( CConfig *CFG )
 	m_CurrentGame = NULL;
 	m_CallableCommandList = NULL;
 	m_CallableGameUpdate = NULL;
-	m_CallableBanList = NULL;
+	m_CallableBanListConnect = NULL;
+	m_CallableBanListGarena = NULL;
 	m_CallableWhiteList = NULL;
-	m_LastBanRefreshTime = 0;
+	m_LastBanRefreshTimeConnect = 0;
+	m_LastBanRefreshTimeGarena = 0;
 	m_LastWhiteListRefreshTime = 0;
 	m_LastDenyCleanTime = 0;
 
@@ -1300,8 +1302,11 @@ bool CGHost :: Update( long usecBlock )
 	// refresh the ban list every 20 minutes
 	// also refresh whitelist and spoof list and some intervals
 
-	if( !m_CallableBanList && GetTime( ) - m_LastBanRefreshTime >= 1200 )
-		m_CallableBanList = m_DB->ThreadedBanList( "entconnect" );
+	if( !m_CallableBanListConnect && GetTime( ) - m_LastBanRefreshTimeConnect >= 1200 )
+		m_CallableBanListConnect = m_DB->ThreadedBanList( "entconnect" );
+
+	if( !m_CallableBanListGarena && GetTime( ) - m_LastBanRefreshTimeGarena >= 1200 )
+		m_CallableBanListGarena = m_DB->ThreadedBanList( "" );
 
 	if( !m_CallableWhiteList && GetTime( ) - m_LastWhiteListRefreshTime >= 1200 )
 		m_CallableWhiteList = m_DB->ThreadedWhiteList( );
@@ -1309,22 +1314,42 @@ bool CGHost :: Update( long usecBlock )
 	if( !m_CallableSpoofList && GetTime( ) - m_LastSpoofRefreshTime >= 1200 )
 		m_CallableSpoofList = m_DB->ThreadedSpoofList( );
 
-	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
+	if( m_CallableBanListConnect && m_CallableBanListConnect->GetReady( ) )
 	{
 		boost::mutex::scoped_lock lock( m_BansMutex );
 		
-		while( !m_Bans.empty( ) )
+		while( !m_BansConnect.empty( ) )
 		{
-			CDBBan *LastBan = m_Bans.back( );
-			m_Bans.pop_back( );
+			CDBBan *LastBan = m_BansConnect.back( );
+			m_BansConnect.pop_back( );
 			delete LastBan;
 		}
 
-		m_Bans = m_CallableBanList->GetResult( );
-		m_DB->RecoverCallable( m_CallableBanList );
-		delete m_CallableBanList;
-		m_CallableBanList = NULL;
-		m_LastBanRefreshTime = GetTime( );
+		m_BansConnect = m_CallableBanListConnect->GetResult( );
+		m_DB->RecoverCallable( m_CallableBanListConnect );
+		delete m_CallableBanListConnect;
+		m_CallableBanListConnect = NULL;
+		m_LastBanRefreshTimeConnect = GetTime( );
+		
+		lock.unlock( );
+	}
+
+	if( m_CallableBanListGarena && m_CallableBanListGarena->GetReady( ) )
+	{
+		boost::mutex::scoped_lock lock( m_BansMutex );
+		
+		while( !m_BansGarena.empty( ) )
+		{
+			CDBBan *LastBan = m_BansGarena.back( );
+			m_BansGarena.pop_back( );
+			delete LastBan;
+		}
+
+		m_BansGarena = m_CallableBanListGarena->GetResult( );
+		m_DB->RecoverCallable( m_CallableBanListGarena );
+		delete m_CallableBanListGarena;
+		m_CallableBanListGarena = NULL;
+		m_LastBanRefreshTimeGarena = GetTime( );
 		
 		lock.unlock( );
 	}
@@ -1487,7 +1512,7 @@ void CGHost :: EventGameDeleted( CBaseGame *game )
 	}
 }
 
-CDBBan *CGHost :: IsBannedName( string name, string context )
+CDBBan *CGHost :: IsBannedName( string name, string context, string realm )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	transform( context.begin( ), context.end( ), context.begin( ), (int(*)(int))tolower );
@@ -1496,10 +1521,21 @@ CDBBan *CGHost :: IsBannedName( string name, string context )
 
 	boost::mutex::scoped_lock bansLock( m_BansMutex );
 	
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
+	if( realm == "entconnect" )
 	{
-		if( (*i)->GetName( ) == name && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
-			return new CDBBan( *i );
+		for( vector<CDBBan *> :: iterator i = m_BansConnect.begin( ); i != m_BansConnect.end( ); ++i )
+		{
+			if( (*i)->GetName( ) == name && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
+				return new CDBBan( *i );
+		}
+	}
+	else if( realm == "" )
+	{
+		for( vector<CDBBan *> :: iterator i = m_BansGarena.begin( ); i != m_BansGarena.end( ); ++i )
+		{
+			if( (*i)->GetName( ) == name && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
+				return new CDBBan( *i );
+		}
 	}
 	
 	bansLock.unlock( );
@@ -1545,7 +1581,13 @@ CDBBan *CGHost :: IsBannedIP( string ip, string context )
 
 	boost::mutex::scoped_lock bansLock( m_BansMutex );
 	
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
+	for( vector<CDBBan *> :: iterator i = m_BansConnect.begin( ); i != m_BansConnect.end( ); ++i )
+	{
+		if( (*i)->GetIP( ) == ip && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
+			return new CDBBan( *i );
+	}
+	
+	for( vector<CDBBan *> :: iterator i = m_BansGarena.begin( ); i != m_BansGarena.end( ); ++i )
 	{
 		if( (*i)->GetIP( ) == ip && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
 			return new CDBBan( *i );
