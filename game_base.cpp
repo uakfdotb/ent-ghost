@@ -3253,8 +3253,7 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 			CPotentialPlayer *potentialCopy = new CPotentialPlayer( m_Protocol, this, player->GetSocket( ) );
 			potentialCopy->SetBanned( );
 			
-			SendChat( player, "You cannot join this game because you do not have the map." );
-			SendChat( player, "If this is DotA, there may have been a new version released recently. Check http://getdota.com/ for the latest DotA map, or type /w Clan.Enterprise !g download." );
+			SendChat( player, "You cannot join this game because you do not have the map and map downloads are disabled." );
 			player->SetSocket( NULL );
 			player->SetDeleteMe( true );
 			player->SetLeftReason( "doesn't have the map and map downloads are disabled" );
