@@ -3306,8 +3306,30 @@ void CBaseGame :: EventPlayerDropRequest( CGamePlayer *player )
 
 	if( m_Lagging )
 	{
+		bool AnyGProxy = false;
+
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+		{
+			if( (*i)->GetLagging( ) )
+			{
+				if( (*i)->GetGProxy( ) )
+					AnyGProxy = true;
+			}
+		}
+		
 		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + player->GetName( ) + "] voted to drop laggers" );
 		SendAllChat( m_GHost->m_Language->PlayerVotedToDropLaggers( player->GetName( ) ) );
+
+		if( GetTime( ) - m_StartedLaggingTime < 80 )
+		{
+			if( AnyGProxy )
+			{
+				SendAllChat( "ERROR: this player is using GProxy" );
+				SendAllChat( "... GProxy players cannot be dropped" );
+				SendAllChat( "... until 80 seconds have elapsed" );
+				return;
+			}
+		}
 
 		// check if at least half the players voted to drop
 
