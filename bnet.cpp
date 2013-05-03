@@ -346,7 +346,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		{
 			if( i->second->GetResult( ) )
 			{
-				//AddBan( 0, i->second->GetUser( ), i->second->GetIP( ), i->second->GetGameName( ), i->second->GetAdmin( ), i->second->GetReason( ) );
+				AddBan( i->second->GetResult( ), i->second->GetUser( ), i->second->GetIP( ), "", i->second->GetGameName( ), i->second->GetAdmin( ), i->second->GetReason( ), "", i->second->GetContext( ) );
 				QueueChatCommand( m_GHost->m_Language->BannedUser( i->second->GetServer( ), i->second->GetUser( ) ), i->first, !i->first.empty( ) );
 			}
 			else
