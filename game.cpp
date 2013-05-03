@@ -907,7 +907,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		}
 		
 		// set the winner if appropriate, or draw the game
-		if( !m_MapType.empty( ) )
+		if( !m_MapType.empty( ) && Team != 12 )
 		{
 			// check if everyone on leaver's team left but other team has more than two players
 			uint32_t CountAlly = 0;
