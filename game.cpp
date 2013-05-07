@@ -1524,7 +1524,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
                         else if( Command == "fakeplayer" && !m_CountDownStarted )
 			{
-				if( m_FakePlayerPID == 255 )
+				if( m_FakePlayers.empty( ) )
 					CreateFakePlayer( );
 				else
 					DeleteFakePlayer( );
@@ -1534,24 +1534,24 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !FPPAUSE
 			//
 
-                        else if( Command == "fppause" && m_FakePlayerPID != 255 && m_GameLoaded && ( AdminCheck || RootAdminCheck ) )
+			else if( Command == "fppause" && !m_FakePlayers.empty( ) && m_GameLoaded && ( AdminCheck || RootAdminCheck ) )
 			{
 				BYTEARRAY CRC;
 				BYTEARRAY Action;
 				Action.push_back( 1 );
-				m_Actions.push( new CIncomingAction( m_FakePlayerPID, CRC, Action ) );
+				m_Actions.push( new CIncomingAction( m_FakePlayers[0].pid, CRC, Action ) );
 			}
 
 			//
 			// !FPRESUME
 			//
 
-                        else if( Command == "fpresume" && m_FakePlayerPID != 255 && m_GameLoaded && ( AdminCheck || RootAdminCheck ) )
+			else if( Command == "fpresume" && !m_FakePlayers.empty( ) && m_GameLoaded && ( AdminCheck || RootAdminCheck ) )
 			{
 				BYTEARRAY CRC;
 				BYTEARRAY Action;
 				Action.push_back( 2 );
-				m_Actions.push( new CIncomingAction( m_FakePlayerPID, CRC, Action ) );
+				m_Actions.push( new CIncomingAction( m_FakePlayers[0].pid, CRC, Action ) );
 			}
 
 			//

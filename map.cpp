@@ -808,6 +808,14 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 		}
 	}
 	
+	for( int i = 0; i <= 12; i++ )
+	{
+		uint32_t CurrentSlot = CFG->GetInt( "map_fakeplayer" + UTIL_ToString( i ), 255 );
+
+		if( CurrentSlot != 255 )
+			m_FakePlayers.push_back( CurrentSlot );
+	}
+	
 	m_Conditions = CFG->GetString( "map_conditions", string( ) );
 
 	if( MapNumPlayers == 0 )
