@@ -47,6 +47,7 @@ class CCallableScoreCheck;
 class CCallableLeagueCheck;
 class CCallableConnectCheck;
 struct QueuedSpoofAdd;
+struct FakePlayer;
 
 class CBaseGame
 {
@@ -78,7 +79,6 @@ protected:
 	uint16_t m_HostPort;							// the port to host games on
 	unsigned char m_GameState;						// game state, public or private
 	unsigned char m_VirtualHostPID;					// virtual host's PID
-	unsigned char m_FakePlayerPID;					// the fake player's PID (if present)
 	unsigned char m_GProxyEmptyActions;
 	string m_GameName;								// game name
 	string m_LastGameName;							// last game name (the previous game name before it was rehosted)
@@ -147,7 +147,7 @@ protected:
 	bool m_Tournament;								// whether or not this is a uxtourney system game
 	uint32_t m_TournamentMatchID;					// if m_Tournament, this is the tournament match ID
 	uint32_t m_TournamentChatID;					// if m_Tournament, this is the chat id
-	string m_FakePlayerName;						// fake player name, only will be different if tournament
+	vector<FakePlayer>  m_FakePlayers;				// vector of fake players
 
 public:
 	vector<string> m_DoSayGames;					// vector of strings we should announce to the current game
@@ -304,8 +304,8 @@ public:
 	virtual void StopLaggers( string reason );
 	virtual void CreateVirtualHost( );
 	virtual void DeleteVirtualHost( );
-	virtual void CreateFakePlayer( );
-	virtual void CreateFakePlayer( unsigned char SID );
+	virtual void CreateFakePlayer( string name = "" );
+	virtual void CreateFakePlayer( unsigned char SID, string name = "" );
 	virtual void DeleteFakePlayer( );
 	virtual void ShowTeamScores( );
 };
@@ -315,6 +315,11 @@ struct QueuedSpoofAdd {
 	string name;
 	bool sendMessage;
 	string failMessage; //empty if no failure
+};
+
+struct FakePlayer {
+	unsigned char pid;
+	string name;
 };
 
 #endif

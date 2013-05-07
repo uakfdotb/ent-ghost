@@ -84,11 +84,10 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 			m_Stats = new CStatsW3MMD( this, m_Map->GetMapStatsW3MMDCategory( ), "uxtourney" );
 			m_MapType = "uxtourney";
 			m_League = true;
-			m_FakePlayerName = "uxtourney";
 			
 			//create fake player for tournament if possible
 			if( m_Map->GetMapTournamentFakeSlot( ) != 255 )
-				CreateFakePlayer( m_Map->GetMapTournamentFakeSlot( ) );
+				CreateFakePlayer( m_Map->GetMapTournamentFakeSlot( ), "uxtourney" );
 		}
 		else
 		{
@@ -104,11 +103,10 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 			m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "uxtourney" );
 			m_MapType = "uxtourney";
 			m_League = true;
-			m_FakePlayerName = "uxtourney";
 			
 			//create fake player for tournament if possible
 			if( m_Map->GetMapTournamentFakeSlot( ) != 255 )
-				CreateFakePlayer( m_Map->GetMapTournamentFakeSlot( ) );
+				CreateFakePlayer( m_Map->GetMapTournamentFakeSlot( ), "uxtourney" );
 		}
 		else
 		{
@@ -184,6 +182,14 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_MapType = "lihl";
 		
 		m_League = true; 
+	}
+
+	// add fake players according to map
+	vector<uint32_t> FakeLayout = m_Map->GetFakePlayers( );
+
+	for( vector<uint32_t> :: iterator i = FakeLayout.begin( ); i != FakeLayout.end( ); ++i )
+	{
+		CreateFakePlayer( (*i) );
 	}
 
 	m_Guess = 0;
@@ -1631,7 +1637,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( Command == "fakeplayer" && !m_CountDownStarted )
 			{
-				if( m_FakePlayerPID == 255 )
+				if( m_FakePlayers.empty( ) )
 					CreateFakePlayer( );
 				else
 					DeleteFakePlayer( );
@@ -1641,24 +1647,24 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !FPPAUSE
 			//
 
-			else if( Command == "fppause" && m_FakePlayerPID != 255 && m_GameLoaded && ( AdminCheck || RootAdminCheck ) )
+			else if( Command == "fppause" && !m_FakePlayers.empty( ) && m_GameLoaded && ( AdminCheck || RootAdminCheck ) )
 			{
 				BYTEARRAY CRC;
 				BYTEARRAY Action;
 				Action.push_back( 1 );
-				m_Actions.push( new CIncomingAction( m_FakePlayerPID, CRC, Action ) );
+				m_Actions.push( new CIncomingAction( m_FakePlayers[0].pid, CRC, Action ) );
 			}
 
 			//
 			// !FPRESUME
 			//
 
-			else if( Command == "fpresume" && m_FakePlayerPID != 255 && m_GameLoaded && ( AdminCheck || RootAdminCheck ) )
+			else if( Command == "fpresume" && !m_FakePlayers.empty( ) && m_GameLoaded && ( AdminCheck || RootAdminCheck ) )
 			{
 				BYTEARRAY CRC;
 				BYTEARRAY Action;
 				Action.push_back( 2 );
-				m_Actions.push( new CIncomingAction( m_FakePlayerPID, CRC, Action ) );
+				m_Actions.push( new CIncomingAction( m_FakePlayers[0].pid, CRC, Action ) );
 			}
 
 			//

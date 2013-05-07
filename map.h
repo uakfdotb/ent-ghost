@@ -132,6 +132,7 @@ private:
 	uint32_t m_MapNumTeams;
 	vector<CGameSlot> m_Slots;
 	vector<uint32_t> m_TournamentLayout;		// tournament layout from config
+	vector<uint32_t> m_FakePlayers;				// fake players layout from config
 	string m_Conditions;						// win conditions, used for some stats processing
 
 public:
@@ -170,6 +171,7 @@ public:
 	uint32_t GetMapNumTeams( )				{ return m_MapNumTeams; }
 	vector<CGameSlot> GetSlots( )			{ return m_Slots; }
 	vector<uint32_t> GetTournamentLayout( )	{ return m_TournamentLayout; }
+	vector<uint32_t> GetFakePlayers( )		{ return m_FakePlayers; }
 	string GetConditions( )					{ return m_Conditions; }
 
 	void Load( CConfig *CFG, string nCFGFile );
