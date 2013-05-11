@@ -4841,7 +4841,7 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 		{
 			m_AutoHostPlayerCycle++;
 
-			if( m_AutoHostPlayerCycle >= 2 )
+			if( m_AutoHostPlayerCycle >= 3 )
 			{
 				SendAllChat( m_GHost->m_Language->WaitingForPlayersBeforeAutoStart( UTIL_ToString( m_AutoStartPlayers ), UTIL_ToString( m_AutoStartPlayers - GetNumHumanPlayers( ) ) ) );
 				m_AutoHostPlayerCycle = 0;
