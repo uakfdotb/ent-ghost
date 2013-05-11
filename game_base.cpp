@@ -3687,6 +3687,7 @@ void CBaseGame :: EventGameStarted( )
 
 	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 	{
+		(*i)->UnqueueGameRefreshes( );
 		(*i)->QueueGameUncreate( );
 		(*i)->QueueEnterChat( );
 	}

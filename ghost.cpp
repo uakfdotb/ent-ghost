@@ -1173,7 +1173,7 @@ bool CGHost :: Update( long usecBlock )
 
 	// autohost
 
-	if( !m_AutoHostGameName.empty( ) && m_AutoHostMaximumGames != 0 && m_AutoHostAutoStartPlayers != 0 && GetTime( ) - m_LastAutoHostTime >= 30 )
+	if( !m_AutoHostGameName.empty( ) && m_AutoHostMaximumGames != 0 && m_AutoHostAutoStartPlayers != 0 && GetTime( ) - m_LastAutoHostTime >= 10 )
 	{
 		// copy all the checks from CGHost :: CreateGame here because we don't want to spam the chat when there's an error
 		// instead we fail silently and try again soon
@@ -1503,12 +1503,15 @@ void CGHost :: EventBNETEmote( CBNET *bnet, string user, string message )
 
 void CGHost :: EventGameDeleted( CBaseGame *game )
 {
-	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+	if( m_AutoHostMaximumGames == 0 )
 	{
-		(*i)->QueueChatCommand( m_Language->GameIsOver( game->GetDescription( ) ) );
+		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+		{
+			(*i)->QueueChatCommand( m_Language->GameIsOver( game->GetDescription( ) ) );
 
-		if( (*i)->GetServer( ) == game->GetCreatorServer( ) )
-			(*i)->QueueChatCommand( m_Language->GameIsOver( game->GetDescription( ) ), game->GetCreatorName( ), true );
+			if( (*i)->GetServer( ) == game->GetCreatorServer( ) )
+				(*i)->QueueChatCommand( m_Language->GameIsOver( game->GetDescription( ) ), game->GetCreatorName( ), true );
+		}
 	}
 }
 
@@ -1960,23 +1963,26 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 	{
-		if( whisper && (*i)->GetServer( ) == creatorServer )
+		if( m_AutoHostMaximumGames == 0 )
 		{
-			// note that we send this whisper only on the creator server
+			if( whisper && (*i)->GetServer( ) == creatorServer )
+			{
+				// note that we send this whisper only on the creator server
 
-			if( gameState == GAME_PRIVATE )
-				(*i)->QueueChatCommand( m_Language->CreatingPrivateGame( gameName, ownerName ), creatorName, whisper );
-			else if( gameState == GAME_PUBLIC )
-				(*i)->QueueChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ), creatorName, whisper );
-		}
-		else
-		{
-			// note that we send this chat message on all other bnet servers
+				if( gameState == GAME_PRIVATE )
+					(*i)->QueueChatCommand( m_Language->CreatingPrivateGame( gameName, ownerName ), creatorName, whisper );
+				else if( gameState == GAME_PUBLIC )
+					(*i)->QueueChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ), creatorName, whisper );
+			}
+			else
+			{
+				// note that we send this chat message on all other bnet servers
 
-			if( gameState == GAME_PRIVATE )
-				(*i)->QueueChatCommand( m_Language->CreatingPrivateGame( gameName, ownerName ) );
-			else if( gameState == GAME_PUBLIC )
-				(*i)->QueueChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ) );
+				if( gameState == GAME_PRIVATE )
+					(*i)->QueueChatCommand( m_Language->CreatingPrivateGame( gameName, ownerName ) );
+				else if( gameState == GAME_PUBLIC )
+					(*i)->QueueChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ) );
+			}
 		}
 
 		if( saveGame )
