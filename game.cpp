@@ -2797,7 +2797,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		else if( Matches == 1 )
 		{
 			player->Ignore( LastMatch->GetName( ) );
-			SendChat( player, "You have ignored player [" + Payload + "]. You will not be able to send or receive messages from the player." );
+			SendChat( player, "You have ignored player [" + LastMatch->GetName( ) + "]. You will not be able to send or receive messages from the player." );
 		}
 		else
 			SendChat( player, "Unable to ignore player [" + Payload + "]. Found more than one match." );
