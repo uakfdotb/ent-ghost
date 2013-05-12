@@ -835,7 +835,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		}
 		
 		// set the winner if appropriate, or draw the game
-		if( !m_MapType.empty( ) )
+		if( !m_MapType.empty( ) && Team != 12 )
 		{
 			// check if everyone on leaver's team left but other team has more than two players
 			uint32_t CountAlly = 0;
@@ -2821,11 +2821,17 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	//
 	// !DRAW
 	//
-	if( m_GameLoaded && !m_MapType.empty( ) && ( Command == "draw" || Command == "undraw" ) )
+	if( m_GameLoaded && !m_MapType.empty( ) && ( Command == "draw" || Command == "undraw" ) && !m_SoftGameOver )
 	{
-		if( Command == "draw" && !player->GetDrawVote( ) )
+		if( Command == "draw" )
 		{
-			player->SetDrawVote( true );
+			bool ChangedVote = true;
+			
+			if( !player->GetDrawVote( ) )
+				player->SetDrawVote( true );
+			else
+				ChangedVote = false; //continue in case someone left and now we have enough votes
+			
 			uint32_t VotesNeeded = (uint32_t)ceil( GetNumHumanPlayers( ) * (float)m_GHost->m_VoteKickPercentage / 100 );
 			uint32_t Votes = 0;
 			
@@ -2838,8 +2844,11 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			}
 			
 			if( Votes >= VotesNeeded )
-				StopPlayers( "players voted to draw the game" );
-			else
+			{
+				SendAllChat( "The game has now been recorded as a draw. You may leave at any time." );
+				m_SoftGameOver = true;
+			}
+			else if( ChangedVote ) //only display message if they actually changed vote
 			{
 				SendAllChat( "Player [" + player->GetName( ) + "] has voted to draw the game. " + UTIL_ToString( VotesNeeded - Votes ) + " more votes are needed to pass the draw vote." );
 				SendChat( player, "Use !undraw to recall your vote to draw the game." );
@@ -2856,9 +2865,15 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !FORFEIT
 	//
 	
-	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" ) && ( Command == "ff" || Command == "forfeit" ) && !player->GetForfeitVote( ) )
+	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" ) && ( Command == "ff" || Command == "forfeit" ) && !m_SoftGameOver )
 	{
-		player->SetForfeitVote( true );
+		bool ChangedVote = true;
+		
+		if( !player->GetForfeitVote( ) )
+			player->SetForfeitVote( true );
+		else
+			ChangedVote = false;
+		
 		char playerSID = GetSIDFromPID( player->GetPID( ) );
 		
 		if( playerSID != 255 )
@@ -2905,7 +2920,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					SendAllChat( m_GHost->m_Language->ForfeitStatsWarning( ) );
 				}
 			
-				else
+				else if( ChangedVote )
 				{
 					SendAllChat( m_GHost->m_Language->ForfeitVote( player->GetName( ) ) );
 					SendAllChat( m_GHost->m_Language->ForfeitVotesNeeded( UTIL_ToString( numVoted ), UTIL_ToString( numTotal ), ForfeitTeamString ) );
@@ -2927,7 +2942,7 @@ void CGame :: EventGameStarted( )
 	// so we create a "potential ban" for each player and only store it in the database if requested to by an admin
 
         for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
-		m_DBBans.push_back( new CDBBan( 0, (*i)->GetJoinedRealm( ), (*i)->GetName( ), (*i)->GetExternalIPString( ), string( ), string( ), string( ), string( ), string( ), string( ) ) );
+		m_DBBans.push_back( new CDBBan( 0, (*i)->GetJoinedRealm( ), (*i)->GetName( ), (*i)->GetExternalIPString( ), string( ), string( ), string( ), string( ), string( ), string( ), 0 ) );
 }
 
 bool CGame :: IsGameDataSaved( )

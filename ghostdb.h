@@ -114,7 +114,7 @@ public:
 	virtual vector<CDBBan *> BanList( string server );
 	virtual vector<string> WhiteList( );
 	virtual map<string, string> SpoofList( );
-	virtual void BanListFast( CBNET *bnet );
+	virtual vector<CDBBan *> BanListFast( string server, uint32_t banlistfasttime );
 	virtual void ReconUpdate( uint32_t hostcounter, uint32_t seconds );
 	virtual vector<string> CommandList(  );
 	virtual uint32_t GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype );
@@ -155,7 +155,7 @@ public:
 	virtual CCallableBanList *ThreadedBanList( string server );
 	virtual CCallableWhiteList *ThreadedWhiteList( );
 	virtual CCallableSpoofList *ThreadedSpoofList( );
-	virtual CCallableBanListFast *ThreadedBanListFast( CBNET *bnet );
+	virtual CCallableBanListFast *ThreadedBanListFast( string server, uint32_t banlistfasttime );
 	virtual CCallableReconUpdate *ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds );
 	virtual CCallableCommandList *ThreadedCommandList( );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype );
@@ -447,11 +447,16 @@ public:
 class CCallableBanListFast : virtual public CBaseCallable
 {
 protected:
-	CBNET *m_Bnet;
+	string m_Server;
+	uint32_t m_BanListFastTime;
+	vector<CDBBan *> m_Result;
 
 public:
-	CCallableBanListFast( CBNET *nBnet ) : CBaseCallable( ) { m_Bnet = nBnet; }
+	CCallableBanListFast( string nServer, uint32_t nBanListFastTime ) : CBaseCallable( ), m_Server( nServer ), m_BanListFastTime( nBanListFastTime ) { }
 	virtual ~CCallableBanListFast( );
+
+	virtual vector<CDBBan *> GetResult( )				{ return m_Result; }
+	virtual void SetResult( vector<CDBBan *> nResult )	{ m_Result = nResult; }
 };
 
 class CCallableReconUpdate : virtual public CBaseCallable
@@ -884,9 +889,12 @@ private:
 	string m_Reason;
 	string m_ExpireDate;
 	string m_Context;
+	bool m_Delete; //whether this represents a ban that should be deleted from the ban list (ban list fast only)
+	uint32_t m_CacheTime; //0 unless ban list fast
 
 public:
-	CDBBan( uint32_t nId, string nServer, string nName, string nIP, string nDate, string nGameName, string nAdmin, string nReason, string nExpireDate, string nContext );
+	CDBBan( uint32_t nId ); //sets delete = true
+	CDBBan( uint32_t nId, string nServer, string nName, string nIP, string nDate, string nGameName, string nAdmin, string nReason, string nExpireDate, string nContext, uint32_t nCacheTime ); //sets delete = false
 	CDBBan( CDBBan *copy );
 	~CDBBan( );
 
@@ -900,6 +908,8 @@ public:
 	string GetReason( )		{ return m_Reason; }
 	string GetExpireDate( ) { return m_ExpireDate; }
 	string GetContext( )	{ return m_Context; }
+	bool GetDelete( )		{ return m_Delete; }
+	uint32_t GetCacheTime( ){ return m_CacheTime; }
 };
 
 //
