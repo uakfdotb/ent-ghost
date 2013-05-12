@@ -114,6 +114,9 @@ void CGHostDBMySQL :: RecoverCallable( CBaseCallable *callable )
 
 	if( MySQLCallable )
 	{
+		if( !MySQLCallable->GetError( ).empty( ) )
+			CONSOLE_Print( "[MYSQL] error --- " + MySQLCallable->GetError( ) );
+
 		if( m_IdleConnections.size( ) > 8 || !MySQLCallable->GetError( ).empty( ) )
 		{
 			mysql_close( (MYSQL *)MySQLCallable->GetConnection( ) );
@@ -126,9 +129,6 @@ void CGHostDBMySQL :: RecoverCallable( CBaseCallable *callable )
 			CONSOLE_Print( "[MYSQL] recovered a mysql callable with zero outstanding" );
 		else
                         --m_OutstandingCallables;
-
-		if( !MySQLCallable->GetError( ).empty( ) )
-			CONSOLE_Print( "[MYSQL] error --- " + MySQLCallable->GetError( ) );
 	}
 	else
 		CONSOLE_Print( "[MYSQL] tried to recover a non-mysql callable" );
