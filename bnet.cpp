@@ -865,7 +865,7 @@ void CBNET :: ProcessPackets( )
 				{
 					CONSOLE_Print( "[BNET: " + m_ServerAlias + "] joining channel [" + m_FirstChannel + "]" );
 					m_InChat = true;
-					m_Socket->PutBytes( m_Protocol->SEND_SID_JOINCHANNEL( m_FirstChannel ) );
+					m_OutPackets.push( m_Protocol->SEND_SID_JOINCHANNEL( m_FirstChannel ) );
 				}
 
 				break;
@@ -1047,8 +1047,8 @@ void CBNET :: ProcessPackets( )
 					m_GHost->EventBNETLoggedIn( this );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_NETGAMEPORT( m_GHost->m_HostPort ) );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_ENTERCHAT( ) );
-					m_Socket->PutBytes( m_Protocol->SEND_SID_FRIENDSLIST( ) );
-					m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
+					m_OutPackets.push( m_Protocol->SEND_SID_FRIENDSLIST( ) );
+					m_OutPackets.push( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
 				}
 				else
 				{
@@ -2322,19 +2322,19 @@ void CBNET :: UxReconnected( )
 void CBNET :: SendJoinChannel( string channel )
 {
 	if( m_LoggedIn && m_InChat )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_JOINCHANNEL( channel ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_JOINCHANNEL( channel ) );
 }
 
 void CBNET :: SendGetFriendsList( )
 {
 	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_FRIENDSLIST( ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_FRIENDSLIST( ) );
 }
 
 void CBNET :: SendGetClanList( )
 {
 	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
 }
 
 void CBNET :: QueueEnterChat( )
@@ -2350,34 +2350,34 @@ void CBNET :: QueueEnterChat( )
 void CBNET :: SendClanInvitation( string accountName )
 {
 	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANINVITATION( accountName ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_CLANINVITATION( accountName ) );
 }
 
 void CBNET :: SendClanRemoveMember( string accountName )
 {
 	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANREMOVEMEMBER( accountName ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_CLANREMOVEMEMBER( accountName ) );
 }
 
 void CBNET :: SendClanChangeRank( string accountName, CBNETProtocol :: RankCode rank )
 {
 	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANCHANGERANK( accountName, rank ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_CLANCHANGERANK( accountName, rank ) );
 }
 
 void CBNET :: SendClanSetMotd( string motd )
 {
 	if( m_LoggedIn )
-		m_Socket->PutBytes( m_Protocol->SEND_SID_CLANSETMOTD( motd ) );
+		m_OutPackets.push( m_Protocol->SEND_SID_CLANSETMOTD( motd ) );
 }
 
 void CBNET :: SendClanAcceptInvite( bool accept )
 {
 	if( m_LoggedIn ) {
 		if( m_LastInviteCreation )
-			m_Socket->PutBytes( m_Protocol->SEND_SID_CLANCREATIONINVITATION( accept ) );
+			m_OutPackets.push( m_Protocol->SEND_SID_CLANCREATIONINVITATION( accept ) );
 		else
-			m_Socket->PutBytes( m_Protocol->SEND_SID_CLANINVITATIONRESPONSE( accept ) );
+			m_OutPackets.push( m_Protocol->SEND_SID_CLANINVITATIONRESPONSE( accept ) );
 	}
 }
 
