@@ -3862,11 +3862,11 @@ string CBaseGame :: GetPlayerList( )
 			CGamePlayer *player = GetPlayerFromSID( i );
 			
 			if( player )
-				players += player->GetName( ) + "\t" + player->GetSpoofedRealm( ) + "\t" + UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "\t";
+				players += player->GetName( ) + "\t" + player->GetSpoofedRealm( ) + "\t" + UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "\t" + player->GetExternalIPString( ) + "\t";
 		}
 		
 		else if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN )
-			players += "\t\t\t";
+			players += "\t\t\t\t";
 	}
 
 	return players;
