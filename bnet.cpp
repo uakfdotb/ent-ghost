@@ -1287,6 +1287,10 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 }
 
 void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceRoot ) {
+	// don't handle commands if bot is disabled
+	if( m_GHost->m_DisableBot )
+		return;
+	
 	// extract the command trigger, the command, and the payload
 	// e.g. "!say hello world" -> command: "say", payload: "hello world"
 
@@ -2383,7 +2387,7 @@ void CBNET :: SendClanAcceptInvite( bool accept )
 
 void CBNET :: QueueChatCommand( string chatCommand )
 {
-	if( chatCommand.empty( ) )
+	if( chatCommand.empty( ) || m_GHost->m_DisableBot )
 		return;
 
 	if( m_LoggedIn )

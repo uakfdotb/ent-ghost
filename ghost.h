@@ -202,6 +202,8 @@ public:
 	uint32_t m_LastSpoofRefreshTime;		// refresh spoof list every 2 hours
 	CCallableSpoofList *m_CallableSpoofList; // spoof list refresh in progress
 
+	bool m_DisableBot;						// whether this bot is currently disabled
+
 	CGHost( CConfig *CFG );
 	~CGHost( );
 
