@@ -55,6 +55,7 @@ class CCallableDotAPlayerAdd;
 class CCallableDotAPlayerSummaryCheck;
 class CCallableVampPlayerSummaryCheck;
 class CCallableTreePlayerSummaryCheck;
+class CCallableIslandPlayerSummaryCheck;
 class CCallableShipsPlayerSummaryCheck;
 class CCallableSnipePlayerSummaryCheck;
 class CCallableW3MMDPlayerSummaryCheck;
@@ -75,6 +76,7 @@ class CDBGamePlayerSummary;
 class CDBDotAPlayerSummary;
 class CDBVampPlayerSummary;
 class CDBTreePlayerSummary;
+class CDBIslandPlayerSummary;
 class CDBShipsPlayerSummary;
 class CDBSnipePlayerSummary;
 class CDBW3MMDPlayerSummary;
@@ -129,6 +131,7 @@ public:
 	virtual uint32_t DotAPlayerCount( string name );
 	virtual CDBDotAPlayerSummary *DotAPlayerSummaryCheck( string name, string realm, string saveType );
 	virtual CDBTreePlayerSummary *TreePlayerSummaryCheck( string name, string realm );
+	virtual CDBIslandPlayerSummary *IslandPlayerSummaryCheck( string name, string realm );
 	virtual CDBShipsPlayerSummary *ShipsPlayerSummaryCheck( string name, string realm );
 	virtual CDBSnipePlayerSummary *SnipePlayerSummaryCheck( string name, string realm );
 	virtual CDBW3MMDPlayerSummary *W3MMDPlayerSummaryCheck( string name, string realm, string category );
@@ -168,6 +171,7 @@ public:
 	virtual CCallableDotAPlayerAdd *ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills, string saveType );
 	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name, string realm, string saveType );
 	virtual CCallableTreePlayerSummaryCheck *ThreadedTreePlayerSummaryCheck( string name, string realm );
+	virtual CCallableIslandPlayerSummaryCheck *ThreadedIslandPlayerSummaryCheck( string name, string realm );
 	virtual CCallableShipsPlayerSummaryCheck *ThreadedShipsPlayerSummaryCheck( string name, string realm );
 	virtual CCallableSnipePlayerSummaryCheck *ThreadedSnipePlayerSummaryCheck( string name, string realm );
 	virtual CCallableW3MMDPlayerSummaryCheck *ThreadedW3MMDPlayerSummaryCheck( string name, string realm, string category );
@@ -661,6 +665,23 @@ public:
 	virtual string GetRealm( )								{ return m_Realm; }
 	virtual CDBTreePlayerSummary *GetResult( )				{ return m_Result; }
 	virtual void SetResult( CDBTreePlayerSummary *nResult )	{ m_Result = nResult; }
+};
+
+class CCallableIslandPlayerSummaryCheck : virtual public CBaseCallable
+{
+protected:
+	string m_Name;
+	string m_Realm;
+	CDBIslandPlayerSummary *m_Result;
+
+public:
+	CCallableIslandPlayerSummaryCheck( string nName, string nRealm ) : CBaseCallable( ), m_Name( nName ), m_Realm( nRealm ), m_Result( NULL ) { }
+	virtual ~CCallableIslandPlayerSummaryCheck( );
+
+	virtual string GetName( )								{ return m_Name; }
+	virtual string GetRealm( )								{ return m_Realm; }
+	virtual CDBIslandPlayerSummary *GetResult( )				{ return m_Result; }
+	virtual void SetResult( CDBIslandPlayerSummary *nResult )	{ m_Result = nResult; }
 };
 
 class CCallableShipsPlayerSummaryCheck : virtual public CBaseCallable
@@ -1245,6 +1266,46 @@ public:
 	float GetAvgTKs( )					{ return m_TotalEntGames > 0 ? (float)m_TotalTKs / m_TotalEntGames : 0; }
 	float GetAvgDeaths( )				{ return m_TotalEntGames > 0 ? (float)m_TotalDeaths / m_TotalEntGames : 0; }
 	float GetAvgSaves( )				{ return m_TotalEntGames > 0 ? (float)m_TotalSaves / m_TotalEntGames : 0; }
+};
+
+//
+// CDBIslandPlayerSummary
+//
+
+class CDBIslandPlayerSummary
+{
+private:
+	string m_Server;
+	string m_Name;
+	uint32_t m_TotalGames;			// total number of dota games played
+	uint32_t m_TotalWins;			// total number of dota games won
+	uint32_t m_TotalLosses;			// total number of dota games lost
+	uint32_t m_BuilderGames;
+	uint32_t m_TitanGames;
+	uint32_t m_BuilderKills;
+	uint32_t m_BuilderDeaths;
+	uint32_t m_BuilderAfk;
+    double m_Score;
+
+public:
+	CDBIslandPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nBuilderGames, uint32_t nTitanGames, uint32_t nBuilderKills, uint32_t nBuilderDeaths, uint32_t nBuilderAfk, double nScore );
+	~CDBIslandPlayerSummary( );
+
+	string GetServer( )					{ return m_Server; }
+	string GetName( )					{ return m_Name; }
+	uint32_t GetTotalGames( )			{ return m_TotalGames; }
+	uint32_t GetTotalWins( )			{ return m_TotalWins; }
+	uint32_t GetTotalLosses( )			{ return m_TotalLosses; }
+	uint32_t GetBuilderGames( )			{ return m_BuilderGames; }
+	uint32_t GetTitanGames( )			{ return m_TitanGames; }
+	uint32_t GetBuilderKills( )			{ return m_BuilderKills; }
+	uint32_t GetBuilderDeaths( )			{ return m_BuilderDeaths; }
+	uint32_t GetBuilderAfk( )			{ return m_BuilderAfk; }
+    double GetScore( )					{ return m_Score; }
+
+	float GetAvgKills( )				{ return m_BuilderGames > 0 ? (float)m_BuilderKills / m_BuilderGames : 0; }
+	float GetAvgDeaths( )				{ return m_BuilderGames > 0 ? (float)m_BuilderDeaths / m_BuilderGames : 0; }
+	float GetAvgAfk( )					{ return m_BuilderGames > 0 ? (float)m_BuilderAfk / m_BuilderGames : 0; }
 };
 
 //

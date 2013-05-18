@@ -270,6 +270,9 @@ CGame :: ~CGame( )
 	for( vector<PairedTPSCheck> :: iterator i = m_PairedTPSChecks.begin( ); i != m_PairedTPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
+	for( vector<PairedIPSCheck> :: iterator i = m_PairedIPSChecks.begin( ); i != m_PairedIPSChecks.end( ); ++i )
+		m_GHost->m_Callables.push_back( i->second );
+
 	for( vector<PairedSPSCheck> :: iterator i = m_PairedSPSChecks.begin( ); i != m_PairedSPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
@@ -581,6 +584,57 @@ bool CGame :: Update( void *fd, void *send_fd )
 			m_GHost->m_DB->RecoverCallable( i->second );
 			delete i->second;
 			i = m_PairedTPSChecks.erase( i );
+		}
+		else
+			++i;
+	}
+
+	for( vector<PairedIPSCheck> :: iterator i = m_PairedIPSChecks.begin( ); i != m_PairedIPSChecks.end( ); )
+	{
+		if( i->second->GetReady( ) )
+		{
+			CDBIslandPlayerSummary *IslandPlayerSummary = i->second->GetResult( );
+			string StatsName = i->second->GetName( );
+			
+			if( !i->second->GetRealm( ).empty( ) )
+				StatsName += "@" + i->second->GetRealm( );
+
+			if( IslandPlayerSummary && IslandPlayerSummary->GetTotalGames( ) > 0 )
+			{
+				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( IslandPlayerSummary->GetTotalGames( ) ) + " Island Defense games here (ELO: " + UTIL_ToString( IslandPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( IslandPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( IslandPlayerSummary->GetTotalLosses( ) ) + ". B/T: " + UTIL_ToString( IslandPlayerSummary->GetBuilderGames( ) ) + "/" + UTIL_ToString( IslandPlayerSummary->GetTitanGames( ) ) + ". Builder K/D/A: " + UTIL_ToString( IslandPlayerSummary->GetBuilderKills( ) ) + "/" + UTIL_ToString( IslandPlayerSummary->GetBuilderDeaths( ) ) + "/" + UTIL_ToString( IslandPlayerSummary->GetBuilderAfk( ) ) + " (" + UTIL_ToString( IslandPlayerSummary->GetAvgKills( ), 2 ) + "/" + UTIL_ToString( IslandPlayerSummary->GetAvgDeaths( ), 2 ) + "/" + UTIL_ToString( IslandPlayerSummary->GetAvgAfk( ), 2 ) + ").";
+
+				if( i->first.empty( ) )
+					SendAllChat( Summary );
+				else
+				{
+					CGamePlayer *Player = GetPlayerFromName( i->first, true );
+					
+					if( Player )
+						SendChat( Player, Summary );
+				}
+				
+				// update player's score
+				CGamePlayer *CheckedPlayer = GetPlayerFromName( i->second->GetName( ), false );
+				
+				if( CheckedPlayer && CheckedPlayer->GetScore( ) < -99999.0 )
+					CheckedPlayer->SetScore( IslandPlayerSummary->GetScore( ) );
+			}
+			else
+			{
+				if( i->first.empty( ) )
+					SendAllChat( "[" + StatsName + "] hasn't played any Island Defense games here." );
+				else
+				{
+					CGamePlayer *Player = GetPlayerFromName( i->first, true );
+
+					if( Player )
+					SendAllChat( "[" + StatsName + "] hasn't played any Island Defense games here." );
+				}
+			}
+
+			m_GHost->m_DB->RecoverCallable( i->second );
+			delete i->second;
+			i = m_PairedIPSChecks.erase( i );
 		}
 		else
 			++i;
@@ -2545,6 +2599,28 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_PairedTPSChecks.push_back( PairedTPSCheck( string( ), m_GHost->m_DB->ThreadedTreePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 		else
 			m_PairedTPSChecks.push_back( PairedTPSCheck( User, m_GHost->m_DB->ThreadedTreePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
+	// !ISLANDSTATS
+	//
+
+	else if( (Command == "islandstats" || Command == "ids" || Command == "is" || Command == "si") && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
+	{
+		string StatsUser = User;
+
+		if( !Payload.empty( ) )
+			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
+
+		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+			m_PairedIPSChecks.push_back( PairedIPSCheck( string( ), m_GHost->m_DB->ThreadedIslandPlayerSummaryCheck( StatsUser, StatsRealm ) ) );
+		else
+			m_PairedIPSChecks.push_back( PairedIPSCheck( User, m_GHost->m_DB->ThreadedIslandPlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}

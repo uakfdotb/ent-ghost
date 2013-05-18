@@ -41,6 +41,7 @@ class CCallableGamePlayerSummaryCheck;
 class CCallableDotAPlayerSummaryCheck;
 class CCallableVampPlayerSummaryCheck;
 class CCallableTreePlayerSummaryCheck;
+class CCallableIslandPlayerSummaryCheck;
 class CCallableSnipePlayerSummaryCheck;
 class CCallableShipsPlayerSummaryCheck;
 class CCallableW3MMDPlayerSummaryCheck;
@@ -52,6 +53,7 @@ typedef pair<string,CCallableGamePlayerSummaryCheck *> PairedGPSCheck;
 typedef pair<string,CCallableDotAPlayerSummaryCheck *> PairedDPSCheck;
 typedef pair<string,CCallableVampPlayerSummaryCheck *> PairedVPSCheck;
 typedef pair<string,CCallableTreePlayerSummaryCheck *> PairedTPSCheck;
+typedef pair<string,CCallableIslandPlayerSummaryCheck *> PairedIPSCheck;
 typedef pair<string,CCallableSnipePlayerSummaryCheck *> PairedSPSCheck;
 typedef pair<string,CCallableShipsPlayerSummaryCheck *> PairedBPSCheck;
 typedef pair<string,CCallableW3MMDPlayerSummaryCheck *> PairedWPSCheck;
@@ -74,6 +76,7 @@ protected:
 	vector<PairedDPSCheck> m_PairedDPSChecks;	// vector of paired threaded database DotA player summary checks in progress
 	vector<PairedVPSCheck> m_PairedVPSChecks;	// vector of paired threaded database vamp player summary checks in progress
 	vector<PairedTPSCheck> m_PairedTPSChecks;	// vector of paired threaded database treetag player summary checks in progress
+	vector<PairedIPSCheck> m_PairedIPSChecks;	// vector of paired threaded database islanddefense player summary checks in progress
 	vector<PairedSPSCheck> m_PairedSPSChecks;	// vector of paired threaded database sniper player summary checks in progress
 	vector<PairedBPSCheck> m_PairedBPSChecks;	// vector of paired threaded database battleships player summary checks in progress
 	vector<PairedWPSCheck> m_PairedWPSChecks;	// vector of paired threaded database battleships player summary checks in progress

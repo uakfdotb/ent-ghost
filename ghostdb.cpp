@@ -193,6 +193,11 @@ CDBTreePlayerSummary *CGHostDB :: TreePlayerSummaryCheck( string name, string re
 	return NULL;
 }
 
+CDBIslandPlayerSummary *CGHostDB :: IslandPlayerSummaryCheck( string name, string realm )
+{
+	return NULL;
+}
+
 CDBShipsPlayerSummary *CGHostDB :: ShipsPlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
@@ -369,6 +374,11 @@ CCallableDotAPlayerSummaryCheck *CGHostDB :: ThreadedDotAPlayerSummaryCheck( str
 }
 
 CCallableTreePlayerSummaryCheck *CGHostDB :: ThreadedTreePlayerSummaryCheck( string name, string realm )
+{
+	return NULL;
+}
+
+CCallableIslandPlayerSummaryCheck *CGHostDB :: ThreadedIslandPlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
 }
@@ -579,6 +589,11 @@ CCallableDotAPlayerSummaryCheck :: ~CCallableDotAPlayerSummaryCheck( )
 }
 
 CCallableTreePlayerSummaryCheck :: ~CCallableTreePlayerSummaryCheck( )
+{
+	delete m_Result;
+}
+
+CCallableIslandPlayerSummaryCheck :: ~CCallableIslandPlayerSummaryCheck( )
 {
 	delete m_Result;
 }
@@ -815,6 +830,16 @@ CDBTreePlayerSummary :: CDBTreePlayerSummary( string nServer, string nName, uint
 }
 
 CDBTreePlayerSummary :: ~CDBTreePlayerSummary( )
+{
+
+}
+
+CDBIslandPlayerSummary :: CDBIslandPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nBuilderGames, uint32_t nTitanGames, uint32_t nBuilderKills, uint32_t nBuilderDeaths, uint32_t nBuilderAfk, double nScore ) : m_Server( nServer ), m_Name( nName ), m_TotalGames( nTotalGames ), m_TotalWins( nTotalWins ), m_TotalLosses( nTotalLosses ), m_BuilderGames( nBuilderGames ), m_TitanGames( nTitanGames ), m_BuilderKills( nBuilderKills), m_BuilderDeaths( nBuilderDeaths ), m_BuilderAfk( nBuilderAfk ), m_Score( nScore )
+{
+
+}
+
+CDBIslandPlayerSummary :: ~CDBIslandPlayerSummary( )
 {
 
 }

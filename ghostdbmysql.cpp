@@ -482,6 +482,19 @@ CCallableTreePlayerSummaryCheck *CGHostDBMySQL :: ThreadedTreePlayerSummaryCheck
 	return Callable;
 }
 
+CCallableIslandPlayerSummaryCheck *CGHostDBMySQL :: ThreadedIslandPlayerSummaryCheck( string name, string realm )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableIslandPlayerSummaryCheck *Callable = new CMySQLCallableIslandPlayerSummaryCheck( name, realm, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port, this );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
 CCallableSnipePlayerSummaryCheck *CGHostDBMySQL :: ThreadedSnipePlayerSummaryCheck( string name, string realm )
 {
 	void *Connection = GetIdleConnection( );
@@ -1784,6 +1797,59 @@ CDBTreePlayerSummary *MySQLTreePlayerSummaryCheck( void *conn, string *error, ui
 	return TreePlayerSummary;
 }
 
+CDBIslandPlayerSummary *MySQLIslandPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm )
+{
+	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
+	string EscName = MySQLEscapeString( conn, name );
+	string EscRealm = MySQLEscapeString( conn, realm );
+	CDBIslandPlayerSummary *IslandPlayerSummary = NULL;
+	string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(intstats0), 0), IFNULL(SUM(intstats1), 0), IFNULL(SUM(intstats2), 0), IFNULL(SUM(intstats3), 0), IFNULL(SUM(intstats4), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM w3mmd_elo_scores WHERE name='" + EscName + "' AND category = 'islanddefense'";
+	
+	if( !realm.empty( ) )
+		Query += " AND server = '" + EscRealm + "'";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+			uint32_t TotalGames = UTIL_ToUInt32( Row[0] );
+
+			if( Row.size( ) == 9 )
+			{
+				uint32_t TotalGames = UTIL_ToUInt32( Row[0] );
+				
+				if( TotalGames > 0 )
+				{
+					uint32_t TotalWins = UTIL_ToUInt32( Row[6] );
+					uint32_t TotalLosses = UTIL_ToUInt32( Row[7] );
+					uint32_t TotalGames = UTIL_ToUInt32( Row[0] );
+					uint32_t BuilderGames = UTIL_ToUInt32( Row[1] );
+		            uint32_t TitanGames = UTIL_ToUInt32( Row[2] );
+					uint32_t BuilderKills = UTIL_ToUInt32( Row[4] );
+					uint32_t BuilderDeaths = UTIL_ToUInt32( Row[5] );
+		            uint32_t BuilderAfk = UTIL_ToUInt32( Row[3] );
+					double Score = UTIL_ToDouble( Row[8] );
+
+					// done
+
+					IslandPlayerSummary = new CDBIslandPlayerSummary( realm, name, TotalGames, TotalWins, TotalLosses, BuilderGames, TitanGames, BuilderKills, BuilderDeaths, BuilderAfk, Score );
+				}
+			}
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+
+	return IslandPlayerSummary;
+}
+
 CDBShipsPlayerSummary *MySQLShipsPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
@@ -2707,6 +2773,16 @@ void CMySQLCallableTreePlayerSummaryCheck :: operator( )( )
 
 	if( m_Error.empty( ) )
 		m_Result = MySQLTreePlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name, m_Realm );
+
+	Close( );
+}
+
+void CMySQLCallableIslandPlayerSummaryCheck :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		m_Result = MySQLIslandPlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name, m_Realm );
 
 	Close( );
 }
