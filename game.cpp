@@ -1062,7 +1062,189 @@ bool CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 		SendEndMessage( );
 		m_GameOverTime = GetTime( );
 	}
-	
+
+	// scan the action packet to detect various things
+	// for example, check for players saving the game and notify everyone
+
+	if( !action->GetAction( )->empty( ) )
+	{
+		BYTEARRAY *ActionData = action->GetAction( );
+		unsigned int i = 0;
+
+		uint32_t PacketLength = ActionData->size( );
+
+		if( PacketLength > 0 )
+		{
+			uint32_t n = 0;
+			uint32_t p = 0;
+
+			unsigned int CurrentID = 255;
+			unsigned int PreviousID = 255;
+
+			while( n < PacketLength )
+			{
+				PreviousID = CurrentID;
+				CurrentID = (*ActionData)[n];
+
+				switch ( CurrentID )
+				{
+						case 0x00 : SendAllChat( "WARNING: Invalid action packet detected (id=0x00, username=" + player->GetName( ) + ")." ); break;
+						case 0x01 : n += 1; break;
+						case 0x02 : n += 1; break;
+						case 0x03 : n += 2; break;
+						case 0x04 : n += 1; break;
+						case 0x05 : n += 1; break;
+						case 0x06 :
+						{
+							bool Failed = true;
+							while( n < PacketLength )
+							{
+								if((*ActionData)[n] == 0)
+								{
+									Failed = false;
+									break;
+								}
+								++n;
+							}
+							++n;
+							
+							if( Failed )
+								SendAllChat( "WARNING: Invalid action packet detected (id=0x06, bad content, username=" + player->GetName( ) + ")." );
+
+							// notify everyone that a player is saving the game
+							CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + player->GetName( ) + "] is saving the game" );
+							SendAllChat( m_GHost->m_Language->PlayerIsSavingTheGame( player->GetName( ) ) );
+						}
+						break;
+						case 0x07 : n += 5; break;
+						case 0x08 : SendAllChat( "WARNING: Invalid action packet detected (id=0x08, username=" + player->GetName( ) + ")." ); break;
+						case 0x09 : SendAllChat( "WARNING: Invalid action packet detected (id=0x09, username=" + player->GetName( ) + ")." ); break;
+						case 0x10 : n += 15; break;
+						case 0x11 : n += 23; break;
+						case 0x12 : n += 31; break;
+						case 0x13 : n += 39; break;
+						case 0x14 : n += 44; break;
+						case 0x15 : SendAllChat( "WARNING: Invalid action packet detected (id=0x15, username=" + player->GetName( ) + ")." ); break;
+						case 0x16 :
+						case 0x17 :
+							if( n + 4 > PacketLength )
+								SendAllChat( "WARNING: Invalid action packet detected (id=0x17, bad packet length, username=" + player->GetName( ) + ")." );
+							else
+							{
+								unsigned char i = (*ActionData)[n+2];
+								if( (*ActionData)[n+3] != 0x00 || i > 16 )
+									SendAllChat( "WARNING: Invalid action packet detected (id=0x17, bad subsection, username=" + player->GetName( ) + ")." );
+								else
+									n += (4 + (i * 8));
+							}
+						break;
+						case 0x18 : n += 3; break;
+						case 0x19 : n += 13; break;
+						case 0x1A : n += 1; break;
+						case 0x1B : n += 10; break;
+						case 0x1C : n += 10; break;
+						case 0x1D : n += 9; break;
+						case 0x1E : n += 6; break;
+						case 0x1F : SendAllChat( "WARNING: Invalid action packet detected (id=0x1F, username=" + player->GetName( ) + ")." ); break;
+						case 0x20 : SendAllChat( "WARNING: Invalid action packet detected (id=0x20, username=" + player->GetName( ) + ")." ); break;
+						case 0x21 : n += 9; break;
+
+						case 0x50 : n += 6; break;
+						case 0x51 :
+						{
+							n += 10;
+
+							if( m_MapType == "dota" || m_MapType == "dota2" || m_MapType == "dotaab" || m_MapType == "lod" || m_MapType == "eihl" )
+							{
+						 		SendAllChat( "Trade hacking tool detected!" );
+						 		SendAllChat( "Player [" + player->GetName( ) + "] was prevented from transferring resources." );
+
+								m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( player->GetSpoofedRealm(), player->GetName( ), player->GetExternalIPString(), m_GameName, "antitradehack", "Trade hacking tool detected in game.", 3600 * 24 * 7, "ttr.cloud" ));
+
+						 		player->SetDeleteMe( true );
+						 		player->SetLeftReason( "was kicked by anti-tradehack" );
+						 		player->SetLeftCode( PLAYERLEAVE_LOST );
+							}
+						}
+						break;
+						case 0x52 : SendAllChat( "WARNING: Invalid action packet detected (id=0x52, username=" + player->GetName( ) + ")." ); break;
+						case 0x53 : SendAllChat( "WARNING: Invalid action packet detected (id=0x53, username=" + player->GetName( ) + ")." ); break;
+						case 0x54 : SendAllChat( "WARNING: Invalid action packet detected (id=0x54, username=" + player->GetName( ) + ")." ); break;
+						case 0x55 : SendAllChat( "WARNING: Invalid action packet detected (id=0x55, username=" + player->GetName( ) + ")." ); break;
+						case 0x56 : SendAllChat( "WARNING: Invalid action packet detected (id=0x56, username=" + player->GetName( ) + ")." ); break;
+						case 0x57 : SendAllChat( "WARNING: Invalid action packet detected (id=0x57, username=" + player->GetName( ) + ")." ); break;
+						case 0x58 : SendAllChat( "WARNING: Invalid action packet detected (id=0x58, username=" + player->GetName( ) + ")." ); break;
+						case 0x59 : SendAllChat( "WARNING: Invalid action packet detected (id=0x59, username=" + player->GetName( ) + ")." ); break;
+						case 0x5A : SendAllChat( "WARNING: Invalid action packet detected (id=0x5A, username=" + player->GetName( ) + ")." ); break;
+						case 0x5B : SendAllChat( "WARNING: Invalid action packet detected (id=0x5B, username=" + player->GetName( ) + ")." ); break;
+						case 0x5C : SendAllChat( "WARNING: Invalid action packet detected (id=0x5C, username=" + player->GetName( ) + ")." ); break;
+						case 0x5D : SendAllChat( "WARNING: Invalid action packet detected (id=0x5D, username=" + player->GetName( ) + ")." ); break;
+						case 0x5E : SendAllChat( "WARNING: Invalid action packet detected (id=0x5E, username=" + player->GetName( ) + ")." ); break;
+						case 0x5F : SendAllChat( "WARNING: Invalid action packet detected (id=0x5F, username=" + player->GetName( ) + ")." ); break;
+						case 0x60 :
+						{
+							n += 9;
+							unsigned int j = 0;
+							bool Failed = true;
+							while( n < PacketLength && j < 128 )
+							{
+								if((*ActionData)[n] == 0)
+								{
+									Failed = false;
+									break;
+								}
+								++n;
+								++j;
+							}
+							++n;
+
+							if( Failed )
+								SendAllChat( "WARNING: Invalid action packet detected (id=0x60, bad content, username=" + player->GetName( ) + ")." );
+						}
+						break;
+						case 0x61 : n += 1; break;
+						case 0x62 : n += 13; break;
+						case 0x63 : n += 9; break;
+						case 0x64 : n += 9; break;
+						case 0x65 : n += 9; break;
+						case 0x66 : n += 1; break;
+						case 0x67 : n += 1; break;
+						case 0x68 : n += 13; break;
+						case 0x69 : n += 17; break;
+						case 0x6A : n += 17; break;
+						case 0x6B : // used by W3MMD
+						{
+							++n;
+							unsigned int j = 0;
+							while( n < PacketLength && j < 3 )
+							{
+								if((*ActionData)[n] == 0) {
+									++j;
+								}
+								++n;
+							}
+							n += 4;
+						}
+						break;
+						case 0x6C : SendAllChat( "WARNING: Invalid action packet detected (id=0x6C, username=" + player->GetName( ) + ")." ); break;
+						case 0x6D : SendAllChat( "WARNING: Invalid action packet detected (id=0x6D, username=" + player->GetName( ) + ")." ); break;
+						case 0x6E : SendAllChat( "WARNING: Invalid action packet detected (id=0x6E, username=" + player->GetName( ) + ")." ); break;
+						case 0x6F : SendAllChat( "WARNING: Invalid action packet detected (id=0x6F, username=" + player->GetName( ) + ")." ); break;
+						case 0x70 : SendAllChat( "WARNING: Invalid action packet detected (id=0x70, username=" + player->GetName( ) + ")." ); break;
+						case 0x71 : SendAllChat( "WARNING: Invalid action packet detected (id=0x71, username=" + player->GetName( ) + ")." ); break;
+						case 0x72 : SendAllChat( "WARNING: Invalid action packet detected (id=0x72, username=" + player->GetName( ) + ")." ); break;
+						case 0x73 : SendAllChat( "WARNING: Invalid action packet detected (id=0x73, username=" + player->GetName( ) + ")." ); break;
+						case 0x74 : SendAllChat( "WARNING: Invalid action packet detected (id=0x74, username=" + player->GetName( ) + ")." ); break;
+						case 0x75 : n += 2; break;
+						default:
+							SendAllChat( "WARNING: Invalid action packet detected (id=" + UTIL_ToString( CurrentID ) + ", username=" + player->GetName( ) + ")." );
+				}
+
+				p = n;
+			}
+		}
+	}
+
 	return success;
 }
 
@@ -1958,6 +2140,20 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				
 				if( AdminCheck || RootAdminCheck )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!muteall", "muted global chat", m_GameName ) );
+			}
+
+			//
+			// !NORESTRICT
+			//
+
+			else if( ( Command == "norestrict" || Command == "restrict" ) && ( AdminCheck || RootAdminCheck ) )
+			{
+				m_TournamentRestrict = !m_TournamentRestrict;
+
+				if( m_TournamentRestrict )
+					SendAllChat( "Restrictions on joining tournament players has been re-enabled." );
+				else
+					SendAllChat( "Restrictions on joining tournament players has been disabled. Use the command again to re-enable." );
 			}
 
 			//

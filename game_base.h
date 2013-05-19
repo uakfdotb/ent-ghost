@@ -147,6 +147,7 @@ protected:
 	bool m_Tournament;								// whether or not this is a uxtourney system game
 	uint32_t m_TournamentMatchID;					// if m_Tournament, this is the tournament match ID
 	uint32_t m_TournamentChatID;					// if m_Tournament, this is the chat id
+	bool m_TournamentRestrict;						// whether to restrict joiners based on tournament players table
 	vector<FakePlayer>  m_FakePlayers;				// vector of fake players
 
 public:
