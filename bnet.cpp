@@ -684,7 +684,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			WaitTicks = 7800;
 
 		//disable waitticks for our own server
-		if( m_Server == "hive.clanent.net" )
+		if( m_Server == "hive.entgaming.net" )
 			WaitTicks = 0;
 
 		boost::mutex::scoped_lock packetsLock( m_PacketsMutex );

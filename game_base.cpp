@@ -1694,7 +1694,7 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 
 		SendChat( player, "===========================================================================" );
 		SendChat( player, "Welcome! The current game name is " + m_GameName + "." );
-		SendChat( player, "This game is brought to you by Clan ENT (http://clanent.net/)" );
+		SendChat( player, "This game is brought to you by Clan ENT (http://entgaming.net/)" );
 		SendChat( player, "===========================================================================" );
 
 		if( !m_HCLCommandString.empty( ) )
@@ -1792,8 +1792,8 @@ void CBaseGame :: SendBannedInfo( CPotentialPlayer *player, CDBBan *Ban, string 
 		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Admin: " + Ban->GetAdmin( ) ) );
 		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Reason: " + Ban->GetReason( ) ) );
 		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Gamename: " + Ban->GetGameName( ) ) );
-		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "Most bans are temporary; register on clanent.net and validate your account for more details on your ban." ) );
-		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "You can also appeal your ban on clanent.net." ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "Most bans are temporary; register on entgaming.net and validate your account for more details on your ban." ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "You can also appeal your ban on entgaming.net." ) );
 		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "You will be automatically kicked in a few seconds." ) );
 	}
 	else if(type == "score") {
@@ -3054,7 +3054,7 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 					{
 						for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 						{
-							if( (*i)->GetServer( ) == "hive.clanent.net" )
+							if( (*i)->GetServer( ) == "hive.entgaming.net" )
 							{
 								(*i)->QueueChatCommand( "announcefun " + player->GetName( ) + " " + chatPlayer->GetMessage( ) );
 							}
