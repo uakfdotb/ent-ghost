@@ -1798,8 +1798,8 @@ void CBaseGame :: SendBannedInfo( CPotentialPlayer *player, CDBBan *Ban, string 
 	}
 	else if(type == "score") {
 		
-		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "Error: you do not have the required score or number of games to join this game." ) );
-		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "For autobalanced games, you need to play ten games of the same type." ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "Error: you do not have the required score or number of wins to join this game." ) );
+		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "For autobalanced games, you need to achieve ten wins for the same map." ) );
 		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "For DotA HR, you need to have 1150+ ELO and at least 20 wins." ) );
 		player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "For Legion TD Mega HR, you need to have 1100+ ELO and at least 15 wins." ) );
 	}
