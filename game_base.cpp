@@ -3311,9 +3311,10 @@ void CBaseGame :: EventPlayerDropRequest( CGamePlayer *player )
 		{
 			if( AnyGProxy )
 			{
-				SendAllChat( "ERROR: this player is using GProxy" );
+				SendAllChat( "ERROR: this player is using GProxy;" );
 				SendAllChat( "... GProxy players cannot be dropped" );
-				SendAllChat( "... until 80 seconds have elapsed" );
+				SendAllChat( "... until 80 seconds have elapsed." );
+				SendAllChat( "... Use !votekick instead." );
 				return;
 			}
 		}
