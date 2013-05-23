@@ -131,6 +131,8 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_LastNullTime = 0;
 	m_LastOutPacketTicks = 0;
 	m_LastOutPacketSize = 0;
+	m_LastPacketReceivedTicks = GetTicks( );
+	m_LastCommandTicks = GetTicks( );
 	m_LastAdminRefreshTime = GetTime( );
 	m_LastBanRefreshTime = GetTime( ) - 30;
 	m_LastBanHardRefreshTime = 0;
@@ -702,6 +704,23 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		
 		packetsLock.unlock( );
 
+		// check if we haven't received a packet in a while
+		// after 60 seconds, we send a /whoami chat packet
+		// then, if still no response after 90 second total, we disconnect
+
+		if( GetTicks( ) - m_LastPacketReceivedTicks > 60000 )
+		{
+			if( GetTicks( ) - m_LastCommandTicks > 20000 )
+				QueueChatCommand( "/whoami" );
+
+			else if( GetTicks( ) - m_LastPacketReceivedTicks > 90000 )
+			{
+				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] disconnecting due to timeout on packet receive time" );
+				m_Socket->Disconnect( );
+				return m_Exiting;
+			}
+		}
+
 		// send a null packet every 60 seconds to detect disconnects
 
 		if( GetTime( ) - m_LastNullTime >= 60 && GetTicks( ) - m_LastOutPacketTicks >= 60000 )
@@ -729,6 +748,8 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			m_Socket->DoSend( (fd_set *)send_fd );
 			m_LastNullTime = GetTime( );
 			m_LastOutPacketTicks = GetTicks( );
+			m_LastCommandTicks = GetTicks( );
+			m_LastPacketReceivedTicks = GetTicks( );
 
 			boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
 			
@@ -861,6 +882,7 @@ void CBNET :: ProcessPackets( )
 	{
 		CCommandPacket *Packet = m_Packets.front( );
 		m_Packets.pop( );
+		m_LastPacketReceivedTicks = GetTicks( );
 
 		if( Packet->GetPacketType( ) == BNET_HEADER_CONSTANT )
 		{
@@ -2447,6 +2469,9 @@ void CBNET :: QueueChatCommand( string chatCommand )
 			chatCommand = chatCommand.substr( 0, 255 );
 
 		boost::mutex::scoped_lock packetsLock( m_PacketsMutex );
+
+		if( chatCommand.size( ) > 4 && chatCommand.substr( 0, 4 ) == "/who" )
+			m_LastCommandTicks = GetTicks( );
 		
 		if( m_OutPackets.size( ) > 10 )
 			CONSOLE_Print( "[BNET: " + m_ServerAlias + "] attempted to queue chat command [" + chatCommand + "] but there are too many (" + UTIL_ToString( m_OutPackets.size( ) ) + ") packets queued, discarding" );
