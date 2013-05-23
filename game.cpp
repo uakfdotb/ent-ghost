@@ -3232,6 +3232,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			SendChat( player, m_GHost->m_Language->UnableToVoteKickAlreadyInProgress( ) );
 		else if( m_Players.size( ) <= 3 )
 			SendChat( player, m_GHost->m_Language->UnableToVoteKickNotEnoughPlayers( ) );
+		else if( player->GetKickVoteTime( ) != 0 && GetTime( ) - player->GetKickVoteTime( ) < 150 )
+			SendChat( player, "Unable to votekick: please wait a few minutes in between using the !votekick command." );
 		else
 		{
 			CGamePlayer *LastMatch = NULL;
@@ -3282,6 +3284,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						(*i)->SetKickVote( false );
 
 					player->SetKickVote( true );
+					player->SetKickVoteTime( GetTime( ) );
 					CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] started by player [" + User + "]" );
 					SendAllChat( m_GHost->m_Language->StartedVoteKick( LastMatch->GetName( ), User, UTIL_ToString( (uint32_t)ceil( ( GetNumHumanPlayers( ) - 1 ) * (float)m_GHost->m_VoteKickPercentage / 100 ) - 1 ) ) );
 					SendAllChat( m_GHost->m_Language->TypeYesToVote( string( 1, m_GHost->m_CommandTrigger ) ) );
