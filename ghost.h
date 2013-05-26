@@ -187,6 +187,7 @@ public:
 	CCallableWhiteList *m_CallableWhiteList;	// threaded database white list in progress
 	boost::mutex m_BansMutex;
 	uint32_t m_LastDenyCleanTime;			// last time we cleaned the deny table
+	bool m_CloseSinglePlayer;				// whether to close games when there's only one player left
 	
 	boost::mutex m_SpoofMutex;
 	map<string, string> m_SpoofList; 		// donators can opt to spoof their name
