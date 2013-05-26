@@ -182,6 +182,7 @@ public:
     string m_LocalIPs;						// config value: list of local IP's (which Garena is allowed from)
 	vector<string> m_FlameTriggers;			// triggers for antiflame system
 	uint32_t m_LastDenyCleanTime;			// last time we cleaned the deny table
+	bool m_CloseSinglePlayer;				// whether to close games when there's only one player left
 	
 	boost::mutex m_SpoofMutex;
 	map<string, string> m_SpoofList; 		// donators can opt to spoof their name
