@@ -57,6 +57,7 @@ class CCallableVampPlayerSummaryCheck;
 class CCallableTreePlayerSummaryCheck;
 class CCallableIslandPlayerSummaryCheck;
 class CCallableShipsPlayerSummaryCheck;
+class CCallableRVSPlayerSummaryCheck;
 class CCallableSnipePlayerSummaryCheck;
 class CCallableW3MMDPlayerSummaryCheck;
 class CCallableDownloadAdd;
@@ -78,6 +79,7 @@ class CDBVampPlayerSummary;
 class CDBTreePlayerSummary;
 class CDBIslandPlayerSummary;
 class CDBShipsPlayerSummary;
+class CDBRVSPlayerSummary;
 class CDBSnipePlayerSummary;
 class CDBW3MMDPlayerSummary;
 class CBNET;
@@ -133,6 +135,7 @@ public:
 	virtual CDBTreePlayerSummary *TreePlayerSummaryCheck( string name, string realm );
 	virtual CDBIslandPlayerSummary *IslandPlayerSummaryCheck( string name, string realm );
 	virtual CDBShipsPlayerSummary *ShipsPlayerSummaryCheck( string name, string realm );
+	virtual CDBRVSPlayerSummary *RVSPlayerSummaryCheck( string name, string realm );
 	virtual CDBSnipePlayerSummary *SnipePlayerSummaryCheck( string name, string realm );
 	virtual CDBW3MMDPlayerSummary *W3MMDPlayerSummaryCheck( string name, string realm, string category );
 	virtual string FromCheck( uint32_t ip );
@@ -173,6 +176,7 @@ public:
 	virtual CCallableTreePlayerSummaryCheck *ThreadedTreePlayerSummaryCheck( string name, string realm );
 	virtual CCallableIslandPlayerSummaryCheck *ThreadedIslandPlayerSummaryCheck( string name, string realm );
 	virtual CCallableShipsPlayerSummaryCheck *ThreadedShipsPlayerSummaryCheck( string name, string realm );
+	virtual CCallableRVSPlayerSummaryCheck *ThreadedRVSPlayerSummaryCheck( string name, string realm );
 	virtual CCallableSnipePlayerSummaryCheck *ThreadedSnipePlayerSummaryCheck( string name, string realm );
 	virtual CCallableW3MMDPlayerSummaryCheck *ThreadedW3MMDPlayerSummaryCheck( string name, string realm, string category );
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
@@ -699,6 +703,23 @@ public:
 	virtual string GetRealm( )								{ return m_Realm; }
 	virtual CDBShipsPlayerSummary *GetResult( )				{ return m_Result; }
 	virtual void SetResult( CDBShipsPlayerSummary *nResult )	{ m_Result = nResult; }
+};
+
+class CCallableRVSPlayerSummaryCheck : virtual public CBaseCallable
+{
+protected:
+	string m_Name;
+	string m_Realm;
+	CDBRVSPlayerSummary *m_Result;
+
+public:
+	CCallableRVSPlayerSummaryCheck( string nName, string nRealm ) : CBaseCallable( ), m_Name( nName ), m_Realm( nRealm ), m_Result( NULL ) { }
+	virtual ~CCallableRVSPlayerSummaryCheck( );
+
+	virtual string GetName( )								{ return m_Name; }
+	virtual string GetRealm( )								{ return m_Realm; }
+	virtual CDBRVSPlayerSummary *GetResult( )				{ return m_Result; }
+	virtual void SetResult( CDBRVSPlayerSummary *nResult )	{ m_Result = nResult; }
 };
 
 class CCallableSnipePlayerSummaryCheck : virtual public CBaseCallable
@@ -1339,6 +1360,36 @@ public:
 
 	float GetAvgKills( )				{ return m_TotalGames > 0 ? (float)m_TotalKills / m_TotalGames : 0; }
 	float GetAvgDeaths( )				{ return m_TotalGames > 0 ? (float)m_TotalDeaths / m_TotalGames : 0; }
+};
+
+//
+// CDBRVSPlayerSummary
+//
+
+class CDBRVSPlayerSummary
+{
+private:
+	string m_Server;
+	string m_Name;
+	uint32_t m_TotalGames;			// total number of dota games played
+	uint32_t m_TotalWins;			// total number of dota games won
+	uint32_t m_TotalLosses;			// total number of dota games lost
+	uint32_t m_TotalKills;			// total number of rabbit/sheep kills
+	double m_Score;
+
+public:
+	CDBRVSPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, double nScore );
+	~CDBRVSPlayerSummary( );
+
+	string GetServer( )					{ return m_Server; }
+	string GetName( )					{ return m_Name; }
+	uint32_t GetTotalGames( )			{ return m_TotalGames; }
+	uint32_t GetTotalWins( )			{ return m_TotalWins; }
+	uint32_t GetTotalLosses( )			{ return m_TotalLosses; }
+	uint32_t GetTotalKills( )			{ return m_TotalKills; }
+	double GetScore( )					{ return m_Score; }
+
+	float GetAvgKills( )				{ return m_TotalGames > 0 ? (float)m_TotalKills / m_TotalGames : 0; }
 };
 
 //

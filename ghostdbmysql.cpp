@@ -521,6 +521,19 @@ CCallableShipsPlayerSummaryCheck *CGHostDBMySQL :: ThreadedShipsPlayerSummaryChe
 	return Callable;
 }
 
+CCallableRVSPlayerSummaryCheck *CGHostDBMySQL :: ThreadedRVSPlayerSummaryCheck( string name, string realm )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableRVSPlayerSummaryCheck *Callable = new CMySQLCallableRVSPlayerSummaryCheck( name, realm, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port, this );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
 CCallableW3MMDPlayerSummaryCheck *CGHostDBMySQL :: ThreadedW3MMDPlayerSummaryCheck( string name, string realm, string category )
 {
 	void *Connection = GetIdleConnection( );
@@ -1898,6 +1911,51 @@ CDBShipsPlayerSummary *MySQLShipsPlayerSummaryCheck( void *conn, string *error, 
 	return ShipsPlayerSummary;
 }
 
+CDBRVSPlayerSummary *MySQLRVSPlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm )
+{
+	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
+	string EscName = MySQLEscapeString( conn, name );
+	string EscRealm = MySQLEscapeString( conn, realm );
+	CDBRVSPlayerSummary *RVSPlayerSummary = NULL;
+	string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(intstats0), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM w3mmd_elo_scores WHERE name='" + EscName + "' AND category = 'rvs'";
+	
+	if( !realm.empty( ) )
+		Query += " AND server = '" + EscRealm + "'";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			if( Row.size( ) == 5 )
+			{
+				uint32_t TotalGames = UTIL_ToUInt32( Row[0] );
+				
+				if( TotalGames > 0 )
+				{
+					uint32_t TotalWins = UTIL_ToUInt32( Row[2] );
+					uint32_t TotalLosses = UTIL_ToUInt32( Row[3] );
+					uint32_t TotalKills = UTIL_ToUInt32( Row[1] );
+					double Score = UTIL_ToDouble( Row[4] );
+
+					RVSPlayerSummary = new CDBRVSPlayerSummary( realm, name, TotalGames, TotalWins, TotalLosses, TotalKills, Score );
+				}
+			}
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+
+	return RVSPlayerSummary;
+}
+
 CDBSnipePlayerSummary *MySQLSnipePlayerSummaryCheck( void *conn, string *error, uint32_t botid, string name, string realm )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
@@ -2803,6 +2861,16 @@ void CMySQLCallableShipsPlayerSummaryCheck :: operator( )( )
 
 	if( m_Error.empty( ) )
 		m_Result = MySQLShipsPlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name, m_Realm );
+
+	Close( );
+}
+
+void CMySQLCallableRVSPlayerSummaryCheck :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		m_Result = MySQLRVSPlayerSummaryCheck( m_Connection, &m_Error, m_SQLBotID, m_Name, m_Realm );
 
 	Close( );
 }

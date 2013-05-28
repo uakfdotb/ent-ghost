@@ -281,6 +281,9 @@ CGame :: ~CGame( )
 
 	for( vector<PairedWPSCheck> :: iterator i = m_PairedWPSChecks.begin( ); i != m_PairedWPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
+
+	for( vector<PairedRPSCheck> :: iterator i = m_PairedRPSChecks.begin( ); i != m_PairedRPSChecks.end( ); ++i )
+		m_GHost->m_Callables.push_back( i->second );
 	
 	callablesLock.unlock( );
 
@@ -740,6 +743,57 @@ bool CGame :: Update( void *fd, void *send_fd )
 		}
 		else
 			++i;
+	}
+
+	for( vector<PairedRPSCheck> :: iterator i = m_PairedRPSChecks.begin( ); i != m_PairedRPSChecks.end( ); )
+	{
+		if( i->second->GetReady( ) )
+		{
+			CDBRVSPlayerSummary *RVSPlayerSummary = i->second->GetResult( );
+			string StatsName = i->second->GetName( );
+			
+			if( !i->second->GetRealm( ).empty( ) )
+				StatsName += "@" + i->second->GetRealm( );
+
+			if( RVSPlayerSummary && RVSPlayerSummary->GetTotalGames( ) > 0 )
+			{
+				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( RVSPlayerSummary->GetTotalGames( ) ) + " RVS games here (ELO: " + UTIL_ToString( RVSPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( RVSPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( RVSPlayerSummary->GetTotalLosses( ) ) + ". Kills (avg): " + UTIL_ToString( RVSPlayerSummary->GetTotalKills( ) ) + " (" + UTIL_ToString( RVSPlayerSummary->GetAvgKills( ), 2 ) + ").";
+
+				if( i->first.empty( ) )
+					SendAllChat( Summary );
+				else
+				{
+					CGamePlayer *Player = GetPlayerFromName( i->first, true );
+					
+					if( Player )
+						SendChat( Player, Summary );
+				}
+				
+				// update player's score
+				CGamePlayer *CheckedPlayer = GetPlayerFromName( i->second->GetName( ), false );
+				
+				if( CheckedPlayer && CheckedPlayer->GetScore( ) < -99999.0 )
+					CheckedPlayer->SetScore( RVSPlayerSummary->GetScore( ) );
+			}
+			else
+			{
+				if( i->first.empty( ) )
+					SendAllChat( "[" + StatsName + "] hasn't played any RVS games here." );
+				else
+				{
+					CGamePlayer *Player = GetPlayerFromName( i->first, true );
+
+					if( Player )
+						SendChat( Player, "[" + StatsName + "] hasn't played any RVS games here." );
+				}
+			}
+
+			m_GHost->m_DB->RecoverCallable( i->second );
+			delete i->second;
+			i = m_PairedRPSChecks.erase( i );
+		}
+		else
+                        ++i;
 	}
 
 	for( vector<PairedWPSCheck> :: iterator i = m_PairedWPSChecks.begin( ); i != m_PairedWPSChecks.end( ); )
@@ -2864,6 +2918,28 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_PairedBPSChecks.push_back( PairedBPSCheck( string( ), m_GHost->m_DB->ThreadedShipsPlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 		else
 			m_PairedBPSChecks.push_back( PairedBPSCheck( User, m_GHost->m_DB->ThreadedShipsPlayerSummaryCheck( StatsUser, StatsRealm ) ) );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
+	// !RVSSTATS
+	//
+
+	else if( (Command == "rvsstats" || Command == "rvs" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	{
+		string StatsUser = User;
+
+		if( !Payload.empty( ) )
+			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
+
+		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+			m_PairedRPSChecks.push_back( PairedRPSCheck( string( ), m_GHost->m_DB->ThreadedRVSPlayerSummaryCheck( StatsUser, StatsRealm ) ) );
+		else
+			m_PairedRPSChecks.push_back( PairedRPSCheck( User, m_GHost->m_DB->ThreadedRVSPlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}

@@ -44,6 +44,7 @@ class CCallableTreePlayerSummaryCheck;
 class CCallableIslandPlayerSummaryCheck;
 class CCallableSnipePlayerSummaryCheck;
 class CCallableShipsPlayerSummaryCheck;
+class CCallableRVSPlayerSummaryCheck;
 class CCallableW3MMDPlayerSummaryCheck;
 class CCallableAdminCommand;
 
@@ -56,6 +57,7 @@ typedef pair<string,CCallableTreePlayerSummaryCheck *> PairedTPSCheck;
 typedef pair<string,CCallableIslandPlayerSummaryCheck *> PairedIPSCheck;
 typedef pair<string,CCallableSnipePlayerSummaryCheck *> PairedSPSCheck;
 typedef pair<string,CCallableShipsPlayerSummaryCheck *> PairedBPSCheck;
+typedef pair<string,CCallableRVSPlayerSummaryCheck *> PairedRPSCheck;
 typedef pair<string,CCallableW3MMDPlayerSummaryCheck *> PairedWPSCheck;
 
 class CGame : public CBaseGame
@@ -80,6 +82,7 @@ protected:
 	vector<PairedSPSCheck> m_PairedSPSChecks;	// vector of paired threaded database sniper player summary checks in progress
 	vector<PairedBPSCheck> m_PairedBPSChecks;	// vector of paired threaded database battleships player summary checks in progress
 	vector<PairedWPSCheck> m_PairedWPSChecks;	// vector of paired threaded database battleships player summary checks in progress
+	vector<PairedRPSCheck> m_PairedRPSChecks;	// vector of paired threaded database battleships player summary checks in progress
 	
     string m_MapType;							// recorded map type after game starts because map is deleted
 	vector<string> m_AutoBans;

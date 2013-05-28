@@ -203,6 +203,11 @@ CDBShipsPlayerSummary *CGHostDB :: ShipsPlayerSummaryCheck( string name, string 
 	return NULL;
 }
 
+CDBRVSPlayerSummary *CGHostDB :: RVSPlayerSummaryCheck( string name, string realm )
+{
+	return NULL;
+}
+
 CDBSnipePlayerSummary *CGHostDB :: SnipePlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
@@ -384,6 +389,11 @@ CCallableIslandPlayerSummaryCheck *CGHostDB :: ThreadedIslandPlayerSummaryCheck(
 }
 
 CCallableShipsPlayerSummaryCheck *CGHostDB :: ThreadedShipsPlayerSummaryCheck( string name, string realm )
+{
+	return NULL;
+}
+
+CCallableRVSPlayerSummaryCheck *CGHostDB :: ThreadedRVSPlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
 }
@@ -599,6 +609,11 @@ CCallableIslandPlayerSummaryCheck :: ~CCallableIslandPlayerSummaryCheck( )
 }
 
 CCallableShipsPlayerSummaryCheck :: ~CCallableShipsPlayerSummaryCheck( )
+{
+	delete m_Result;
+}
+
+CCallableRVSPlayerSummaryCheck :: ~CCallableRVSPlayerSummaryCheck( )
 {
 	delete m_Result;
 }
@@ -850,6 +865,16 @@ CDBShipsPlayerSummary :: CDBShipsPlayerSummary( string nServer, string nName, ui
 }
 
 CDBShipsPlayerSummary :: ~CDBShipsPlayerSummary( )
+{
+
+}
+
+CDBRVSPlayerSummary :: CDBRVSPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, double nScore ) : m_Server( nServer ), m_Name( nName ), m_TotalGames( nTotalGames ), m_TotalWins( nTotalWins ), m_TotalLosses( nTotalLosses ), m_TotalKills( nTotalKills ), m_Score( nScore )
+{
+
+}
+
+CDBRVSPlayerSummary :: ~CDBRVSPlayerSummary( )
 {
 
 }
