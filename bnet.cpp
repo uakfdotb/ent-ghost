@@ -708,7 +708,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		// after 60 seconds, we send a /whoami chat packet
 		// then, if still no response after 90 second total, we disconnect
 
-		if( GetTicks( ) - m_LastPacketReceivedTicks > 60000 )
+		if( GetTicks( ) - m_LastPacketReceivedTicks > 60000 && m_Server != "hive.entgaming.net" )
 		{
 			if( GetTicks( ) - m_LastCommandTicks > 20000 )
 				QueueChatCommand( "/whoami" );
