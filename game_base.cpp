@@ -208,6 +208,10 @@ bool CBaseGame :: readyDelete( )
 
 void CBaseGame :: loop( )
 {
+	// we only do a full update every 100 ms if game is in progress
+	uint32_t LastFullUpdateTicks = 0;
+	
+	// loop until game is deleted
 	while( m_DoDelete == 0 )
 	{
 		fd_set fd;
@@ -244,19 +248,31 @@ void CBaseGame :: loop( )
 		if( NumFDs == 0 )
 		{
 			// select will return immediately and we'll chew up the CPU if we let it loop so just sleep for 50ms to kill some time
+			// this should never happen since game is over once no players are left, and lobby game has the server socket
 			MILLISLEEP( 50 );
 		}
 		
-		if( Update( &fd, &send_fd ) )
+		if( UpdateFast( &fd, &send_fd ) )
 		{
-			CONSOLE_Print( "[GameThread] deleting game [" + GetGameName( ) + "]" );
+			CONSOLE_Print( "[GameThread] deleting game [" + GetGameName( ) + "] (1)" );
 			m_DoDelete = 3;
 			break;
 		}
-		else
+		
+		// check if we should do a full update
+		if( ( !m_GameLoading && !m_GameLoaded ) || GetTicks( ) - LastFullUpdateTicks > 100 )
 		{
-			UpdatePost( &send_fd );
+			if( Update( &fd, &send_fd ) )
+			{
+				CONSOLE_Print( "[GameThread] deleting game [" + GetGameName( ) + "] (2)" );
+				m_DoDelete = 3;
+				break;
+			}
+			
+			LastFullUpdateTicks = GetTicks( );
 		}
+		
+		UpdatePost( &send_fd );
 	}
 	
 	// save replay
@@ -439,6 +455,32 @@ unsigned int CBaseGame :: SetFD( void *fd, void *send_fd, int *nfds )
 	return NumFDs;
 }
 
+bool CBaseGame :: UpdateFast( void *fd, void *send_fd )
+{
+	// update players
+
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); )
+	{
+		if( (*i)->Update( fd ) )
+		{
+			EventPlayerDeleted( *i );
+			delete *i;
+			i = m_Players.erase( i );
+		}
+		else
+			++i;
+	}
+
+	// send actions every m_Latency milliseconds
+	// actions are at the heart of every Warcraft 3 game but luckily we don't need to know their contents to relay them
+	// we queue player actions in EventPlayerAction then just resend them in batches to all players here
+
+	if( m_GameLoaded && !m_Lagging && GetTicks( ) - m_LastActionSentTicks >= m_Latency - m_LastActionLateBy )
+		SendAllActions( );
+	
+	return m_Exiting;
+}
+
 bool CBaseGame :: Update( void *fd, void *send_fd )
 {
 	// update callables
@@ -526,20 +568,6 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			m_GHost->m_DB->RecoverCallable( *i );
 			delete *i;
 			i = m_ConnectChecks.erase( i );
-		}
-		else
-			++i;
-	}
-
-	// update players
-
-	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); )
-	{
-		if( (*i)->Update( fd ) )
-		{
-			EventPlayerDeleted( *i );
-			delete *i;
-			i = m_Players.erase( i );
 		}
 		else
 			++i;
@@ -1263,13 +1291,6 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			lock.unlock();
 		}
 	}
-
-	// send actions every m_Latency milliseconds
-	// actions are at the heart of every Warcraft 3 game but luckily we don't need to know their contents to relay them
-	// we queue player actions in EventPlayerAction then just resend them in batches to all players here
-
-	if( m_GameLoaded && !m_Lagging && GetTicks( ) - m_LastActionSentTicks >= m_Latency - m_LastActionLateBy )
-		SendAllActions( );
 
 	// expire the votekick
 

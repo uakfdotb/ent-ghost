@@ -209,6 +209,7 @@ public:
 	// processing functions
 
 	virtual unsigned int SetFD( void *fd, void *send_fd, int *nfds );
+	virtual bool UpdateFast( void *fd, void *send_fd );
 	virtual bool Update( void *fd, void *send_fd );
 	virtual void UpdatePost( void *send_fd );
 
