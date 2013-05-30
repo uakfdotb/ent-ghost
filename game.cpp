@@ -757,7 +757,8 @@ bool CGame :: Update( void *fd, void *send_fd )
 
 			if( RVSPlayerSummary && RVSPlayerSummary->GetTotalGames( ) > 0 )
 			{
-				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( RVSPlayerSummary->GetTotalGames( ) ) + " RVS games here (ELO: " + UTIL_ToString( RVSPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( RVSPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( RVSPlayerSummary->GetTotalLosses( ) ) + ". Kills (avg): " + UTIL_ToString( RVSPlayerSummary->GetTotalKills( ) ) + " (" + UTIL_ToString( RVSPlayerSummary->GetAvgKills( ), 2 ) + ").";
+				//string Summary = "[" + StatsName + "] has played " + UTIL_ToString( RVSPlayerSummary->GetTotalGames( ) ) + " RVS games here (ELO: " + UTIL_ToString( RVSPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( RVSPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( RVSPlayerSummary->GetTotalLosses( ) ) + ". Kills (avg): " + UTIL_ToString( RVSPlayerSummary->GetTotalKills( ) ) + " (" + UTIL_ToString( RVSPlayerSummary->GetAvgKills( ), 2 ) + ").";
+				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( RVSPlayerSummary->GetTotalGames( ) ) + " RVS games here (ELO: " + UTIL_ToString( RVSPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( RVSPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( RVSPlayerSummary->GetTotalLosses( ) ) + ".";
 
 				if( i->first.empty( ) )
 					SendAllChat( Summary );
