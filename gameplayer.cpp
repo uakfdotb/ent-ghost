@@ -34,6 +34,7 @@
 #include "gameprotocol.h"
 #include "gcbiprotocol.h"
 #include "gpsprotocol.h"
+#include "amhprotocol.h"
 #include "game_base.h"
 
 //
@@ -145,7 +146,7 @@ void CPotentialPlayer :: ExtractPackets( )
 
 	while( Bytes.size( ) >= 4 )
 	{
-		if( Bytes[0] == W3GS_HEADER_CONSTANT || Bytes[0] == GPS_HEADER_CONSTANT || Bytes[0] == GCBI_HEADER_CONSTANT )
+		if( Bytes[0] == W3GS_HEADER_CONSTANT || Bytes[0] == GPS_HEADER_CONSTANT || Bytes[0] == GCBI_HEADER_CONSTANT || Bytes[0] == AMH_HEADER_CONSTANT )
 		{
 			// bytes 2 and 3 contain the length of the packet
 
@@ -240,7 +241,7 @@ CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSock
                                                                                                                                                                                               m_PID( nPID ), m_Name( nName ), m_InternalIP( nInternalIP ), m_JoinedRealm( nJoinedRealm ), m_TotalPacketsSent( 0 ), m_TotalPacketsReceived( 0 ), m_LeftCode( PLAYERLEAVE_LOBBY ), m_LoginAttempts( 0 ), m_SyncCounter( 0 ), m_JoinTime( GetTime( ) ),
                                                                                                                                                                                               m_LastMapPartSent( 0 ), m_LastMapPartAcked( 0 ), m_StartedDownloadingTicks( 0 ), m_FinishedLoadingTicks( 0 ), m_StartedLaggingTicks( 0 ), m_TotalLaggingTicks( 0 ), m_StatsSentTime( 0 ), m_StatsDotASentTime( 0 ), m_KickVoteTime( 0 ), m_LastGProxyWaitNoticeSentTime( 0 ), m_Score( -100000.0 ),
 m_LoggedIn( false ), m_Spoofed( false ), m_Reserved( nReserved ), m_WhoisShouldBeSent( false ), m_WhoisSent( false ), m_DownloadAllowed( false ), m_DownloadStarted( false ), m_DownloadFinished( false ), m_FinishedLoading( false ), m_Lagging( false ),
-                                                                                                                                                                                              m_DropVote( false ), m_KickVote( false ), m_StartVote( false ), m_Muted( false ), m_LeftMessageSent( false ), m_GProxy( false ), m_GProxyDisconnectNoticeSent( false ), m_GProxyReconnectKey( rand( ) ), m_LastGProxyAckTime( 0 ), m_Autoban( false ), m_ForfeitVote( false ), m_FriendlyName( nName ), m_DrawVote( false ), m_Fun( false )
+                                                                                                                                                                                              m_DropVote( false ), m_KickVote( false ), m_StartVote( false ), m_Muted( false ), m_LeftMessageSent( false ), m_GProxy( false ), m_GProxyDisconnectNoticeSent( false ), m_GProxyReconnectKey( rand( ) ), m_LastGProxyAckTime( 0 ), m_Autoban( false ), m_ForfeitVote( false ), m_FriendlyName( nName ), m_DrawVote( false ), m_Fun( false ), m_LastAMHPingTime( 0 ), m_LastAMHPongTime( 0 ), m_AMHInitSent( false )
 {
     m_ConnectionState = 1;
 }
@@ -249,7 +250,7 @@ CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, str
                                                                                                                                                           m_PID( nPID ), m_Name( nName ), m_InternalIP( nInternalIP ), m_JoinedRealm( nJoinedRealm ), m_TotalPacketsSent( 0 ), m_TotalPacketsReceived( 1 ), m_LeftCode( PLAYERLEAVE_LOBBY ), m_Cookies( 0 ), m_LoginAttempts( 0 ), m_SyncCounter( 0 ), m_JoinTime( GetTime( ) ),
                                                                                                                                                           m_LastMapPartSent( 0 ), m_LastMapPartAcked( 0 ), m_StartedDownloadingTicks( 0 ), m_FinishedLoadingTicks( 0 ), m_StartedLaggingTicks( 0 ), m_TotalLaggingTicks( 0 ), m_StatsSentTime( 0 ), m_StatsDotASentTime( 0 ), m_LastGProxyWaitNoticeSentTime( 0 ), m_Score( -100000.0 ),
 m_LoggedIn( false ), m_Spoofed( false ), m_Reserved( nReserved ), m_WhoisShouldBeSent( false ), m_WhoisSent( false ), m_DownloadAllowed( false ), m_DownloadStarted( false ), m_DownloadFinished( false ), m_FinishedLoading( false ), m_Lagging( false ),
-                                                                                                                                                          m_DropVote( false ), m_KickVote( false ), m_StartVote( false ), m_Muted( false ), m_LeftMessageSent( false ), m_GProxy( false ), m_GProxyDisconnectNoticeSent( false ), m_GProxyReconnectKey( rand( ) ), m_LastGProxyAckTime( 0 ), m_Autoban( false ), m_ForfeitVote( false ), m_FriendlyName( nName ), m_DrawVote( false ), m_Fun( false )
+                                                                                                                                                          m_DropVote( false ), m_KickVote( false ), m_StartVote( false ), m_Muted( false ), m_LeftMessageSent( false ), m_GProxy( false ), m_GProxyDisconnectNoticeSent( false ), m_GProxyReconnectKey( rand( ) ), m_LastGProxyAckTime( 0 ), m_Autoban( false ), m_ForfeitVote( false ), m_FriendlyName( nName ), m_DrawVote( false ), m_Fun( false ), m_LastAMHPingTime( 0 ), m_LastAMHPongTime( 0 ), m_AMHInitSent( false )
 {
 	// todotodo: properly copy queued packets to the new player, this just discards them
 	// this isn't a big problem because official Warcraft III clients don't send any packets after the join request until they receive a response
@@ -431,6 +432,47 @@ bool CGamePlayer :: Update( void *fd )
 
 		m_LastGProxyAckTime = GetTime( );
 	}
+	
+	if( m_Game->m_GHost->m_AMH )
+	{
+		// AMH init
+	
+		if( !m_AMHInitSent )
+		{
+			m_Socket->PutBytes( m_Game->m_GHost->m_AMHProtocol->SEND_AMH_INIT( ) );
+			m_AMHInitSent = true;
+		}
+	
+		// AMH ping
+	
+		if( GetTime( ) - m_LastAMHPingTime >= 10 )
+		{
+			BYTEARRAY ping;
+		
+			for( unsigned int i = 0; i < 32; i++ )
+				ping.push_back( rand( ) % 256 );
+		
+			m_Socket->PutBytes( m_Game->m_GHost->m_AMHProtocol->SEND_AMH_PING( ping ) );
+		
+			ping[5] = ping[5] + 1;
+			m_NextAMHResponse.push( ping );
+		
+			while( m_NextAMHResponse.size( ) > 2 )
+				m_NextAMHResponse.pop( );
+		
+			m_LastAMHPingTime = GetTime( );
+		}
+	
+		// AMH timeout
+	
+		if( ( m_LastAMHPongTime == 0 && GetTime( ) - m_JoinTime > 15 ) || ( m_LastAMHPongTime != 0 && GetTime( ) - m_LastAMHPongTime > 60 ) )
+		{
+			if( m_LastAMHPongTime != 0 && GetTime( ) - m_LastAMHPongTime > 60 )
+				m_Game->SendAllChat( m_PID, "[" + m_Name + "] !!! I am probably maphacking !!!" );
+			
+			m_Game->EventPlayerAMH( this, "AMH timeout" );
+		}
+	}
 
 	// base class update
 
@@ -485,7 +527,7 @@ void CGamePlayer :: ExtractPackets( )
 
 	while( Bytes.size( ) >= 4 )
 	{
-		if( Bytes[0] == W3GS_HEADER_CONSTANT || Bytes[0] == GPS_HEADER_CONSTANT || Bytes[0] == GCBI_HEADER_CONSTANT )
+		if( Bytes[0] == W3GS_HEADER_CONSTANT || Bytes[0] == GPS_HEADER_CONSTANT || Bytes[0] == GCBI_HEADER_CONSTANT || Bytes[0] == AMH_HEADER_CONSTANT )
 		{
 			// bytes 2 and 3 contain the length of the packet
 
@@ -742,6 +784,49 @@ void CGamePlayer :: ProcessPackets( )
                                                 --PacketsToUnqueue;
 					}
 				}
+			}
+		}
+		else if( Packet->GetPacketType( ) == AMH_HEADER_CONSTANT && m_Game->m_GHost->m_AMH )
+		{
+			BYTEARRAY Data = Packet->GetData( );
+			
+			if( Packet->GetID( ) == CAMHProtocol :: AMH_PONG && !m_NextAMHResponse.empty( ) )
+			{
+				CAMHPong *Pong = m_Game->m_GHost->m_AMHProtocol->RECEIVE_AMH_PONG( Data );
+				
+				CONSOLE_Print( m_Name + " ||| receiving AMH pong" );
+				
+				if( Pong->GetVersion( ) != 5 )
+					m_Game->EventPlayerAMH( this, "bad AMH version" );
+				else
+				{
+					bool FoundMatch = false;
+				
+					while( !m_NextAMHResponse.empty( ) )
+					{
+						BYTEARRAY ExpectedPong = m_NextAMHResponse.front( );
+						m_NextAMHResponse.pop( );
+					
+						if( ExpectedPong == Pong->GetPong( ) )
+						{
+							FoundMatch = true;
+							break;
+						}
+					}
+				
+					if( FoundMatch )
+					{
+						if( m_LastAMHPongTime == 0 )
+							CONSOLE_Print( "[GAME: " + m_Game->GetGameName( ) + "] player [" + m_Name + "] sent initial AMH packet" );
+
+						m_LastAMHPongTime = GetTime( );
+						CONSOLE_Print( m_Name + " ||| received amh match" );
+					}
+					else
+						CONSOLE_Print( m_Name + " ||| amh mismatch error" );
+				}
+				
+				delete Pong;
 			}
 		}
 

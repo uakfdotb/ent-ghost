@@ -156,6 +156,10 @@ private:
 	uint32_t m_LastGProxyAckTime;
 	vector<string> m_IgnoreList;				// list of usernames this player is ignoring
 	bool m_Fun;
+	bool m_AMHInitSent;							// whether AMH init has been sent
+	uint32_t m_LastAMHPingTime;				// last time we sent an AMH ping to the user
+	uint32_t m_LastAMHPongTime;				// last time we received an AMH pong from the user
+	queue<BYTEARRAY> m_NextAMHResponse;			// next expected AMH response(s) to receive; queue size is limited to 2
 
 public:
 	CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );

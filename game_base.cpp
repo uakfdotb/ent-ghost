@@ -2749,6 +2749,22 @@ void CBaseGame :: EventPlayerLeft( CGamePlayer *player, uint32_t reason )
 		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 }
 
+void CBaseGame :: EventPlayerAMH( CGamePlayer *player, string reason )
+{
+	if( !m_GameLoading && !m_GameLoaded )
+		m_GHost->DenyIP( player->GetExternalIPString( ), 120000, "AMH detected: " + reason );
+	else
+		m_GHost->DenyIP( player->GetExternalIPString( ), 120000, "AMH detected: " + reason );
+	
+	player->SetDeleteMe( true );
+	player->SetLeftReason( reason );
+	player->SetLeftCode( PLAYERLEAVE_LOST );
+	player->SetAutoban( true );
+
+	if( !m_GameLoading && !m_GameLoaded )
+		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
+}
+
 void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 {
 	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + player->GetName( ) + "] finished loading in " + UTIL_ToString( (float)( player->GetFinishedLoadingTicks( ) - m_StartedLoadingTicks ) / 1000, 2 ) + " seconds" );

@@ -248,6 +248,7 @@ public:
 	virtual void EventPlayerDisconnectConnectionClosed( CGamePlayer *player );
 	virtual CGamePlayer *EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double *score );
 	virtual void EventPlayerLeft( CGamePlayer *player, uint32_t reason );
+	virtual void EventPlayerAMH( CGamePlayer *player, string reason );
 	virtual void EventPlayerLoaded( CGamePlayer *player );
 	virtual bool EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
 	virtual void EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum );

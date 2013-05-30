@@ -41,6 +41,7 @@
 #include "gameplayer.h"
 #include "gameprotocol.h"
 #include "gcbiprotocol.h"
+#include "amhprotocol.h"
 #include "gpsprotocol.h"
 #include "game_base.h"
 #include "game.h"
@@ -428,6 +429,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_ReconnectSocket = NULL;
 	m_GPSProtocol = new CGPSProtocol( );
 	m_GCBIProtocol = new CGCBIProtocol( );
+	m_AMHProtocol = new CAMHProtocol( );
 	m_CRC = new CCRC32( );
 	m_CRC->Initialize( );
 	m_SHA = new CSHA1( );
@@ -1680,6 +1682,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
     m_MapGameType = CFG->GetUInt32( "bot_mapgametype", 21569728 );
     m_FastReconnect = CFG->GetInt( "bot_fastreconnect", 0 ) == 0 ? false : true;
     m_CloseSinglePlayer = CFG->GetInt( "bot_closesingleplayer", 1 ) == 0 ? false : true;
+    m_AMH = CFG->GetInt( "bot_amh", 0 ) == 0 ? false : true;
 }
 
 void CGHost :: ExtractScripts( )
