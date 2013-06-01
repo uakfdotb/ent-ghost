@@ -127,6 +127,7 @@ protected:
 	bool m_SlotInfoChanged;							// if the slot info has changed and hasn't been sent to the players yet (optimization)
 	bool m_Locked;									// if the game owner is the only one allowed to run game commands or not
 	bool m_RefreshMessages;							// if we should display "game refreshed..." messages or not
+	uint32_t m_RefreshErrorTicks;					// GetTicks( ) when m_RefreshError is set to true
 	bool m_RefreshError;							// if there was an error refreshing the game
 	bool m_RefreshRehosted;							// if we just rehosted and are waiting for confirmation that it was successful
 	bool m_MuteAll;									// if we should stop forwarding ingame chat messages targeted for all players or not
@@ -193,7 +194,7 @@ public:
 	virtual void SetAutoStartPlayers( uint32_t nAutoStartPlayers )		{ m_AutoStartPlayers = nAutoStartPlayers; }
 	virtual void SetMinimumScore( double nMinimumScore )				{ m_MinimumScore = nMinimumScore; }
 	virtual void SetMaximumScore( double nMaximumScore )				{ m_MaximumScore = nMaximumScore; }
-	virtual void SetRefreshError( bool nRefreshError )					{ m_RefreshError = nRefreshError; }
+	virtual void SetRefreshError( bool nRefreshError )					{ m_RefreshError = nRefreshError; m_RefreshErrorTicks = GetTicks( ); }
 	virtual void SetMatchMaking( bool nMatchMaking )					{ m_MatchMaking = nMatchMaking; }
 
 	virtual uint32_t GetNextTimedActionTicks( );
