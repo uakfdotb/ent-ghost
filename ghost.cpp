@@ -800,7 +800,7 @@ CGHost :: ~CGHost( )
 	delete m_LocalSocket;
 	delete m_ReconnectSocket;
 
-        for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); ++i )
+	for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); ++i )
 		delete *i;
 
 	delete m_GPSProtocol;
@@ -808,7 +808,7 @@ CGHost :: ~CGHost( )
 	delete m_CRC;
 	delete m_SHA;
 
-        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		delete *i;
 
 	if( m_CurrentGame )
@@ -818,7 +818,7 @@ CGHost :: ~CGHost( )
 
 
 	boost::mutex::scoped_lock lock( m_GamesMutex );
-        for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
+	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
 		(*i)->doDelete();
 	lock.unlock( );
 
@@ -1179,6 +1179,7 @@ bool CGHost :: Update( long usecBlock )
 	{
 		// copy all the checks from CGHost :: CreateGame here because we don't want to spam the chat when there's an error
 		// instead we fail silently and try again soon
+		boost::mutex::scoped_lock gamesLock( m_GamesMutex );
 
 		if( !m_ExitingNice && m_Enabled && !m_CurrentGame && m_Games.size( ) < m_MaxGames && m_Games.size( ) < m_AutoHostMaximumGames )
 		{
@@ -1188,6 +1189,8 @@ bool CGHost :: Update( long usecBlock )
 
 				if( GameName.size( ) <= 31 )
 				{
+					// CreateGame handles its own locking on games mutex, so release lock here
+					gamesLock.unlock( );
 					CreateGame( m_AutoHostMap, GAME_PUBLIC, false, GameName, m_AutoHostOwner, m_AutoHostOwner, m_AutoHostServer, false );
 
 					if( m_CurrentGame )
@@ -1947,8 +1950,6 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 		return;
 	}
-	
-	lock.unlock();
 
 	CONSOLE_Print( "[GHOST] creating game [" + gameName + "]" );
 
