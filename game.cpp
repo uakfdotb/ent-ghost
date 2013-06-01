@@ -3017,6 +3017,28 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	}
 
 	//
+	// !HLWSTATS
+	//
+
+	else if( (Command == "hlwstats" || Command == "hlws" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
+	{
+		string StatsUser = User;
+
+		if( !Payload.empty( ) )
+			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
+
+		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "herolinewars" ) ) );
+		else
+			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "herolinewars" ) ) );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
 	// !LEGIONSTATS
 	//
 
