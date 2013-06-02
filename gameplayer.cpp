@@ -392,20 +392,11 @@ bool CGamePlayer :: Update( void *fd )
 	
 	// disconnect if the player is downloading too slowly
 	
-    if( m_DownloadStarted && !m_DownloadFinished && !m_Game->GetGameLoaded() && !m_Game->GetGameLoading() )
+    if( m_DownloadStarted && !m_DownloadFinished && !m_Game->GetGameLoaded() && !m_Game->GetGameLoading() && GetLastMapPartSent( ) > 0 )
 	{
 		uint32_t downloadingTime = GetTicks( ) - m_StartedDownloadingTicks;
 		
-		if( false && downloadingTime > 90000 )
-		{
-			CONSOLE_Print( "[DENY] Kicking player: download time too long" );
-			m_DeleteMe = true;
-            SetLeftReason( "download time too long" );
-            SetLeftCode( PLAYERLEAVE_LOBBY );
-            m_Game->OpenSlot( m_Game->GetSIDFromPID( GetPID( ) ), false );
-		}
-		
-		else if( false && downloadingTime > 3000 && GetLastMapPartAcked( ) / downloadingTime < 10 ) // GetLastMapPartAcked( ) / downloadingTime is B/ms, approximately KB/sec
+		if( downloadingTime > 8000 && GetLastMapPartAcked( ) / downloadingTime < 10 ) // GetLastMapPartAcked( ) / downloadingTime is B/ms, approximately KB/sec
 		{
 			CONSOLE_Print( "[DENY] Kicking player: download speed too low" );
 			m_DeleteMe = true;
