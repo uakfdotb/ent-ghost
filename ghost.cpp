@@ -2037,7 +2037,6 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
     }
 
     if(!m_CallableGameUpdate) {
-		boost::mutex::scoped_lock lock( m_GamesMutex );
 		uint32_t TotalGames = m_Games.size( ) + 1;
 		uint32_t TotalPlayers = 0;
 		
@@ -2046,7 +2045,6 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		
         m_CallableGameUpdate = m_DB->ThreadedGameUpdate(m_CurrentGame->GetMapName( ), m_CurrentGame->GetGameName(), m_CurrentGame->GetOwnerName(), m_CurrentGame->GetCreatorName(), m_CurrentGame->GetNumHumanPlayers( ), m_CurrentGame->GetPlayerList( ), m_CurrentGame->GetNumHumanPlayers( ) + m_CurrentGame->GetSlotsOpen(), TotalGames, TotalPlayers, true);
         m_LastGameUpdateTime = GetTime();
-        lock.unlock( );
     }
 	
 	// start the game thread
