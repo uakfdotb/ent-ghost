@@ -260,7 +260,7 @@ void CBaseGame :: loop( )
 		}
 		
 		// check if we should do a full update
-		if( ( !m_GameLoading && !m_GameLoaded ) || GetTicks( ) - LastFullUpdateTicks > 100 )
+		if( ( !m_GameLoading && !m_GameLoaded ) || GetTicks( ) - LastFullUpdateTicks > 500 || ( GetTicks( ) - LastFullUpdateTicks > 100 && GetNextTimedActionTicks( ) > 30 ) )
 		{
 			if( Update( &fd, &send_fd ) )
 			{
