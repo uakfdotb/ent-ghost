@@ -3522,11 +3522,6 @@ void CBaseGame :: EventGameStarted( )
 	StatString = UTIL_EncodeStatString( StatString );
 	m_StatString = string( StatString.begin( ), StatString.end( ) );
 
-	// delete the map data
-
-	delete m_Map;
-	m_Map = NULL;
-
 	if( m_LoadInGame )
 	{
 		// buffer all the player loaded messages
@@ -3540,9 +3535,16 @@ void CBaseGame :: EventGameStarted( )
 		}
 	}
 
-	// move the game to the games in progress vector
+	// delete the map data
+	// we begin the games-mutex-synchronized segment here
+	// (map data has to be synchronized due to GetMapName calls)
 
 	boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+	delete m_Map;
+	m_Map = NULL;
+
+	// move the game to the games in progress vector
+
 	m_GHost->m_CurrentGame = NULL;
 	m_GHost->m_Games.push_back( this );
 	lock.unlock( );
