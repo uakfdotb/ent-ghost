@@ -396,6 +396,21 @@ uint32_t CBaseGame :: GetNumHumanPlayers( )
 	return NumHumanPlayers;
 }
 
+uint32_t CBaseGame :: GetNumHumanNonObservers( )
+{
+	uint32_t NumPlayers = 0;
+
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+	{
+		unsigned char SID = GetSIDFromPID( (*i)->GetPID( ) );
+		
+		if( SID < m_Slots.size( ) && m_Slots[SID].GetTeam( ) != 12 )
+			NumPlayers++;
+	}
+
+	return NumPlayers;
+}
+
 string CBaseGame :: GetDescription( )
 {
 	string Description = m_GameName + " : " + m_OwnerName + " : " + UTIL_ToString( GetNumHumanPlayers( ) ) + "/" + UTIL_ToString( m_GameLoading || m_GameLoaded ? m_StartPlayers : m_Slots.size( ) );
@@ -2396,24 +2411,40 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 							break;
 						}
 					}
+					
+					if( SID == 255 )
+						SendAllChat( "Rejecting incoming user [" + joinPlayer->GetName( ) + "]: could not find slot (searched from " + UTIL_ToString( start ) + " to " + UTIL_ToString( end ) + ")." );
 				}
 				else
-					CONSOLE_Print( "[GAME: " + m_GameName + "] Error: invalid team for incoming user " + joinPlayer->GetName( ) );
+					SendAllChat( "Rejecting incoming user [" + joinPlayer->GetName( ) + "]: team appears to be invalid (indicates configuration error)!" );
 			}
 			else if( AnyAdminCheck || !m_TournamentRestrict )
 			{
-				// search for empty
+				// search for empty observer slot
 				for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 				{
-					if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN )
+					if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN && m_Slots[i].GetTeam( ) == 12 )
 					{
 						SID = i;
 						break;
 					}
 				}
+				
+				if( SID == 255 )
+				{
+					// in this case just search for any empty
+					for( unsigned char i = 0; i < m_Slots.size( ); ++i )
+					{
+						if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN )
+						{
+							SID = i;
+							break;
+						}
+					}
+				}
 			}
 			else
-				CONSOLE_Print( "[GAME: " + m_GameName + "] Error: found no team for incoming user " + joinPlayer->GetName( ) );
+				SendAllChat( "Rejecting incoming user [" + joinPlayer->GetName( ) + "]: not assigned to either team and not admin" );
 		}
 		else
 		{
@@ -2721,7 +2752,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	
 	// balance slots
 	
-	if( m_MatchMaking && score != NULL && m_AutoStartPlayers != 0 && GetNumHumanPlayers( ) == m_AutoStartPlayers )
+	if( m_MatchMaking && score != NULL && m_AutoStartPlayers != 0 && GetNumHumanNonObservers( ) == m_AutoStartPlayers )
 		BalanceSlots( );
 	
 	return Player;
@@ -4872,13 +4903,13 @@ void CBaseGame :: StartCountDownAuto( bool requireSpoofChecks )
 	{
 		// check if enough players are present
 
-		if( GetNumHumanPlayers( ) < m_AutoStartPlayers )
+		if( GetNumHumanNonObservers( ) < m_AutoStartPlayers )
 		{
 			m_AutoHostPlayerCycle++;
 
 			if( m_AutoHostPlayerCycle >= 3 )
 			{
-				SendAllChat( m_GHost->m_Language->WaitingForPlayersBeforeAutoStart( UTIL_ToString( m_AutoStartPlayers ), UTIL_ToString( m_AutoStartPlayers - GetNumHumanPlayers( ) ) ) );
+				SendAllChat( m_GHost->m_Language->WaitingForPlayersBeforeAutoStart( UTIL_ToString( m_AutoStartPlayers ), UTIL_ToString( m_AutoStartPlayers - GetNumHumanNonObservers( ) ) ) );
 				m_AutoHostPlayerCycle = 0;
 			}
 
