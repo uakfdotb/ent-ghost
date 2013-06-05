@@ -4693,7 +4693,7 @@ void CBaseGame :: AddToSpoofed( string server, string name, bool sendMessage )
 		Player->SetSpoofedRealm( server );
 		Player->SetSpoofed( true );
 
-		if( sendMessage )
+		if( sendMessage && !Player->GetSpoofed( ) )
 			SendAllChat( m_GHost->m_Language->SpoofCheckAcceptedFor( server, name ) );
 	}
 }
