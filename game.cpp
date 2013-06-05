@@ -1374,12 +1374,12 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				else if( Command == "tban" ) BanDuration = 3600 * 4;
 				else if( Command == "wban" ) BanDuration = 3600 * 24 * 5;
 				
-				string userContext = User;
+				string userContext = User + "@" + player->GetSpoofedRealm( );
 				
 				if( AdminCheck || RootAdminCheck )
 					userContext = "ttr.cloud";
 				else
-					BanDuration = 3600 * 24 * 30; //!pban for non-admins to non give unexpected results
+					BanDuration = 3600 * 24 * 365; //!pban for non-admins to non give unexpected results
 				
 				// extract the victim and the reason
 				// e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
@@ -1532,10 +1532,13 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( Command == "banlast" && m_GameLoaded && !m_GHost->m_BNETs.empty( ) && m_DBBanLast )
 			{
-				string userContext = User;
-				if( AdminCheck || RootAdminCheck ) userContext = "ttr.cloud";
+				string userContext = User + "@" + player->GetSpoofedRealm( );
+				uint32_t BanDuration = 3600 * 48;
 				
-				m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_DBBanLast->GetServer( ), m_DBBanLast->GetName( ), m_DBBanLast->GetIP( ), m_GameName, User, Payload, 3600 * 48, userContext ) ) );
+				if( AdminCheck || RootAdminCheck ) userContext = "ttr.cloud";
+				else BanDuration = 3600 * 24 * 365;
+				
+				m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_DBBanLast->GetServer( ), m_DBBanLast->GetName( ), m_DBBanLast->GetIP( ), m_GameName, User, Payload, BanDuration, userContext ) ) );
 			}
 
 			//
@@ -2264,13 +2267,26 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				{
 					if( !Payload.empty( ) )
 					{
-						SendAllChat( m_GHost->m_Language->SettingGameOwnerTo( Payload ) );
-						m_OwnerName = Payload;
+						CGamePlayer *Target = GetPlayerFromName( Payload, false );
+						
+						if( Target )
+						{
+							SendAllChat( m_GHost->m_Language->SettingGameOwnerTo( Payload ) );
+							m_OwnerName = Target->GetName( );
+							
+							if( Target->GetSpoofed( ) )
+								m_OwnerRealm = Target->GetSpoofedRealm( );
+							else
+								m_OwnerRealm = Target->GetJoinedRealm( );
+						}
+						else
+							SendChat( player, "Error: target user is not in the lobby." );
 					}
 					else
 					{
 						SendAllChat( m_GHost->m_Language->SettingGameOwnerTo( User ) );
 						m_OwnerName = User;
+						m_OwnerRealm = player->GetSpoofedRealm( );
 					}
 				}
 				else

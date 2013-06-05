@@ -2175,7 +2175,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 		{
 			if( (*i)->GetServer( ) == JoinedRealm )
 			{
-				CDBBan *Ban = (*i)->IsBannedName( joinPlayer->GetName( ), m_OwnerName );
+				CDBBan *Ban = (*i)->IsBannedName( joinPlayer->GetName( ), m_OwnerName + "@" + m_OwnerRealm );
 
 				if( Ban )
 				{
@@ -2210,7 +2210,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 				}
 			}
 
-			CDBBan *Ban = (*i)->IsBannedIP( potential->GetExternalIPString( ), m_OwnerName );
+			CDBBan *Ban = (*i)->IsBannedIP( potential->GetExternalIPString( ), m_OwnerName + "@" + m_OwnerRealm );
 
 			if( Ban )
 			{
@@ -2256,7 +2256,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 		// if still NULL, search by IP too
 		if( !Ban && !WhiteList )
 		{
-			Ban = m_GHost->IsBannedIP( potential->GetExternalIPString( ), m_OwnerName );
+			Ban = m_GHost->IsBannedIP( potential->GetExternalIPString( ), m_OwnerName + "@" + m_OwnerRealm );
 		}
 		
 		if( Ban )
@@ -4692,6 +4692,9 @@ void CBaseGame :: AddToSpoofed( string server, string name, bool sendMessage )
 	{
 		Player->SetSpoofedRealm( server );
 		Player->SetSpoofed( true );
+		
+		if( IsOwner( Player->GetName( ) ) )
+			m_OwnerRealm = server;
 
 		if( sendMessage && !Player->GetSpoofed( ) )
 			SendAllChat( m_GHost->m_Language->SpoofCheckAcceptedFor( server, name ) );
