@@ -68,6 +68,11 @@ bool CGHostDB :: AdminCheck( string server, string user )
 	return false;
 }
 
+bool CGHostDB :: AliasCheck( string ip )
+{
+	return false;
+}
+
 bool CGHostDB :: AdminAdd( string server, string user )
 {
 	return false;
@@ -264,6 +269,11 @@ CCallableAdminCount *CGHostDB :: ThreadedAdminCount( string server )
 }
 
 CCallableAdminCheck *CGHostDB :: ThreadedAdminCheck( string server, string user )
+{
+	return NULL;
+}
+
+CCallableAliasCheck *CGHostDB :: ThreadedAliasCheck( string ip )
 {
 	return NULL;
 }
@@ -489,6 +499,11 @@ CCallableAdminCount :: ~CCallableAdminCount( )
 }
 
 CCallableAdminCheck :: ~CCallableAdminCheck( )
+{
+
+}
+
+CCallableAliasCheck :: ~CCallableAliasCheck( )
 {
 
 }

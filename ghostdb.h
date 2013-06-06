@@ -33,6 +33,7 @@
 class CBaseCallable;
 class CCallableAdminCount;
 class CCallableAdminCheck;
+class CCallableAliasCheck;
 class CCallableAdminAdd;
 class CCallableAdminRemove;
 class CCallableAdminList;
@@ -108,6 +109,7 @@ public:
 	virtual bool Commit( );
 	virtual uint32_t AdminCount( string server );
 	virtual bool AdminCheck( string server, string user );
+	virtual bool AliasCheck( string ip );
 	virtual bool AdminAdd( string server, string user );
 	virtual bool AdminRemove( string server, string user );
 	virtual vector<string> AdminList( string server );
@@ -151,6 +153,7 @@ public:
 	virtual void CreateThread( CBaseCallable *callable );
 	virtual CCallableAdminCount *ThreadedAdminCount( string server );
 	virtual CCallableAdminCheck *ThreadedAdminCheck( string server, string user );
+	virtual CCallableAliasCheck *ThreadedAliasCheck( string ip );
 	virtual CCallableAdminAdd *ThreadedAdminAdd( string server, string user );
 	virtual CCallableAdminRemove *ThreadedAdminRemove( string server, string user );
 	virtual CCallableAdminList *ThreadedAdminList( string server );
@@ -269,6 +272,21 @@ public:
 	virtual string GetUser( )				{ return m_User; }
 	virtual bool GetResult( )				{ return m_Result; }
 	virtual void SetResult( bool nResult )	{ m_Result = nResult; }
+};
+
+class CCallableAliasCheck : virtual public CBaseCallable
+{
+protected:
+	string m_IP;
+	string m_Result;
+
+public:
+	CCallableAliasCheck( string nIP ) : CBaseCallable( ), m_IP( nIP ) { }
+	virtual ~CCallableAliasCheck( );
+
+	virtual string GetIP( )					{ return m_IP; }
+	virtual string GetResult( )				{ return m_Result; }
+	virtual void SetResult( string nResult )	{ m_Result = nResult; }
 };
 
 class CCallableAdminAdd : virtual public CBaseCallable

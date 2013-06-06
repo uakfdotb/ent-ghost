@@ -183,6 +183,19 @@ CCallableAdminCheck *CGHostDBMySQL :: ThreadedAdminCheck( string server, string 
 	return Callable;
 }
 
+CCallableAliasCheck *CGHostDBMySQL :: ThreadedAliasCheck( string ip )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableAliasCheck *Callable = new CMySQLCallableAliasCheck( ip, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port, this );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
 CCallableAdminAdd *CGHostDBMySQL :: ThreadedAdminAdd( string server, string user )
 {
 	void *Connection = GetIdleConnection( );
@@ -815,6 +828,40 @@ bool MySQLAdminCheck( void *conn, string *error, uint32_t botid, string server, 
 	}
 
 	return IsAdmin;
+}
+
+string MySQLAliasCheck( void *conn, string *error, uint32_t botid, string ip )
+{
+	string EscIP = MySQLEscapeString( conn, ip );
+	string Aliases = "";
+	string Query = "SELECT DISTINCT name, spoofedrealm FROM gameplayers WHERE ip = '" + EscIP + "' ORDER BY id DESC LIMIT 4;";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			while( Row.size( ) == 2 )
+			{
+				Aliases += ", " + Row[0] + "@" + Row[1];
+				Row = MySQLFetchRow( Result );
+			}
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+
+	if( Aliases.length( ) < 3 )
+		return "No aliases found.";
+	else
+		return "Aliases: " + Aliases.substr( 2 );
 }
 
 bool MySQLAdminAdd( void *conn, string *error, uint32_t botid, string server, string user )
@@ -2606,6 +2653,16 @@ void CMySQLCallableAdminCheck :: operator( )( )
 
 	if( m_Error.empty( ) )
 		m_Result = MySQLAdminCheck( m_Connection, &m_Error, m_SQLBotID, m_Server, m_User );
+
+	Close( );
+}
+
+void CMySQLCallableAliasCheck :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		m_Result = MySQLAliasCheck( m_Connection, &m_Error, m_SQLBotID, m_IP );
 
 	Close( );
 }

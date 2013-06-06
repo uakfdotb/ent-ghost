@@ -3128,6 +3128,17 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	}
 
 	//
+	// !ALIAS
+	//
+
+	else if( Command == "alias" && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 && !Payload.empty( ) )
+	{
+		CGamePlayer *Target = GetPlayerFromName( Payload, false );
+		m_PairedAliasChecks.push_back( PairedAliasCheck( User, m_GHost->m_DB->ThreadedAliasCheck( Target->GetExternalIPString( ) ) ) );
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
 	// !VERSION
 	//
 
@@ -3284,6 +3295,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			SendChat(player, "* Don't abuse the !votekick command.");
 			SendChat(player, "* Don't feed, ruin, spam, or cheat!");
 			SendChat(player, "* !yes the !votekick command against excessive feeder's.");
+			SendChat(player, "* Use !rules dota, !rules ltd, or !rules aaa for game-specific rules.");
 		}
 	}
 

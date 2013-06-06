@@ -196,6 +196,7 @@ public:
 	virtual void CreateThread( CBaseCallable *callable );
 	virtual CCallableAdminCount *ThreadedAdminCount( string server );
 	virtual CCallableAdminCheck *ThreadedAdminCheck( string server, string user );
+	virtual CCallableAliasCheck *ThreadedAliasCheck( string ip );
 	virtual CCallableAdminAdd *ThreadedAdminAdd( string server, string user );
 	virtual CCallableAdminRemove *ThreadedAdminRemove( string server, string user );
 	virtual CCallableAdminList *ThreadedAdminList( string server );
@@ -248,6 +249,7 @@ public:
 
 uint32_t MySQLAdminCount( void *conn, string *error, uint32_t botid, string server );
 bool MySQLAdminCheck( void *conn, string *error, uint32_t botid, string server, string user );
+string MySQLAliasCheck( void *conn, string *error, uint32_t botid, string ip );
 bool MySQLAdminAdd( void *conn, string *error, uint32_t botid, string server, string user );
 bool MySQLAdminRemove( void *conn, string *error, uint32_t botid, string server, string user );
 vector<string> MySQLAdminList( void *conn, string *error, uint32_t botid, string server );
@@ -331,6 +333,17 @@ class CMySQLCallableAdminCheck : public CCallableAdminCheck, public CMySQLCallab
 public:
 	CMySQLCallableAdminCheck( string nServer, string nUser, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableAdminCheck( nServer, nUser ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
 	virtual ~CMySQLCallableAdminCheck( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableAliasCheck : public CCallableAliasCheck, public CMySQLCallable
+{
+public:
+	CMySQLCallableAliasCheck( string nIP, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableAliasCheck( nIP ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
+	virtual ~CMySQLCallableAliasCheck( ) { }
 
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }
