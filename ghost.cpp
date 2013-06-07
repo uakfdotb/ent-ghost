@@ -714,10 +714,10 @@ CGHost :: CGHost( CConfig *CFG )
 
 	for( int i = 0; i < 100; i++)
 	{
-		string AMKey = "autohost_map";
+		string AMKey = "autohost_map" + UTIL_ToString( i );
 		
-		if( i != 0 )
-			AMKey += UTIL_ToString( i );
+		if( i == 0 )
+			AMKey = "bot_defaultmap";
 		
 		string AutoHostMapCFGString = CFG->GetString( AMKey , string( ) );
 		
@@ -737,8 +737,6 @@ CGHost :: CGHost( CConfig *CFG )
 		CMap *AutoHostMap = new CMap( this, &AutoHostMapCFG, m_MapCFGPath + AutoHostMapCFGString );
 		m_AutoHostMap.push_back( new CMap( *AutoHostMap ) );
 	}
-	
-	m_AutoHostMapCounter = 0;
 
 	m_SaveGame = new CSaveGame( );
 
@@ -1331,11 +1329,8 @@ bool CGHost :: Update( long usecBlock )
 
 		if( !m_ExitingNice && m_Enabled && !m_CurrentGame && m_Games.size( ) < m_MaxGames && m_Games.size( ) < m_AutoHostMaximumGames && !m_AutoHostMap.empty( ) )
 		{
-			if( m_AutoHostMapCounter >= m_AutoHostMap.size( ) )
-				m_AutoHostMapCounter = 0;
-			
-			CMap *AutoHostMap = m_AutoHostMap[m_AutoHostMapCounter];
-			m_AutoHostMapCounter = ( m_AutoHostMapCounter + 1 ) % m_AutoHostMap.size( );
+			// pick random map to autohost if we have more than one
+			CMap *AutoHostMap = m_AutoHostMap[rand( ) % m_AutoHostMap.size( )];
 			
 			if( AutoHostMap->GetValid( ) )
 			{
@@ -1349,7 +1344,7 @@ bool CGHost :: Update( long usecBlock )
 
 					if( m_CurrentGame )
 					{
-						m_CurrentGame->SetAutoStartPlayers( m_AutoHostAutoStartPlayers );
+						m_CurrentGame->SetAutoStartPlayers( AutoHostMap->GetStartPlayers( ) == 0 ? m_AutoHostAutoStartPlayers : AutoHostMap->GetStartPlayers( ) );
 
 						if( m_AutoHostMatchMaking )
 						{

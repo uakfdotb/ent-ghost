@@ -792,6 +792,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	m_MapHeight = MapHeight;
 	m_MapType = CFG->GetString( "map_type", string( ) );
 	m_GameName = CFG->GetString( "map_gamename", string( ) );
+	m_StartPlayers = CFG->GetInt( "map_startplayers", 0 );
 	m_MapMatchMakingCategory = CFG->GetString( "map_matchmakingcategory", string( ) );
 	m_MapStatsW3MMDCategory = CFG->GetString( "map_statsw3mmdcategory", string( ) );
 	m_MapDefaultHCL = CFG->GetString( "map_defaulthcl", string( ) );

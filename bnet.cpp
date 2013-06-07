@@ -1472,7 +1472,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 								QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
 								m_GHost->ClearAutoHostMap( );
 								m_GHost->m_AutoHostMap.push_back( new CMap( *m_GHost->m_Map ) );
-								m_GHost->m_AutoHostMapCounter = 0;
 								m_GHost->m_AutoHostGameName = GameName;
 								m_GHost->m_AutoHostOwner = User;
 								m_GHost->m_AutoHostServer = m_Server;
@@ -1561,7 +1560,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 										QueueChatCommand( m_GHost->m_Language->AutoHostEnabled( ), User, Whisper );
 										m_GHost->ClearAutoHostMap( );
 										m_GHost->m_AutoHostMap.push_back( new CMap( *m_GHost->m_Map ) );
-										m_GHost->m_AutoHostMapCounter = 0;
 										m_GHost->m_AutoHostOwner = User;
 										m_GHost->m_AutoHostServer = m_Server;
 										m_GHost->m_AutoHostMaximumGames = MaximumGames;
