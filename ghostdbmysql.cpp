@@ -404,6 +404,32 @@ CCallableGameUpdate *CGHostDBMySQL :: ThreadedGameUpdate( string map, string gam
 	return Callable;
 }
 
+CCallableStreamGameUpdate *CGHostDBMySQL :: ThreadedStreamGameUpdate( string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableStreamGameUpdate *Callable = new CMySQLCallableStreamGameUpdate( gamename, map, mapcrc, mapflags, port, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port, this );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
+CCallableStreamPlayerUpdate *CGHostDBMySQL :: ThreadedStreamPlayerUpdate( string name, string gamename )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableStreamPlayerUpdate *Callable = new CMySQLCallableStreamPlayerUpdate( name, gamename, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port, this );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
 CCallableGamePlayerAdd *CGHostDBMySQL :: ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour, string savetype )
 {
 	void *Connection = GetIdleConnection( );
@@ -1356,6 +1382,95 @@ string MySQLGameUpdate( void *conn, string *error, uint32_t botid, string map, s
 
         return "";
     }
+}
+
+void MySQLStreamGameUpdate( void *conn, string *error, uint32_t botid, string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port )
+{
+	string EscGameName = MySQLEscapeString( conn, gamename );
+	string EscMap = MySQLEscapeString( conn, map );
+	string Query = "SELECT COUNT(*) FROM stream_games WHERE gamename = '" + EscGameName + "'";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) == 0 )
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+		
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+			
+			if( !Row.empty( ) )
+			{
+				if( Row[0] == "0" )
+				{
+					Query = "INSERT INTO stream_games (gamename, mappath, mapcrc, mapflags, port, botid, last_update) VALUES ('" + EscGameName + "', '" + EscMap + "', '" + UTIL_ToString( mapcrc ) + "', '" + UTIL_ToString( mapflags ) + "', '" + UTIL_ToString( port ) + "', '" + UTIL_ToString( botid ) + "', CURRENT_TIMESTAMP())";
+					
+					if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+						*error = mysql_error( (MYSQL *)conn );
+				}
+				else
+				{
+					string SetMap = ", mappath = '" + EscMap + "', mapcrc = '" + UTIL_ToString( mapcrc ) + "', mapflags = '" + UTIL_ToString( mapflags ) + "'";
+					
+					if( EscMap.empty( ) )
+						SetMap = "";
+					
+					Query = "UPDATE stream_games SET port = '" + UTIL_ToString( port ) + "', botid = '" + UTIL_ToString( botid ) + "'" + SetMap + ", last_update = CURRENT_TIMESTAMP() WHERE gamename = '" + EscGameName + "'";
+					
+					if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+						*error = mysql_error( (MYSQL *)conn );
+				}
+			}
+			
+			mysql_free_result( Result );
+		}
+	}
+	else
+		*error = mysql_error( (MYSQL *)conn );
+	
+	Query = "DELETE FROM stream_games WHERE last_update < DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 70 SECOND)";
+	mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) );
+}
+
+void MySQLStreamPlayerUpdate( void *conn, string *error, uint32_t botid, string name, string gamename )
+{
+	string EscName = MySQLEscapeString( conn, name );
+	string EscGameName = MySQLEscapeString( conn, gamename );
+	string Query = "SELECT COUNT(*) FROM stream_players WHERE name = '" + EscName + "'";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) == 0 )
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+		
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+			
+			if( !Row.empty( ) )
+			{
+				if( Row[0] == "0" )
+				{
+					Query = "INSERT INTO stream_players (name, gamename, last_update) VALUES ('" + EscName + "', '" + EscGameName + "', CURRENT_TIMESTAMP())";
+					
+					if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+						*error = mysql_error( (MYSQL *)conn );
+				}
+				else
+				{
+					Query = "UPDATE stream_players SET gamename = '" + EscGameName + "', last_update = CURRENT_TIMESTAMP() WHERE name = '" + EscName + "'";
+					
+					if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+						*error = mysql_error( (MYSQL *)conn );
+				}
+			}
+			
+			mysql_free_result( Result );
+		}
+	}
+	else
+		*error = mysql_error( (MYSQL *)conn );
+	
+	Query = "DELETE FROM stream_players WHERE last_update < DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 70 SECOND)";
+	mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) );
 }
 
 uint32_t MySQLGamePlayerAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour, string savetype )
@@ -2608,7 +2723,7 @@ void CMySQLCallable :: Init( )
 		// try again to get idle connection
 		for( unsigned int i = 0; i < 3 && !m_Connection; i++ )
 		{
-			CONSOLE_Print( "[MYSQL] No connection yet, trying again (" + UTIL_ToString( i + 1 ) + ")" );
+			//CONSOLE_Print( "[MYSQL] No connection yet, trying again (" + UTIL_ToString( i + 1 ) + ")" );
 			MILLISLEEP( rand() % 1000 + 300 );
 			m_Connection = m_DB->GetIdleConnection( );
 		}
@@ -2818,6 +2933,26 @@ void CMySQLCallableGameUpdate :: operator( )( )
 
 	if( m_Error.empty( ) )
 		m_Result = MySQLGameUpdate( m_Connection, &m_Error, m_SQLBotID, m_Map, m_GameName, m_OwnerName, m_CreatorName, m_Players, m_Usernames, m_SlotsTotal, m_TotalGames, m_TotalPlayers, m_Add );
+
+	Close( );
+}
+
+void CMySQLCallableStreamGameUpdate :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		MySQLStreamGameUpdate( m_Connection, &m_Error, m_SQLBotID, m_GameName, m_Map, m_MapCRC, m_MapFlags, m_Port );
+
+	Close( );
+}
+
+void CMySQLCallableStreamPlayerUpdate :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		MySQLStreamPlayerUpdate( m_Connection, &m_Error, m_SQLBotID, m_Name, m_GameName );
 
 	Close( );
 }

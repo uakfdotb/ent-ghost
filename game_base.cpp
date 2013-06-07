@@ -36,6 +36,7 @@
 #include "replay.h"
 #include "gameplayer.h"
 #include "gameprotocol.h"
+#include "streamplayer.h"
 #include "game_base.h"
 
 #include <cmath>
@@ -48,7 +49,7 @@
 // CBaseGame
 //
 
-CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : m_GHost( nGHost ), m_SaveGame( nSaveGame ), m_Replay( NULL ), m_Exiting( false ), m_Saving( false ), m_HostPort( nHostPort ), m_GameState( nGameState ), m_VirtualHostPID( 255 ), m_GProxyEmptyActions( 0 ), m_GameName( nGameName ), m_LastGameName( nGameName ), m_VirtualHostName( m_GHost->m_VirtualHostName ), m_OwnerName( nOwnerName ), m_CreatorName( nCreatorName ), m_CreatorServer( nCreatorServer ), m_HCLCommandString( nMap->GetMapDefaultHCL( ) ), m_RandomSeed( GetTicks( ) ), m_HostCounter( m_GHost->m_HostCounter++ ), m_EntryKey( rand( ) ), m_Latency( m_GHost->m_Latency ), m_SyncLimit( m_GHost->m_SyncLimit ), m_SyncCounter( 0 ), m_GameTicks( 0 ), m_CreationTime( GetTime( ) ), m_LastPingTime( GetTime( ) ), m_LastRefreshTime( GetTime( ) ), m_LastDownloadTicks( GetTime( ) ), m_DownloadCounter( 0 ), m_LastDownloadCounterResetTicks( GetTime( ) ), m_LastAnnounceTime( 0 ), m_AnnounceInterval( 0 ), m_LastAutoStartTime( GetTime( ) ), m_AutoStartPlayers( 0 ), m_LastCountDownTicks( 0 ), m_CountDownCounter( 0 ), m_StartedLoadingTicks( 0 ), m_StartPlayers( 0 ), m_LastLagScreenResetTime( 0 ), m_LastActionSentTicks( 0 ), m_LastActionLateBy( 0 ), m_StartedLaggingTime( 0 ), m_LastLagScreenTime( 0 ), m_LastReservedSeen( GetTime( ) ), m_StartedKickVoteTime( 0 ), m_StartedVoteStartTime( 0 ), m_GameOverTime( 0 ), m_LastPlayerLeaveTicks( 0 ), m_MinimumScore( 0. ), m_MaximumScore( 0. ), m_SlotInfoChanged( false ), m_Locked( false ), m_RefreshMessages( m_GHost->m_RefreshMessages ), m_RefreshError( false ), m_RefreshRehosted( false ), m_MuteAll( false ), m_MuteLobby( false ), m_CountDownStarted( false ), m_GameLoading( false ), m_GameLoaded( false ), m_LoadInGame( nMap->GetMapLoadInGame( ) ), m_Lagging( false ), m_AutoSave( m_GHost->m_AutoSave ), m_MatchMaking( false ), m_LocalAdminMessages( m_GHost->m_LocalAdminMessages ), m_DoDelete( 0 ), m_LastReconnectHandleTime( 0 ), m_League( false ), m_Tournament( false ), m_TournamentMatchID( 0 ), m_TournamentChatID( 0 ), m_TournamentRestrict( true ), m_SoftGameOver( false ), m_AutoHostPlayerCycle( 0 ), m_AllowDownloads( true )
+CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : m_GHost( nGHost ), m_SaveGame( nSaveGame ), m_Replay( NULL ), m_Exiting( false ), m_Saving( false ), m_HostPort( nHostPort ), m_GameState( nGameState ), m_VirtualHostPID( 255 ), m_GProxyEmptyActions( 0 ), m_GameName( nGameName ), m_LastGameName( nGameName ), m_VirtualHostName( m_GHost->m_VirtualHostName ), m_OwnerName( nOwnerName ), m_CreatorName( nCreatorName ), m_CreatorServer( nCreatorServer ), m_HCLCommandString( nMap->GetMapDefaultHCL( ) ), m_RandomSeed( GetTicks( ) ), m_HostCounter( m_GHost->m_HostCounter++ ), m_EntryKey( rand( ) ), m_Latency( m_GHost->m_Latency ), m_SyncLimit( m_GHost->m_SyncLimit ), m_SyncCounter( 0 ), m_GameTicks( 0 ), m_CreationTime( GetTime( ) ), m_LastPingTime( GetTime( ) ), m_LastRefreshTime( GetTime( ) ), m_LastDownloadTicks( GetTime( ) ), m_DownloadCounter( 0 ), m_LastDownloadCounterResetTicks( GetTime( ) ), m_LastAnnounceTime( 0 ), m_AnnounceInterval( 0 ), m_LastAutoStartTime( GetTime( ) ), m_AutoStartPlayers( 0 ), m_LastCountDownTicks( 0 ), m_CountDownCounter( 0 ), m_StartedLoadingTicks( 0 ), m_StartPlayers( 0 ), m_LastLagScreenResetTime( 0 ), m_LastActionSentTicks( 0 ), m_LastActionLateBy( 0 ), m_StartedLaggingTime( 0 ), m_LastLagScreenTime( 0 ), m_LastReservedSeen( GetTime( ) ), m_StartedKickVoteTime( 0 ), m_StartedVoteStartTime( 0 ), m_GameOverTime( 0 ), m_LastPlayerLeaveTicks( 0 ), m_MinimumScore( 0. ), m_MaximumScore( 0. ), m_SlotInfoChanged( false ), m_Locked( false ), m_RefreshMessages( m_GHost->m_RefreshMessages ), m_RefreshError( false ), m_RefreshRehosted( false ), m_MuteAll( false ), m_MuteLobby( false ), m_CountDownStarted( false ), m_GameLoading( false ), m_GameLoaded( false ), m_LoadInGame( nMap->GetMapLoadInGame( ) ), m_Lagging( false ), m_AutoSave( m_GHost->m_AutoSave ), m_MatchMaking( false ), m_LocalAdminMessages( m_GHost->m_LocalAdminMessages ), m_DoDelete( 0 ), m_LastReconnectHandleTime( 0 ), m_League( false ), m_Tournament( false ), m_TournamentMatchID( 0 ), m_TournamentChatID( 0 ), m_TournamentRestrict( true ), m_SoftGameOver( false ), m_AutoHostPlayerCycle( 0 ), m_AllowDownloads( true ), m_Closed( false ), m_StreamPID( 255 ), m_StreamSID( 255 ), m_StreamPackets( NULL ), m_CachedMapSize( 0 )
 {
 	m_Socket = new CTCPServer( );
 	m_Protocol = new CGameProtocol( m_GHost );
@@ -160,8 +161,19 @@ CBaseGame :: ~CBaseGame( )
 	delete m_Protocol;
 	delete m_Map;
 	delete m_Replay;
+	
+	if( m_StreamPackets )
+	{
+		for( vector<CStreamPacket *> :: iterator i = m_StreamPackets->begin( ); i != m_StreamPackets->end( ); ++i )
+			delete *i;
+
+		delete m_StreamPackets;
+	}
 
 	for( vector<CPotentialPlayer *> :: iterator i = m_Potentials.begin( ); i != m_Potentials.end( ); ++i )
+		delete *i;
+
+	for( vector<CStreamPlayer *> :: iterator i = m_StreamPlayers.begin( ); i != m_StreamPlayers.end( ); ++i )
 		delete *i;
 	
 	for( map<uint32_t, CPotentialPlayer *> :: iterator i = m_BannedPlayers.begin( ); i != m_BannedPlayers.end( ); ++i )
@@ -180,12 +192,6 @@ CBaseGame :: ~CBaseGame( )
 	
 	for( vector<CCallableLeagueCheck *> :: iterator i = m_LeagueChecks.begin( ); i != m_LeagueChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( *i );
-	
-	// if tournament, update tournament database status
-	if( m_Tournament && m_TournamentMatchID != 0 )
-	{
-		m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedTournamentUpdate( m_TournamentMatchID, m_GameName, 4 ) );
-	}
 	
 	lock.unlock( );
 
@@ -467,6 +473,15 @@ unsigned int CBaseGame :: SetFD( void *fd, void *send_fd, int *nfds )
 		}
 	}
 
+	for( vector<CStreamPlayer *> :: iterator i = m_StreamPlayers.begin( ); i != m_StreamPlayers.end( ); ++i )
+	{
+		if( (*i)->GetSocket( ) )
+		{
+			(*i)->GetSocket( )->SetFD( (fd_set *)fd, (fd_set *)send_fd, nfds );
+			++NumFDs;
+		}
+	}
+
 	return NumFDs;
 }
 
@@ -485,12 +500,36 @@ bool CBaseGame :: UpdateFast( void *fd, void *send_fd )
 		else
 			++i;
 	}
+	
+	// update streamers too
+
+	for( vector<CStreamPlayer *> :: iterator i = m_StreamPlayers.begin( ); i != m_StreamPlayers.end( ); )
+	{
+		if( (*i)->Update( fd ) )
+		{
+			if( (*i)->GetSocket( ) )
+				(*i)->GetSocket( )->DoSend( (fd_set *)send_fd );
+
+			if( !(*i)->GetName( ).empty( ) )
+			{
+				CONSOLE_Print( "[GAME: " + m_GameName + "] streamer [" + (*i)->GetName( ) + "] is terminating" );
+			
+				if( (*i)->GetBeganStreaming( ) )
+					SendAllChat( "Player [" + (*i)->GetName( ) + "] has stopped streaming this game." );
+			}
+			
+			delete *i;
+			i = m_StreamPlayers.erase( i );
+		}
+		else
+			++i;
+	}
 
 	// send actions every m_Latency milliseconds
 	// actions are at the heart of every Warcraft 3 game but luckily we don't need to know their contents to relay them
 	// we queue player actions in EventPlayerAction then just resend them in batches to all players here
 
-	if( m_GameLoaded && !m_Lagging && GetTicks( ) - m_LastActionSentTicks >= m_Latency - m_LastActionLateBy )
+	if( m_GameLoaded && !m_Lagging && GetTicks( ) - m_LastActionSentTicks >= m_Latency - m_LastActionLateBy && !m_Closed )
 		SendAllActions( );
 	
 	return m_Exiting;
@@ -917,6 +956,41 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		m_DoSpoofAdd.clear( );
 		lock.unlock( );
 	}
+	
+	// handle add to streamers vector
+	
+	if( !m_DoAddStreamPlayer.empty( ) )
+	{
+		boost::mutex::scoped_lock lock( m_StreamMutex );
+		
+		while( !m_DoAddStreamPlayer.empty( ) )
+		{
+			CStreamPlayer *StreamPlayer = m_DoAddStreamPlayer.front( );
+			m_DoAddStreamPlayer.pop( );
+			m_StreamPlayers.push_back( StreamPlayer );
+		}
+		
+		lock.unlock( );
+	}
+	
+	// update stream DB
+	
+	if( GetTime( ) - m_LastStreamDBUpdateTime > 30 )
+	{
+		boost::mutex::scoped_lock lock( m_GHost->m_CallablesMutex );
+		
+		if( m_Map )
+			m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedStreamGameUpdate( m_GameName, m_Map->GetMapPath( ), UTIL_ByteArrayToUInt32( m_Map->GetMapCRC( ), false ), UTIL_ByteArrayToUInt32( m_Map->GetMapGameFlags( ), false ), m_GHost->m_StreamPort ) );
+		else
+			m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedStreamGameUpdate( m_GameName, "", 0, 0, m_GHost->m_StreamPort ) );
+		
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+			m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedStreamPlayerUpdate( (*i)->GetName( ), m_GameName ) );
+		
+		lock.unlock( );
+		
+		m_LastStreamDBUpdateTime = GetTime( );
+	}
 
 	// kick players who don't spoof check within 30 seconds when spoof checks are required and the game is autohosted
 
@@ -1090,10 +1164,18 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 					if( UsingGProxy )
 					{
 						for( unsigned char i = 0; i < m_GProxyEmptyActions; ++i )
+						{
 							m_Replay->AddTimeSlot( 0, queue<CIncomingAction *>( ) );
+							
+							if( m_StreamPackets )
+								m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) ) );
+						}
 					}
 
 					m_Replay->AddTimeSlot( 0, queue<CIncomingAction *>( ) );
+					
+					if( m_StreamPackets )
+						m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) ) );
 				}
 
 				// Warcraft III doesn't seem to respond to empty actions
@@ -1110,7 +1192,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	// keep track of the largest sync counter (the number of keepalive packets received by each player)
 	// if anyone falls behind by more than m_SyncLimit keepalives we start the lag screen
 
-	if( m_GameLoaded )
+	if( m_GameLoaded && !m_Closed )
 	{
 		// check if anyone has started lagging
 		// we consider a player to have started lagging if they're more than m_SyncLimit keepalives behind
@@ -1225,10 +1307,18 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 					if( UsingGProxy )
 					{
 						for( unsigned char i = 0; i < m_GProxyEmptyActions; ++i )
+						{
 							m_Replay->AddTimeSlot( 0, queue<CIncomingAction *>( ) );
+							
+							if( m_StreamPackets )
+								m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) ) );
+						}
 					}
 
 					m_Replay->AddTimeSlot( 0, queue<CIncomingAction *>( ) );
+					
+					if( m_StreamPackets )
+						m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) ) );
 				}
 
 				// Warcraft III doesn't seem to respond to empty actions
@@ -1367,6 +1457,16 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			m_Saving = true;
 		}
 		else if( IsGameDataSaved( ) )
+		{
+			if( !m_Closed )
+			{
+				CloseGame( );
+				m_Closed = true;
+			}
+			else if( m_StreamPlayers.empty( ) )
+				return true;
+		}
+		else if( m_Closed && m_StreamPlayers.empty( ) ) // IsGameDataSaved may return false after game is closed
 			return true;
 	}
 
@@ -1424,6 +1524,12 @@ void CBaseGame :: UpdatePost( void *send_fd )
 	{
 		if( i->second->GetSocket( ) )
 			i->second->GetSocket( )->DoSend( (fd_set *)send_fd );
+	}
+
+	for( vector<CStreamPlayer *> :: iterator i = m_StreamPlayers.begin( ); i != m_StreamPlayers.end( ); ++i )
+	{
+		if( (*i)->GetSocket( ) )
+			(*i)->GetSocket( )->DoSend( (fd_set *)send_fd );
 	}
 }
 
@@ -1514,6 +1620,9 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 				message = message.substr( 0, 254 );
 
 			SendAll( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 16, BYTEARRAY( ), message ) );
+			
+			if( m_StreamPackets )
+				m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 16, BYTEARRAY( ), message ) ) );
 		}
 		else
 		{
@@ -1521,6 +1630,9 @@ void CBaseGame :: SendAllChat( unsigned char fromPID, string message )
 				message = message.substr( 0, 127 );
 
 			SendAll( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 32, UTIL_CreateByteArray( (uint32_t)0, false ), message ) );
+			
+			if( m_StreamPackets )
+				m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_CHAT_FROM_HOST( fromPID, GetPIDs( ), 32, UTIL_CreateByteArray( (uint32_t)0, false ), message ) ) );
 
 			if( m_Replay )
 				m_Replay->AddChatMessage( fromPID, 32, 0, message );
@@ -1623,7 +1735,12 @@ void CBaseGame :: SendAllActions( )
 		if( m_Replay )
 		{
 			for( unsigned char i = 0; i < m_GProxyEmptyActions; ++i )
+			{
 				m_Replay->AddTimeSlot( 0, queue<CIncomingAction *>( ) );
+				
+				if( m_StreamPackets )
+					m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_INCOMING_ACTION( queue<CIncomingAction *>( ), 0 ) ) );
+			}
 		}
 	}
 
@@ -1663,7 +1780,12 @@ void CBaseGame :: SendAllActions( )
 				SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION2( SubActions ) );
 
 				if( m_Replay )
+				{
 					m_Replay->AddTimeSlot2( SubActions );
+					
+					if( m_StreamPackets )
+						m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_INCOMING_ACTION2( SubActions ) ) );
+				}
 
 				while( !SubActions.empty( ) )
 				{
@@ -1681,7 +1803,12 @@ void CBaseGame :: SendAllActions( )
 		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( SubActions, m_Latency ) );
 
 		if( m_Replay )
+		{
 			m_Replay->AddTimeSlot( m_Latency, SubActions );
+			
+			if( m_StreamPackets )
+				m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_INCOMING_ACTION( SubActions, m_Latency ) ) );
+		}
 
 		while( !SubActions.empty( ) )
 		{
@@ -1694,7 +1821,12 @@ void CBaseGame :: SendAllActions( )
 		SendAll( m_Protocol->SEND_W3GS_INCOMING_ACTION( m_Actions, m_Latency ) );
 
 		if( m_Replay )
+		{
 			m_Replay->AddTimeSlot( m_Latency, m_Actions );
+			
+			if( m_StreamPackets )
+				m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_INCOMING_ACTION( m_Actions, m_Latency ) ) );
+		}
 	}
 
 	uint32_t ActualSendInterval = GetTicks( ) - m_LastActionSentTicks;
@@ -1937,6 +2069,9 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 			m_Replay->AddLeaveGameDuringLoading( 1, player->GetPID( ), player->GetLeftCode( ) );
 		else
 			m_Replay->AddLeaveGame( 1, player->GetPID( ), player->GetLeftCode( ) );
+		
+		if( m_StreamPackets )
+			m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( player->GetPID( ), player->GetLeftCode( ) ) ) );
 	}
 
 	// abort the countdown if there was one in progress
@@ -2658,7 +2793,8 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 
 	// send a map check packet to the new player
 
-	Player->Send( m_Protocol->SEND_W3GS_MAPCHECK( m_Map->GetMapPath( ), m_Map->GetMapSize( ), m_Map->GetMapInfo( ), m_Map->GetMapCRC( ), m_Map->GetMapSHA1( ) ) );
+	m_CachedMapCheck = m_Protocol->SEND_W3GS_MAPCHECK( m_Map->GetMapPath( ), m_Map->GetMapSize( ), m_Map->GetMapInfo( ), m_Map->GetMapCRC( ), m_Map->GetMapSHA1( ) );
+	Player->Send( m_CachedMapCheck );
 
 	// send slot info to everyone, so the new player gets this info twice but everyone else still needs to know the new slot layout
 
@@ -3073,12 +3209,18 @@ void CBaseGame :: EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlaye
 
 					if( m_MuteAll )
 						Relay = false;
+					
+					if( m_StreamPackets && Relay )
+						m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_CHAT_FROM_HOST( chatPlayer->GetFromPID( ), chatPlayer->GetToPIDs( ), chatPlayer->GetFlag( ), chatPlayer->GetExtraFlags( ), chatPlayer->GetMessage( ) ) ) );
 				}
 				else if( ExtraFlags[0] == 2 )
 				{
 					// this is an ingame [Obs/Ref] message, print it to the console
 
 					CONSOLE_Print( "[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [Obs/Ref] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
+					
+					if( m_StreamPackets )
+						m_StreamPackets->push_back( new CStreamPacket( m_GameTicks, m_Protocol->SEND_W3GS_CHAT_FROM_HOST( chatPlayer->GetFromPID( ), chatPlayer->GetToPIDs( ), chatPlayer->GetFlag( ), chatPlayer->GetExtraFlags( ), chatPlayer->GetMessage( ) ) ) );
 				} else {
 					// I don't care, print it to console anyway
 					CONSOLE_Print( "[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [??] [" + player->GetName( ) + "]: " + chatPlayer->GetMessage( ) );
@@ -3409,9 +3551,9 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 
 	// todotodo: the variable names here are confusing due to extremely poor design on my part
 
-	uint32_t MapSize = UTIL_ByteArrayToUInt32( m_Map->GetMapSize( ), false );
+	m_CachedMapSize = UTIL_ByteArrayToUInt32( m_Map->GetMapSize( ), false );
 
-	if( mapSize->GetSizeFlag( ) != 1 || mapSize->GetMapSize( ) != MapSize )
+	if( mapSize->GetSizeFlag( ) != 1 || mapSize->GetMapSize( ) != m_CachedMapSize )
 	{
 		// the player doesn't have the map
 
@@ -3468,7 +3610,7 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 			// calculate download rate
 
 			float Seconds = (float)( GetTicks( ) - player->GetStartedDownloadingTicks( ) ) / 1000;
-			float Rate = (float)MapSize / 1024 / Seconds;
+			float Rate = (float)m_CachedMapSize / 1024 / Seconds;
 			CONSOLE_Print( "[GAME: " + m_GameName + "] map download finished for player [" + player->GetName( ) + "] in " + UTIL_ToString( Seconds, 1 ) + " seconds" );
 			SendAllChat( m_GHost->m_Language->PlayerDownloadedTheMap( player->GetName( ), UTIL_ToString( Seconds, 1 ), UTIL_ToString( Rate, 1 ) ) );
 			player->SetDownloadFinished( true );
@@ -3476,11 +3618,11 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 
 			// add to database
 
-			//m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedDownloadAdd( m_Map->GetMapPath( ), MapSize, player->GetName( ), player->GetExternalIPString( ), player->GetSpoofed( ) ? 1 : 0, player->GetSpoofedRealm( ), GetTicks( ) - player->GetStartedDownloadingTicks( ) ) );
+			//m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedDownloadAdd( m_Map->GetMapPath( ), m_CachedMapSize, player->GetName( ), player->GetExternalIPString( ), player->GetSpoofed( ) ? 1 : 0, player->GetSpoofedRealm( ), GetTicks( ) - player->GetStartedDownloadingTicks( ) ) );
 		}
 	}
 
-	unsigned char NewDownloadStatus = (unsigned char)( (float)mapSize->GetMapSize( ) / MapSize * 100 );
+	unsigned char NewDownloadStatus = (unsigned char)( (float)mapSize->GetMapSize( ) / m_CachedMapSize * 100 );
 	unsigned char SID = GetSIDFromPID( player->GetPID( ) );
 
 	if( NewDownloadStatus > 100 )
@@ -3539,6 +3681,24 @@ void CBaseGame :: EventGameRefreshed( string server )
 void CBaseGame :: EventGameStarted( )
 {
 	CONSOLE_Print( "[GAME: " + m_GameName + "] started loading with " + UTIL_ToString( GetNumHumanPlayers( ) ) + " players" );
+	
+	// find slots for streamer to use in case streaming is enabled and some streamers join
+	
+	for( unsigned char i = 0; i < m_Slots.size( ); i++ )
+	{
+		if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam( ) == 12 )
+		{
+			m_StreamSID = i;
+			m_StreamPID = m_Slots[i].GetPID( );
+			m_StreamMapNumPlayers = m_Map->GetMapNumPlayers( );
+			m_StreamMapLayoutStyle = m_Map->GetMapLayoutStyle( );
+			
+			if( m_GHost->m_Stream && !m_StreamPackets )
+				m_StreamPackets = new vector<CStreamPacket *>( );
+			
+			break;
+		}
+	}
 
 	// encode the HCL command string in the slot handicaps
 	// here's how it works:
@@ -4800,6 +4960,19 @@ bool CBaseGame :: IsGameDataSaved( )
 void CBaseGame :: SaveGameData( )
 {
 
+}
+
+void CBaseGame :: CloseGame( )
+{
+	boost::mutex::scoped_lock lock( m_GHost->m_CallablesMutex );
+	
+	// if tournament, update tournament database status
+	if( m_Tournament && m_TournamentMatchID != 0 )
+	{
+		m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedTournamentUpdate( m_TournamentMatchID, m_GameName, 4 ) );
+	}
+	
+	lock.unlock( );
 }
 
 void CBaseGame :: StartCountDown( bool force )

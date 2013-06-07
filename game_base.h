@@ -39,6 +39,7 @@ class CGamePlayer;
 class CMap;
 class CSaveGame;
 class CReplay;
+class CStreamPlayer;
 class CIncomingJoinPlayer;
 class CIncomingAction;
 class CIncomingChatPlayer;
@@ -46,8 +47,11 @@ class CIncomingMapSize;
 class CCallableScoreCheck;
 class CCallableLeagueCheck;
 class CCallableConnectCheck;
+class CCallableStreamGameUpdate;
+class CCallableStreamPlayerUpdate;
 struct QueuedSpoofAdd;
 struct FakePlayer;
+class CStreamPacket;
 
 class CBaseGame
 {
@@ -55,6 +59,11 @@ public:
 	CGHost *m_GHost;
 	vector<CGamePlayer *> m_Players;				// vector of players
 	vector<CGameSlot> m_Slots;						// vector of slots
+	vector<FakePlayer> m_FakePlayers;				// vector of fake players
+	vector<CStreamPacket *> *m_StreamPackets;		// cached action/chat packets to show in stream
+	vector<CStreamPlayer *> m_StreamPlayers;		// vector of streamers
+	queue<CStreamPlayer *> m_DoAddStreamPlayer;		// streamers to add to the m_StreamPlayers vector
+	boost::mutex m_StreamMutex;						// mutex for the above queue
 
 protected:
 	CTCPServer *m_Socket;							// listening socket
@@ -76,6 +85,7 @@ protected:
 	CReplay *m_Replay;								// replay
 	bool m_Exiting;									// set to true and this class will be deleted next update
 	bool m_Saving;									// if we're currently saving game data to the database
+	bool m_Closed;									// whether we've finished closing the game
 	uint16_t m_HostPort;							// the port to host games on
 	unsigned char m_GameState;						// game state, public or private
 	unsigned char m_VirtualHostPID;					// virtual host's PID
@@ -151,7 +161,14 @@ protected:
 	uint32_t m_TournamentMatchID;					// if m_Tournament, this is the tournament match ID
 	uint32_t m_TournamentChatID;					// if m_Tournament, this is the chat id
 	bool m_TournamentRestrict;						// whether to restrict joiners based on tournament players table
-	vector<FakePlayer>  m_FakePlayers;				// vector of fake players
+	
+	unsigned char m_StreamSID;						// slot that streamer should go in
+	unsigned char m_StreamPID;						// fake PID for streamer to use
+	unsigned char m_StreamMapLayoutStyle;			// cached map layout style
+	uint32_t m_StreamMapNumPlayers;					// cached map num players
+	BYTEARRAY m_CachedMapCheck;						// cached map check packet
+	uint32_t m_CachedMapSize;
+	uint32_t m_LastStreamDBUpdateTime;				// last time we updated database stream tables
 
 public:
 	vector<string> m_DoSayGames;					// vector of strings we should announce to the current game
@@ -177,6 +194,7 @@ public:
 	virtual string GetMapName( );
 	virtual string GetLastGameName( )				{ return m_LastGameName; }
 	virtual string GetVirtualHostName( )			{ return m_VirtualHostName; }
+	virtual unsigned char GetVirtualHostPID( )		{ return m_VirtualHostPID; }
 	virtual string GetOwnerName( )					{ return m_OwnerName; }
 	virtual string GetCreatorName( )				{ return m_CreatorName; }
 	virtual string GetCreatorServer( )				{ return m_CreatorServer; }
@@ -189,6 +207,14 @@ public:
 	virtual bool GetGameLoading( )					{ return m_GameLoading; }
 	virtual bool GetGameLoaded( )					{ return m_GameLoaded; }
 	virtual bool GetLagging( )						{ return m_Lagging; }
+	virtual unsigned char GetStreamSID( )			{ return m_StreamSID; }
+	virtual unsigned char GetStreamPID( )			{ return m_StreamPID; }
+	virtual unsigned char GetStreamMapLayoutStyle( ){ return m_StreamMapLayoutStyle; }
+	virtual uint32_t GetStreamMapNumPlayers( )		{ return m_StreamMapNumPlayers; }
+	virtual BYTEARRAY GetCachedMapCheck( )			{ return m_CachedMapCheck; }
+	virtual uint32_t GetCachedMapSize( )			{ return m_CachedMapSize; }
+	virtual uint32_t GetRandomSeed( )				{ return m_RandomSeed; }
+	virtual bool GetClosed( )						{ return m_Closed; }
 
 	virtual void SetEnforceSlots( vector<CGameSlot> nEnforceSlots )		{ m_EnforceSlots = nEnforceSlots; }
 	virtual void SetEnforcePlayers( vector<PIDPlayer> nEnforcePlayers )	{ m_EnforcePlayers = nEnforcePlayers; }
@@ -305,6 +331,7 @@ public:
 	virtual bool IsDownloading( );
 	virtual bool IsGameDataSaved( );
 	virtual void SaveGameData( );
+	virtual void CloseGame( );
 	virtual void StartCountDown( bool force );
 	virtual void StartCountDownAuto( bool requireSpoofChecks );
 	virtual void StopPlayers( string reason );
@@ -327,6 +354,22 @@ struct QueuedSpoofAdd {
 struct FakePlayer {
 	unsigned char pid;
 	string name;
+};
+
+class CStreamPacket {
+public:
+	uint32_t m_Ticks; //game ticks when packet is sent
+	BYTEARRAY m_Packet;
+	
+	CStreamPacket( uint32_t nTicks, BYTEARRAY nPacket )
+	{
+		m_Ticks = nTicks;
+		m_Packet = nPacket;
+	}
+	
+	~CStreamPacket( )
+	{
+	}
 };
 
 #endif

@@ -46,6 +46,7 @@
 #include "game_base.h"
 #include "game.h"
 #include "game_admin.h"
+#include "streamplayer.h"
 
 #include <signal.h>
 #include <execinfo.h> //to generate stack trace-like thing on exception
@@ -427,9 +428,11 @@ CGHost :: CGHost( CConfig *CFG )
 	m_LocalSocket->SetBroadcastTarget( "localhost" );
 	m_LocalSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
 	m_ReconnectSocket = NULL;
+	m_StreamSocket = NULL;
 	m_GPSProtocol = new CGPSProtocol( );
 	m_GCBIProtocol = new CGCBIProtocol( );
 	m_AMHProtocol = new CAMHProtocol( );
+	m_GameProtocol = new CGameProtocol( this );
 	m_CRC = new CCRC32( );
 	m_CRC->Initialize( );
 	m_SHA = new CSHA1( );
@@ -799,12 +802,18 @@ CGHost :: ~CGHost( )
 	delete m_UDPSocket;
 	delete m_LocalSocket;
 	delete m_ReconnectSocket;
+	delete m_StreamSocket;
 
 	for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); ++i )
 		delete *i;
 
+	for( vector<CStreamPlayer *> :: iterator i = m_StreamPlayers.begin( ); i != m_StreamPlayers.end( ); ++i )
+		delete *i;
+
 	delete m_GPSProtocol;
 	delete m_GCBIProtocol;
+	delete m_GameProtocol;
+	delete m_AMHProtocol;
 	delete m_CRC;
 	delete m_SHA;
 
@@ -996,6 +1005,48 @@ bool CGHost :: Update( long usecBlock )
 			m_Reconnect = false;
 		}
 	}
+	
+	// create the stream listener
+	
+	if( m_Stream )
+	{
+		if( !m_StreamSocket )
+		{
+			bool Success = false;
+
+			for( unsigned int i = 0; i < 50; i++ )
+			{
+				m_StreamSocket = new CTCPServer( );
+				
+				if( m_StreamSocket->Listen( string( ), m_StreamPort ) )
+				{
+					CONSOLE_Print( "[GHOST] listening for streamers on port " + UTIL_ToString( m_StreamPort ) );
+					Success = true;
+					break;
+				}
+				else
+				{
+					CONSOLE_Print( "[GHOST] error listening for streamers on port " + UTIL_ToString( m_StreamPort ) );
+					delete m_StreamSocket;
+					m_StreamSocket = NULL;
+					m_StreamPort++;
+				}
+			}
+			
+			if( !Success )
+			{
+				CONSOLE_Print( "[GHOST] failed to listen for streamers too many times, giving up" );
+				m_Stream = false;
+			}
+		}
+		else if( m_StreamSocket->HasError( ) )
+		{
+			CONSOLE_Print( "[GHOST] streamer listener error (" + m_StreamSocket->GetErrorString( ) + ")" );
+			delete m_StreamSocket;
+			m_StreamSocket = NULL;
+			m_Stream = false;
+		}
+	}
 
 	unsigned int NumFDs = 0;
 
@@ -1012,7 +1063,7 @@ bool CGHost :: Update( long usecBlock )
 	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		NumFDs += (*i)->SetFD( &fd, &send_fd, &nfds );
 
-	// 5. the GProxy++ reconnect socket(s)
+	// 2. the GProxy++ reconnect socket(s)
 
 	if( m_Reconnect && m_ReconnectSocket )
 	{
@@ -1024,6 +1075,23 @@ bool CGHost :: Update( long usecBlock )
 	{
 		(*i)->SetFD( &fd, &send_fd, &nfds );
                 ++NumFDs;
+	}
+	
+	// 3. the streamer socket(s)
+	
+	if( m_Stream && m_StreamSocket )
+	{
+		m_StreamSocket->SetFD( &fd, &send_fd, &nfds );
+		++NumFDs;
+	}
+	
+	for( vector<CStreamPlayer *> :: iterator i = m_StreamPlayers.begin( ); i != m_StreamPlayers.end( ); ++i )
+	{
+		if( (*i)->GetSocket( ) )
+		{
+			(*i)->GetSocket( )->SetFD( &fd, &send_fd, &nfds );
+			++NumFDs;
+		}
 	}
 
 	struct timeval tv;
@@ -1171,6 +1239,57 @@ bool CGHost :: Update( long usecBlock )
 		}
 	
 		lock.unlock();
+	}
+
+	// update stream sockets
+
+	if( m_Stream && m_StreamSocket )
+	{
+		CTCPSocket *NewSocket = m_StreamSocket->Accept( &fd );
+
+		if( NewSocket )
+		{
+			if( !CheckDeny( NewSocket->GetIPString( ) ) )
+			{
+				if( m_TCPNoDelay )
+					NewSocket->SetNoDelay( true );
+
+				DenyIP( NewSocket->GetIPString( ), 60000, "streamer connected" );
+				m_StreamPlayers.push_back( new CStreamPlayer( m_GameProtocol, NewSocket, this ) );
+			}
+			else
+			{
+				CONSOLE_Print( "[STREAM] rejected connection from [" + NewSocket->GetIPString( ) + "] due to blacklist" );
+				delete NewSocket;
+			}
+		}
+	}
+
+	for( vector<CStreamPlayer *> :: iterator i = m_StreamPlayers.begin( ); i != m_StreamPlayers.end( ); )
+	{
+		if( (*i)->Update( &fd ) )
+		{
+			if( (*i)->GetSocket( ) )
+				(*i)->GetSocket( )->DoSend( &send_fd );
+
+			delete *i;
+			i = m_StreamPlayers.erase( i );
+		}
+		else if( (*i)->m_Game )
+		{
+			boost::mutex::scoped_lock lock( (*i)->m_Game->m_StreamMutex );
+			(*i)->m_Game->m_DoAddStreamPlayer.push( *i );
+			lock.unlock( );
+			
+			i = m_StreamPlayers.erase( i );
+		}
+		else
+		{
+			if( (*i)->GetSocket( ) )
+				(*i)->GetSocket( )->DoSend( &send_fd );
+
+			++i;
+		}
 	}
 
 	// autohost
@@ -1686,6 +1805,10 @@ void CGHost :: SetConfigs( CConfig *CFG )
     m_FastReconnect = CFG->GetInt( "bot_fastreconnect", 0 ) == 0 ? false : true;
     m_CloseSinglePlayer = CFG->GetInt( "bot_closesingleplayer", 1 ) == 0 ? false : true;
     m_AMH = CFG->GetInt( "bot_amh", 0 ) == 0 ? false : true;
+    
+    m_Stream = CFG->GetInt( "bot_stream", 0 ) == 0 ? false : true;
+	m_StreamPort = CFG->GetInt( "bot_streamport", m_HostPort * 2 );
+	m_StreamLimit = CFG->GetInt( "bot_streamlimit", 300 );
 }
 
 void CGHost :: ExtractScripts( )

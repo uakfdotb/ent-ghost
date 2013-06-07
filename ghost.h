@@ -38,6 +38,8 @@ class CTCPSocket;
 class CGPSProtocol;
 class CGCBIProtocol;
 class CAMHProtocol;
+class CGameProtocol;
+class CStreamPlayer;
 class CCRC32;
 class CSHA1;
 class CBNET;
@@ -71,11 +73,14 @@ public:
 	CUDPSocket *m_UDPSocket;				// a UDP socket for sending broadcasts and other junk (used with !sendlan)
 	CUDPSocket *m_LocalSocket;				// a UDP socket for sending broadcasts and other junk (used with !sendlan)
 	CTCPServer *m_ReconnectSocket;			// listening socket for GProxy++ reliable reconnects
+	CTCPServer *m_StreamSocket;				// listening socket for streamers
 	vector<CTCPSocket *> m_ReconnectSockets;// vector of sockets attempting to reconnect (connected but not identified yet)
+	vector<CStreamPlayer *> m_StreamPlayers;// vector of stream players
 	vector<string> m_SlapPhrases;           // vector of phrases
 	CGPSProtocol *m_GPSProtocol;
 	CGCBIProtocol *m_GCBIProtocol;
 	CAMHProtocol *m_AMHProtocol;
+	CGameProtocol *m_GameProtocol;
 	CCRC32 *m_CRC;							// for calculating CRC's
 	CSHA1 *m_SHA;							// for calculating SHA1's
 	vector<CBNET *> m_BNETs;				// all our battle.net connections (there can be more than one)
@@ -196,6 +201,10 @@ public:
 	map<string, string> m_SpoofList; 		// donators can opt to spoof their name
 	uint32_t m_LastSpoofRefreshTime;		// refresh spoof list every 2 hours
 	CCallableSpoofList *m_CallableSpoofList; // spoof list refresh in progress
+	
+	bool m_Stream;							// whether streaming is enabled
+	uint32_t m_StreamPort;					// port to accept streamers on
+	uint32_t m_StreamLimit;					// seconds from beginning of game before players can stream
 
 	CGHost( CConfig *CFG );
 	~CGHost( );

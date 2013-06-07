@@ -198,59 +198,7 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 
 CGame :: ~CGame( )
 {
-	// autoban
-	uint32_t EndTime = m_GameTicks / 1000;
-	
 	boost::mutex::scoped_lock callablesLock( m_GHost->m_CallablesMutex );
-	
-	for( vector<CDBGamePlayer *> :: iterator i = m_DBGamePlayers.begin( ); i != m_DBGamePlayers.end( ); ++i )
-	{
-		if( IsAutoBanned( (*i)->GetName( ) ) )
-		{
-			uint32_t LeftTime = (*i)->GetLeft( );
-			
-			if( EndTime - LeftTime > 300 || ( m_MapType == "cfone" && LeftTime < 60 ) )
-			{
-				string CustomReason = "autoban: left at " + UTIL_ToString( LeftTime ) + "/" + UTIL_ToString( EndTime );
-				
-				if( m_MapType == "eihl" )
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-eihl", CustomReason, 3600 * 12, "ttr.cloud" ));
-				else if( m_MapType == "lihl" )
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-lihl", CustomReason, 3600 * 12, "ttr.cloud" ));
-				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" || m_MapType == "cfone" )
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
-				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "legionmega_ab" || m_MapType == "civwars" )
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600, "ttr.cloud" ));
-				else
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 1800, "ttr.cloud" ));
-			}
-		}
-	}
-	
-	if( m_CallableGameAdd && m_CallableGameAdd->GetReady( ) )
-	{
-		if( m_CallableGameAdd->GetResult( ) > 0 )
-		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] saving player/stats data to database" );
-
-			// store the CDBGamePlayers in the database
-
-			for( vector<CDBGamePlayer *> :: iterator i = m_DBGamePlayers.begin( ); i != m_DBGamePlayers.end( ); ++i )
-				m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedGamePlayerAdd( m_CallableGameAdd->GetResult( ), (*i)->GetName( ), (*i)->GetIP( ), (*i)->GetSpoofed( ), (*i)->GetSpoofedRealm( ), (*i)->GetReserved( ), (*i)->GetLoadingTime( ), (*i)->GetLeft( ), (*i)->GetLeftReason( ), (*i)->GetTeam( ), (*i)->GetColour( ), m_Tournament ? "uxtourney" : string( ) ) );
-
-			// store the stats in the database
-
-			if( m_Stats )
-				m_Stats->Save( m_GHost, m_GHost->m_DB, m_CallableGameAdd->GetResult( ) );
-		}
-		else
-			CONSOLE_Print( "[GAME: " + m_GameName + "] unable to save player/stats data to database" );
-
-		m_GHost->m_DB->RecoverCallable( m_CallableGameAdd );
-		delete m_CallableGameAdd;
-		m_CallableGameAdd = NULL;
-	}
-
 	
 	for( vector<PairedBanCheck> :: iterator i = m_PairedBanChecks.begin( ); i != m_PairedBanChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
@@ -3673,6 +3621,62 @@ void CGame :: SaveGameData( )
 {
 	CONSOLE_Print( "[GAME: " + m_GameName + "] saving game data to database" );
 	m_CallableGameAdd = m_GHost->m_DB->ThreadedGameAdd( m_GHost->m_BNETs.size( ) == 1 ? m_GHost->m_BNETs[0]->GetServer( ) : string( ), m_DBGame->GetMap( ), m_GameName, m_OwnerName, m_GameTicks / 1000, m_GameState, m_CreatorName, m_CreatorServer, m_Tournament ? "uxtourney" : string( ) );
+}
+
+void CGame :: CloseGame( )
+{
+	// autoban
+	uint32_t EndTime = m_GameTicks / 1000;
+	
+	boost::mutex::scoped_lock callablesLock( m_GHost->m_CallablesMutex );
+	
+	for( vector<CDBGamePlayer *> :: iterator i = m_DBGamePlayers.begin( ); i != m_DBGamePlayers.end( ); ++i )
+	{
+		if( IsAutoBanned( (*i)->GetName( ) ) )
+		{
+			uint32_t LeftTime = (*i)->GetLeft( );
+			
+			if( EndTime - LeftTime > 300 || ( m_MapType == "cfone" && LeftTime < 60 ) )
+			{
+				string CustomReason = "autoban: left at " + UTIL_ToString( LeftTime ) + "/" + UTIL_ToString( EndTime );
+				
+				if( m_MapType == "eihl" )
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-eihl", CustomReason, 3600 * 12, "ttr.cloud" ));
+				else if( m_MapType == "lihl" )
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-lihl", CustomReason, 3600 * 12, "ttr.cloud" ));
+				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" || m_MapType == "cfone" )
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
+				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "legionmega_ab" || m_MapType == "civwars" )
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600, "ttr.cloud" ));
+				else
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 1800, "ttr.cloud" ));
+			}
+		}
+	}
+	
+	if( m_CallableGameAdd && m_CallableGameAdd->GetReady( ) )
+	{
+		if( m_CallableGameAdd->GetResult( ) > 0 )
+		{
+			CONSOLE_Print( "[GAME: " + m_GameName + "] saving player/stats data to database" );
+
+			// store the CDBGamePlayers in the database
+
+			for( vector<CDBGamePlayer *> :: iterator i = m_DBGamePlayers.begin( ); i != m_DBGamePlayers.end( ); ++i )
+				m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedGamePlayerAdd( m_CallableGameAdd->GetResult( ), (*i)->GetName( ), (*i)->GetIP( ), (*i)->GetSpoofed( ), (*i)->GetSpoofedRealm( ), (*i)->GetReserved( ), (*i)->GetLoadingTime( ), (*i)->GetLeft( ), (*i)->GetLeftReason( ), (*i)->GetTeam( ), (*i)->GetColour( ), m_Tournament ? "uxtourney" : string( ) ) );
+
+			// store the stats in the database
+
+			if( m_Stats )
+				m_Stats->Save( m_GHost, m_GHost->m_DB, m_CallableGameAdd->GetResult( ) );
+		}
+		else
+			CONSOLE_Print( "[GAME: " + m_GameName + "] unable to save player/stats data to database" );
+
+		m_GHost->m_DB->RecoverCallable( m_CallableGameAdd );
+		delete m_CallableGameAdd;
+		m_CallableGameAdd = NULL;
+	}
 }
 
 bool CGame :: IsAutoBanned( string name )

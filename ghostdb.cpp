@@ -153,6 +153,16 @@ string CGHostDB :: GameUpdate( string map, string gamename, string ownername, st
 	return "";
 }
 
+void CGHostDB :: StreamGameUpdate( string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port )
+{
+
+}
+
+void CGHostDB :: StreamPlayerUpdate( string name, string gamename )
+{
+
+}
+
 uint32_t CGHostDB :: GamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour, string savetype )
 {
 	return 0;
@@ -354,6 +364,16 @@ CCallableGameAdd *CGHostDB :: ThreadedGameAdd( string server, string map, string
 }
 
 CCallableGameUpdate *CGHostDB :: ThreadedGameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add )
+{
+	return NULL;
+}
+
+CCallableStreamGameUpdate *CGHostDB :: ThreadedStreamGameUpdate( string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port )
+{
+	return NULL;
+}
+
+CCallableStreamPlayerUpdate *CGHostDB :: ThreadedStreamPlayerUpdate( string name, string gamename )
 {
 	return NULL;
 }
@@ -579,6 +599,16 @@ CCallableGameAdd :: ~CCallableGameAdd( )
 }
 
 CCallableGameUpdate :: ~CCallableGameUpdate( )
+{
+
+}
+
+CCallableStreamGameUpdate :: ~CCallableStreamGameUpdate( )
+{
+
+}
+
+CCallableStreamPlayerUpdate :: ~CCallableStreamPlayerUpdate( )
 {
 
 }
