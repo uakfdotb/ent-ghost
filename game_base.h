@@ -215,6 +215,7 @@ public:
 	virtual uint32_t GetCachedMapSize( )			{ return m_CachedMapSize; }
 	virtual uint32_t GetRandomSeed( )				{ return m_RandomSeed; }
 	virtual bool GetClosed( )						{ return m_Closed; }
+	virtual bool GetRefreshError( )					{ return m_RefreshError; }
 
 	virtual void SetEnforceSlots( vector<CGameSlot> nEnforceSlots )		{ m_EnforceSlots = nEnforceSlots; }
 	virtual void SetEnforcePlayers( vector<PIDPlayer> nEnforcePlayers )	{ m_EnforcePlayers = nEnforcePlayers; }
