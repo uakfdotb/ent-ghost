@@ -262,6 +262,8 @@ m_LoggedIn( false ), m_Spoofed( false ), m_Reserved( nReserved ), m_WhoisShouldB
 	// note: we must make sure we never send a packet to a CPotentialPlayer otherwise the send counter will be incorrect too! what a mess this is...
 	// that said, the packet counters are only used for managing GProxy++ reconnections
     m_ConnectionState = 1;
+    
+    m_IncomingGarenaUser = potential->GetGarenaUser( );
 }
 
 CGamePlayer :: ~CGamePlayer( )
