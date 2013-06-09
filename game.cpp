@@ -1889,7 +1889,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( Command == "fakeplayer" && !m_CountDownStarted )
 			{
-				if( m_FakePlayers.empty( ) )
+				if( m_FakePlayers.empty( ) || Payload == "add" )
 					CreateFakePlayer( );
 				else
 					DeleteFakePlayer( );

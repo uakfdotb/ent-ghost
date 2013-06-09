@@ -4398,6 +4398,20 @@ void CBaseGame :: OpenSlot( unsigned char SID, bool kick )
 				Player->SetLeftReason( "was kicked when opening a slot" );
 				Player->SetLeftCode( PLAYERLEAVE_LOBBY );
 			}
+			else
+			{
+				// might be a fake player
+				for( vector<FakePlayer> :: iterator i = m_FakePlayers.begin( ); i != m_FakePlayers.end( ); )
+				{
+					if( i->pid == m_Slots[SID].GetPID( ) )
+					{
+						SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( i->pid, PLAYERLEAVE_LOBBY ) );
+						i = m_FakePlayers.erase( i );
+					}
+					else
+						++i;
+				}
+			}
 		}
 
 		CGameSlot Slot = m_Slots[SID];
@@ -4420,6 +4434,20 @@ void CBaseGame :: CloseSlot( unsigned char SID, bool kick )
 				Player->SetLeftReason( "was kicked when closing a slot" );
 				Player->SetLeftCode( PLAYERLEAVE_LOBBY );
 			}
+			else
+			{
+				// might be a fake player
+				for( vector<FakePlayer> :: iterator i = m_FakePlayers.begin( ); i != m_FakePlayers.end( ); )
+				{
+					if( i->pid == m_Slots[SID].GetPID( ) )
+					{
+						SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( i->pid, PLAYERLEAVE_LOBBY ) );
+						i = m_FakePlayers.erase( i );
+					}
+					else
+						++i;
+				}
+			}
 		}
 
 		CGameSlot Slot = m_Slots[SID];
@@ -4441,6 +4469,20 @@ void CBaseGame :: ComputerSlot( unsigned char SID, unsigned char skill, bool kic
 				Player->SetDeleteMe( true );
 				Player->SetLeftReason( "was kicked when creating a computer in a slot" );
 				Player->SetLeftCode( PLAYERLEAVE_LOBBY );
+			}
+			else
+			{
+				// might be a fake player
+				for( vector<FakePlayer> :: iterator i = m_FakePlayers.begin( ); i != m_FakePlayers.end( ); )
+				{
+					if( i->pid == m_Slots[SID].GetPID( ) )
+					{
+						SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( i->pid, PLAYERLEAVE_LOBBY ) );
+						i = m_FakePlayers.erase( i );
+					}
+					else
+						++i;
+				}
 			}
 		}
 
