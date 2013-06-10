@@ -232,6 +232,9 @@ CGame :: ~CGame( )
 
 	for( vector<PairedRPSCheck> :: iterator i = m_PairedRPSChecks.begin( ); i != m_PairedRPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
+
+	for( vector<PairedAliasCheck> :: iterator i = m_PairedAliasChecks.begin( ); i != m_PairedAliasChecks.end( ); ++i )
+		m_GHost->m_Callables.push_back( i->second );
 	
 	callablesLock.unlock( );
 
@@ -802,6 +805,30 @@ bool CGame :: Update( void *fd, void *send_fd )
 			m_GHost->m_DB->RecoverCallable( i->second );
 			delete i->second;
 			i = m_PairedWPSChecks.erase( i );
+		}
+		else
+			++i;
+	}
+
+	for( vector<PairedAliasCheck> :: iterator i = m_PairedAliasChecks.begin( ); i != m_PairedAliasChecks.end( ); )
+	{
+		if( i->second->GetReady( ) )
+		{
+			string Result = i->second->GetResult( );
+			
+			if( i->first.empty( ) )
+				SendAllChat( Result );
+			else
+			{
+				CGamePlayer *Player = GetPlayerFromName( i->first, true );
+			
+				if( Player )
+					SendChat( Player, Result );
+			}
+
+			m_GHost->m_DB->RecoverCallable( i->second );
+			delete i->second;
+			i = m_PairedAliasChecks.erase( i );
 		}
 		else
 			++i;
