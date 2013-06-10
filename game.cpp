@@ -1058,7 +1058,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				}
 			}
 			
-			if( CountAlly == 0 && CountEnemy >= 2 )
+			if( CountAlly == 0 && ( CountEnemy >= 2 || ( m_MapType == "islanddefense" && CountEnemy >= 1 ) ) )
 			{
 				// if less than one minute has elapsed, draw the game
 				// this may be abused for mode voting and such, but hopefully not (and that's what bans are for)
@@ -1070,7 +1070,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				
 				// otherwise, if more than five minutes have elapsed, give the other team the win
 				// this is now delayed by fifteen seconds to prevent setting winner on lag and such
-				else if( m_GameTicks > 1000 * 60 * 5 )
+				else if( m_GameTicks > 1000 * 60 * 5 || ( m_MapType == "islanddefense" && m_GameTicks > 1000 * 60 * 2 ) )
 				{
 					m_SetWinnerTicks = m_GameTicks;
 					m_SetWinnerTeam = Team;
