@@ -1056,6 +1056,14 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			return true;
 		}
 	}
+	
+	// cycle to next map if applicable, after thirty minutes
+	
+	if( !m_GameLoading && !m_GameLoaded && m_GHost->m_LobbyTimeLimit > 0 && m_GHost->m_AutoHostMap.size( ) > 1 && GetNumHumanPlayers( ) == 0 && GetTime( ) - m_LastReservedSeen >= m_GHost->m_LobbyTimeLimit * 60 )
+	{
+		CONSOLE_Print( "[GAME: " + m_GameName + "] is over (lobby time limit hit, cycling to next map)" );
+		return true;
+	}
 
 	// check if the game is loaded
 
