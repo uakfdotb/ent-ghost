@@ -1,7 +1,7 @@
 /*
 
 	ent-ghost
-	Copyright [2011-2012] [Jack Lu]
+	Copyright [2011-2013] [Jack Lu]
 
 	This file is part of the ent-ghost source code.
 
@@ -1457,33 +1457,40 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !DL
 			//
 
-			else if( ( Command == "download" || Command == "dl" ) && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded )
+			else if( ( Command == "download" || Command == "dl" || Command == "downloads" ) && !Payload.empty( ) && !m_GameLoading && !m_GameLoaded )
 			{
-				CGamePlayer *LastMatch = NULL;
-				uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
-
-				if( Matches == 0 )
-					SendAllChat( m_GHost->m_Language->UnableToStartDownloadNoMatchesFound( Payload ) );
-				else if( Matches == 1 )
+				if( Payload == "off" || Payload == "0" )
+					m_AllowDownloads = false;
+				else if( Payload == "on" || Payload == "1" )
+					m_AllowDownloads = true;
+				else
 				{
-					if( !LastMatch->GetDownloadStarted( ) && !LastMatch->GetDownloadFinished( ) )
+					CGamePlayer *LastMatch = NULL;
+					uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
+
+					if( Matches == 0 )
+						SendAllChat( m_GHost->m_Language->UnableToStartDownloadNoMatchesFound( Payload ) );
+					else if( Matches == 1 )
 					{
-						unsigned char SID = GetSIDFromPID( LastMatch->GetPID( ) );
-
-						if( SID < m_Slots.size( ) && m_Slots[SID].GetDownloadStatus( ) != 100 )
+						if( !LastMatch->GetDownloadStarted( ) && !LastMatch->GetDownloadFinished( ) )
 						{
-							// inform the client that we are willing to send the map
+							unsigned char SID = GetSIDFromPID( LastMatch->GetPID( ) );
 
-							CONSOLE_Print( "[GAME: " + m_GameName + "] map download started for player [" + LastMatch->GetName( ) + "]" );
-							Send( LastMatch, m_Protocol->SEND_W3GS_STARTDOWNLOAD( GetHostPID( ) ) );
-							LastMatch->SetDownloadAllowed( true );
-							LastMatch->SetDownloadStarted( true );
-							LastMatch->SetStartedDownloadingTicks( GetTicks( ) );
+							if( SID < m_Slots.size( ) && m_Slots[SID].GetDownloadStatus( ) != 100 )
+							{
+								// inform the client that we are willing to send the map
+
+								CONSOLE_Print( "[GAME: " + m_GameName + "] map download started for player [" + LastMatch->GetName( ) + "]" );
+								Send( LastMatch, m_Protocol->SEND_W3GS_STARTDOWNLOAD( GetHostPID( ) ) );
+								LastMatch->SetDownloadAllowed( true );
+								LastMatch->SetDownloadStarted( true );
+								LastMatch->SetStartedDownloadingTicks( GetTicks( ) );
+							}
 						}
 					}
+					else
+						SendAllChat( m_GHost->m_Language->UnableToStartDownloadFoundMoreThanOneMatch( Payload ) );
 				}
-				else
-					SendAllChat( m_GHost->m_Language->UnableToStartDownloadFoundMoreThanOneMatch( Payload ) );
 			}
 
 			//
