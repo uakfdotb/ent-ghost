@@ -4931,14 +4931,14 @@ void CBaseGame :: AddToSpoofed( string server, string name, bool sendMessage )
 
 	if( Player )
 	{
+		if( sendMessage && !Player->GetSpoofed( ) )
+			SendAllChat( m_GHost->m_Language->SpoofCheckAcceptedFor( server, name ) );
+
 		Player->SetSpoofedRealm( server );
 		Player->SetSpoofed( true );
 		
 		if( IsOwner( Player->GetName( ) ) )
 			m_OwnerRealm = server;
-
-		if( sendMessage && !Player->GetSpoofed( ) )
-			SendAllChat( m_GHost->m_Language->SpoofCheckAcceptedFor( server, name ) );
 	}
 }
 
