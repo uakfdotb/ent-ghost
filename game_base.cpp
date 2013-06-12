@@ -1072,7 +1072,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	{
 		// drop players who have not loaded if it's been a long time
 		
-		bool DropLoading = GetTicks( ) - m_StartedLoadingTicks > 240000;
+		bool DropLoading = GetTicks( ) - m_StartedLoadingTicks > 180000;
 		bool FinishedLoading = true;
 
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
@@ -1085,6 +1085,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				{
 					(*i)->SetDeleteMe( true );
 					(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
+					(*i)->SetLeftReason( "player takes too long to load" );
 					m_GHost->DenyIP( (*i)->GetExternalIPString( ), 180000, "player has not yet finished loading" );
 				}
 				
