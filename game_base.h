@@ -36,6 +36,7 @@ class CTCPServer;
 class CGameProtocol;
 class CPotentialPlayer;
 class CGamePlayer;
+class CStagePlayer;
 class CMap;
 class CSaveGame;
 class CReplay;
@@ -278,6 +279,7 @@ public:
 	virtual void EventPlayerDisconnectSocketError( CGamePlayer *player );
 	virtual void EventPlayerDisconnectConnectionClosed( CGamePlayer *player );
 	virtual CGamePlayer *EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double *score );
+	virtual void AddPlayerFast( CStagePlayer *potential );
 	virtual void EventPlayerLeft( CGamePlayer *player, uint32_t reason );
 	virtual void EventPlayerAMH( CGamePlayer *player, string reason );
 	virtual void EventPlayerLoaded( CGamePlayer *player );

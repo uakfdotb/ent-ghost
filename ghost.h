@@ -40,6 +40,7 @@ class CGCBIProtocol;
 class CAMHProtocol;
 class CGameProtocol;
 class CStreamPlayer;
+class CStagePlayer;
 class CCRC32;
 class CSHA1;
 class CBNET;
@@ -58,6 +59,7 @@ class CCallableWhiteList;
 class CCallableSpoofList;
 class CDBBan;
 struct DenyInfo;
+struct QueuedSpoofAdd;
 
 struct GProxyReconnector {
 	CTCPSocket *socket;
@@ -76,6 +78,7 @@ public:
 	CTCPServer *m_StreamSocket;				// listening socket for streamers
 	vector<CTCPSocket *> m_ReconnectSockets;// vector of sockets attempting to reconnect (connected but not identified yet)
 	vector<CStreamPlayer *> m_StreamPlayers;// vector of stream players
+	vector<CStagePlayer *> m_StagePlayers;	// vector of players waiting for a game
 	vector<string> m_SlapPhrases;           // vector of phrases
 	CGPSProtocol *m_GPSProtocol;
 	CGCBIProtocol *m_GCBIProtocol;
@@ -205,6 +208,12 @@ public:
 	bool m_Stream;							// whether streaming is enabled
 	uint32_t m_StreamPort;					// port to accept streamers on
 	uint32_t m_StreamLimit;					// seconds from beginning of game before players can stream
+	
+	bool m_Stage;
+	vector<CTCPSocket *> m_StageDoAdd;		// incoming connections to add to staging
+	boost::mutex m_StageMutex;				// mutex for the above vector
+	uint32_t m_LastStageTime;				// last time we tried to create a staging game
+	vector<QueuedSpoofAdd> m_DoSpoofAdd;	// pending spoof checks to process
 
 	CGHost( CConfig *CFG );
 	~CGHost( );
@@ -245,6 +254,9 @@ public:
 	bool FlameCheck( string message );
 	string GetSpoofName( string name );
 	bool IsLocal( string ip );
+	
+	uint32_t CountStagePlayers( );
+	void BroadcastChat( string name, string message );
 };
 
 struct DenyInfo {

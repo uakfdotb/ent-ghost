@@ -37,6 +37,7 @@
 #include "gameplayer.h"
 #include "gameprotocol.h"
 #include "streamplayer.h"
+#include "stageplayer.h"
 #include "game_base.h"
 
 #include <cmath>
@@ -1494,7 +1495,15 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 					NewSocket->SetNoDelay( true );
 
 				m_GHost->DenyIP( NewSocket->GetIPString( ), 1000, "user connected" );
-				m_Potentials.push_back( new CPotentialPlayer( m_Protocol, this, NewSocket ) );
+				
+				if( m_GHost->m_Stage )
+				{
+					boost::mutex::scoped_lock lock( m_GHost->m_StageMutex );
+					m_GHost->m_StageDoAdd.push_back( NewSocket );
+					lock.unlock( );
+				}
+				else
+					m_Potentials.push_back( new CPotentialPlayer( m_Protocol, this, NewSocket ) );
 			}
 			else
 			{
@@ -2902,6 +2911,53 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	return Player;
 }
 
+void CBaseGame :: AddPlayerFast( CStagePlayer *potential )
+{
+	// try to find an empty slot
+
+	unsigned char SID = GetEmptySlot( false );
+
+	if( SID >= m_Slots.size( ) )
+		return;
+
+	// we have a slot for the new player
+	// make room for them by deleting the virtual host player if we have to
+
+	if( GetNumPlayers( ) >= 11 )
+		DeleteVirtualHost( );
+
+	// turning the CStagePlayer into a CGamePlayer is a bit of a pain because we have to be careful not to close the socket
+	// this problem is solved by setting the socket to NULL before deletion and handling the NULL case in the destructor
+	// we also have to be careful to not modify the m_Potentials vector since we're currently looping through it
+
+	CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + potential->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joined the game" );
+	
+	BYTEARRAY BlankIP;
+	BlankIP.push_back( 0 );
+	BlankIP.push_back( 0 );
+	BlankIP.push_back( 0 );
+	BlankIP.push_back( 0 );
+	CGamePlayer *Player = new CGamePlayer( potential, m_Protocol, this, potential->GetPID( ), potential->GetRealm( ), potential->GetName( ), BlankIP, false );
+
+	potential->SetSocket( NULL );
+	
+	Player->SetSpoofed( true );
+	Player->SetSpoofedRealm( potential->GetRealm( ) );
+	Player->SetScore( potential->GetScore( ) );
+	
+	m_Players.push_back( Player );
+	m_Slots[SID] = CGameSlot( Player->GetPID( ), 100, SLOTSTATUS_OCCUPIED, 0, m_Slots[SID].GetTeam( ), m_Slots[SID].GetColour( ), m_Slots[SID].GetRace( ) );
+
+	// send virtual host info and fake player info (if present) to the new player
+
+	SendVirtualHostPlayerInfo( Player );
+	SendFakePlayerInfo( Player );
+
+	// send a welcome message
+
+	SendWelcomeMessage( Player );
+}
+
 void CBaseGame :: EventPlayerLeft( CGamePlayer *player, uint32_t reason )
 {
 	// this function is only called when a player leave packet is received, not when there's a socket error, kick, etc...
@@ -3707,6 +3763,29 @@ void CBaseGame :: EventGameStarted( )
 			break;
 		}
 	}
+	
+	if( m_GHost->m_Stage )
+	{
+		// send player information
+
+		BYTEARRAY BlankIP;
+		BlankIP.push_back( 0 );
+		BlankIP.push_back( 0 );
+		BlankIP.push_back( 0 );
+		BlankIP.push_back( 0 );
+	
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++ )
+		{
+			for( vector<CGamePlayer *> :: iterator j = m_Players.begin( ); j != m_Players.end( ); j++ )
+			{
+				if( *i != *j )
+				{
+					if( (*i)->GetSocket( ) )
+						(*i)->Send( m_Protocol->SEND_W3GS_PLAYERINFO( (*j)->GetPID( ), (*j)->GetName( ), BlankIP, BlankIP ) );
+				}
+			}
+		}
+	}
 
 	// encode the HCL command string in the slot handicaps
 	// here's how it works:
@@ -3771,12 +3850,18 @@ void CBaseGame :: EventGameStarted( )
 	// this is because we only permit slot info updates to be flagged when it's just a change in download status, all others are sent immediately
 	// it might not be necessary but let's clean up the mess anyway
 
-	if( m_SlotInfoChanged )
+	if( m_SlotInfoChanged || m_GHost->m_Stage )
 		SendAllSlotInfo( );
 
 	m_StartedLoadingTicks = GetTicks( );
 	m_LastLagScreenResetTime = GetTime( );
 	m_GameLoading = true;
+	
+	if( m_GHost->m_Stage )
+	{
+		// also make sure to set countdown started in case this was done via fake call
+		m_CountDownStarted = true;
+	}
 
 	// since we use a fake countdown to deal with leavers during countdown the COUNTDOWN_START and COUNTDOWN_END packets are sent in quick succession
 	// send a start countdown packet
@@ -3900,10 +3985,13 @@ void CBaseGame :: EventGameStarted( )
 	delete m_Map;
 	m_Map = NULL;
 
-	// move the game to the games in progress vector
-
-	m_GHost->m_CurrentGame = NULL;
-	m_GHost->m_Games.push_back( this );
+	if( !m_GHost->m_Stage )
+	{
+		// move the game to the games in progress vector
+		m_GHost->m_CurrentGame = NULL;
+		m_GHost->m_Games.push_back( this );
+	}
+	
 	lock.unlock( );
 	
 	// if tournament, update tournament database status
@@ -3914,13 +4002,16 @@ void CBaseGame :: EventGameStarted( )
 		lock.unlock( );
 	}
 
-	// and finally reenter battle.net chat
-
-	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+	if( !m_GHost->m_Stage )
 	{
-		(*i)->UnqueueGameRefreshes( );
-		(*i)->QueueGameUncreate( );
-		(*i)->QueueEnterChat( );
+		// and finally reenter battle.net chat
+		
+		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+		{
+			(*i)->UnqueueGameRefreshes( );
+			(*i)->QueueGameUncreate( );
+			(*i)->QueueEnterChat( );
+		}
 	}
 }
 

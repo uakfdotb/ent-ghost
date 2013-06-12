@@ -47,6 +47,7 @@
 #include "game.h"
 #include "game_admin.h"
 #include "streamplayer.h"
+#include "stageplayer.h"
 
 #include <signal.h>
 #include <execinfo.h> //to generate stack trace-like thing on exception
@@ -946,6 +947,14 @@ bool CGHost :: Update( long usecBlock )
 			m_AdminGame->doDelete( );
 			m_AdminGame = NULL;
 		}
+		
+		if( !m_StagePlayers.empty( ) )
+		{
+			for( vector<CStagePlayer *> :: iterator i = m_StagePlayers.begin( ); i != m_StagePlayers.end( ); i++ )
+				delete *i;
+			
+			m_StagePlayers.clear( );
+		}
 
 		if( m_Games.empty( ) )
 		{
@@ -1121,6 +1130,17 @@ bool CGHost :: Update( long usecBlock )
 		}
 	}
 
+	// 4. the stage socket(s)
+	
+	for( vector<CStagePlayer *> :: iterator i = m_StagePlayers.begin( ); i != m_StagePlayers.end( ); ++i )
+	{
+		if( (*i)->GetSocket( ) )
+		{
+			(*i)->GetSocket( )->SetFD( &fd, &send_fd, &nfds );
+			++NumFDs;
+		}
+	}
+
 	struct timeval tv;
 	tv.tv_sec = 0;
 	tv.tv_usec = usecBlock;
@@ -1267,6 +1287,67 @@ bool CGHost :: Update( long usecBlock )
 	
 		lock.unlock();
 	}
+	
+	if( m_Stage )
+	{
+		// update staging players
+		// also add new ones from the DoAdd vector
+
+		for( vector<CStagePlayer *> :: iterator i = m_StagePlayers.begin( ); i != m_StagePlayers.end( ); )
+		{
+			if( (*i)->Update( &fd ) )
+			{
+				if( (*i)->GetSocket( ) )
+					(*i)->GetSocket( )->DoSend( &send_fd );
+
+				delete *i;
+				i = m_StagePlayers.erase( i );
+			}
+			else
+			{
+				if( (*i)->GetSocket( ) )
+					(*i)->GetSocket( )->DoSend( &send_fd );
+
+				++i;
+			}
+		}
+	
+		if( !m_StageDoAdd.empty( ) )
+		{
+			boost::mutex::scoped_lock lock( m_StageMutex );
+		
+			for( vector<CTCPSocket *> :: iterator i = m_StageDoAdd.begin( ); i != m_StageDoAdd.end( ); ++i )
+			{
+				m_StagePlayers.push_back( new CStagePlayer( m_GameProtocol, *i, this ) );
+			}
+		
+			m_StageDoAdd.clear( );
+			lock.unlock( );
+		}
+		
+		if( !m_DoSpoofAdd.empty( ) )
+		{
+			boost::mutex::scoped_lock lock( m_StageMutex );
+			
+			for( vector<QueuedSpoofAdd> :: iterator i = m_DoSpoofAdd.begin( ); i != m_DoSpoofAdd.end( ); ++i )
+			{
+				string SpoofName = i->name;
+				transform( SpoofName.begin( ), SpoofName.end( ), SpoofName.begin( ), (int(*)(int))tolower );
+				
+				for( vector<CStagePlayer *> :: iterator j = m_StagePlayers.begin( ); j != m_StagePlayers.end( ); ++j )
+				{
+					string StageName = (*j)->GetName( );
+					transform( StageName.begin( ), StageName.end( ), StageName.begin( ), (int(*)(int))tolower );
+					
+					if( StageName == SpoofName && i->server == (*j)->GetRealm( ) )
+						(*j)->SetChecked( );
+				}
+			}
+			
+			m_DoSpoofAdd.clear( );
+			lock.unlock( );
+		}
+	}
 
 	// update stream sockets
 
@@ -1317,6 +1398,98 @@ bool CGHost :: Update( long usecBlock )
 
 			++i;
 		}
+	}
+	
+	// try to create a new game every ten seconds
+	
+	if( m_Stage && GetTime( ) - m_LastStageTime >= 10 && !m_AutoHostMap.empty( ) )
+	{
+		m_LastStageTime = GetTime( );
+		
+		CONSOLE_Print( "[GHOST] Trying to create a game..." );
+		uint32_t BestPlayers = 0; // best number of players found
+		
+		// loop over all the possible scores that we want to try
+	
+		int minScore = 800;
+		int maxScore = 1300;
+	
+		for( int score = minScore; score <= maxScore; score += 10 )
+		{
+			// type indicates whether these is a minimum, maximum, or in-between score
+			int scoreType = 0;
+		
+			if( score == minScore )
+				scoreType = -1;
+			else if( score == maxScore )
+				scoreType = 1;
+		
+			// we want to find ten players, each with a different PID
+			CStagePlayer *FoundPlayers[12]; // target PID is index plus one
+			int NumPlayersFound = 0;
+		
+			for( int i = 0; i < 12; i++ )
+				FoundPlayers[i] = NULL;
+		
+			// loop from oldest to newest players
+			// so this way players who have been here longer are favored
+		
+			for( vector<CStagePlayer *> :: iterator i = m_StagePlayers.begin( ); i != m_StagePlayers.end( ); ++i )
+			{
+				if( (*i)->GetReady( ) && !FoundPlayers[(*i)->GetPID( ) - 1] && (*i)->IsScoreAcceptable( score, scoreType ) )
+				{
+					FoundPlayers[(*i)->GetPID( ) - 1] = *i;
+					NumPlayersFound++;
+				
+					if( NumPlayersFound == 2 )
+						break;
+				}
+			}
+		
+			if( NumPlayersFound > BestPlayers )
+				BestPlayers = NumPlayersFound;
+		
+			if( NumPlayersFound == 2 )
+			{
+				// first, remove these stage players from our vector
+				// TODO: use better data structure to make this step more efficient
+			
+				CONSOLE_Print( "[GHOST] Found " + UTIL_ToString( NumPlayersFound ) + " players, initializing game at score=" + UTIL_ToString( score ) );
+			
+				for( vector<CStagePlayer *> :: iterator i = m_StagePlayers.begin( ); i != m_StagePlayers.end( ); )
+				{
+					if( *i == FoundPlayers[0] || *i == FoundPlayers[1] || *i == FoundPlayers[2] || *i == FoundPlayers[3] || *i == FoundPlayers[4] || *i == FoundPlayers[5] || *i == FoundPlayers[6] || *i == FoundPlayers[7] || *i == FoundPlayers[8] || *i == FoundPlayers[9] || *i == FoundPlayers[10] || *i == FoundPlayers[11] )
+					{
+						i = m_StagePlayers.erase( i );
+					}
+					else
+						++i;
+				}
+			
+				// associate this with a new game
+				
+				string Gamename = m_AutoHostGameName + " #" + UTIL_ToString( m_HostCounter++ );
+				CGame *NewGame = new CGame( this, m_AutoHostMap[0], NULL, 6112, GAME_PUBLIC, Gamename, "", "", "" );
+				BroadcastChat( "ENT", "The game [" + Gamename + "] has started, with score centered around [" + UTIL_ToString( score ) + "]." );
+			
+				for( int i = 0; i < 12; i++ )
+				{
+					if( FoundPlayers[i] )
+					{
+						FoundPlayers[i]->RemoveVirtual( ); // remove the virtual host
+						NewGame->AddPlayerFast( FoundPlayers[i] );
+						delete FoundPlayers[i];
+					}
+				}
+				
+				NewGame->EventGameStarted( );
+				m_Games.push_back( NewGame );
+				boost::thread(&CBaseGame::loop, NewGame);
+				break;
+			}
+		}
+		
+		CONSOLE_Print( "[GHOST] Best number of players found: " + UTIL_ToString( BestPlayers ) );
 	}
 
 	// autohost
@@ -1850,6 +2023,8 @@ void CGHost :: SetConfigs( CConfig *CFG )
     m_Stream = CFG->GetInt( "bot_stream", 0 ) == 0 ? false : true;
 	m_StreamPort = CFG->GetInt( "bot_streamport", m_HostPort * 2 );
 	m_StreamLimit = CFG->GetInt( "bot_streamlimit", 300 );
+	
+    m_Stage = CFG->GetInt( "bot_stage", 0 ) == 0 ? false : true;
 }
 
 void CGHost :: ExtractScripts( )
@@ -2317,4 +2492,33 @@ bool CGHost :: IsLocal( string ip )
 	}
 
 	return false;
+}
+
+uint32_t CGHost :: CountStagePlayers( )
+{
+	uint32_t Count = 0;
+	
+	for( vector<CStagePlayer *> :: iterator i = m_StagePlayers.begin( ); i != m_StagePlayers.end( ); ++i )
+	{
+		if( (*i)->GetReady( ) )
+			Count++;
+	}
+	
+	return Count;
+}
+
+void CGHost :: BroadcastChat( string name, string message )
+{
+	string overallMessage = message;
+	
+	if( !name.empty( ) )
+		overallMessage = "[" + name + "]: " + message;
+	
+	CONSOLE_Print( "[GHOST] [BROADCAST] " + overallMessage );
+	
+	for( vector<CStagePlayer *> :: iterator i = m_StagePlayers.begin( ); i != m_StagePlayers.end( ); ++i )
+	{
+		if( (*i)->GetReady( ) )
+			(*i)->SendChat( overallMessage, false );
+	}
 }

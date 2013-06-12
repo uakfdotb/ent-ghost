@@ -32,6 +32,7 @@ class CGameProtocol;
 class CGame;
 class CIncomingJoinPlayer;
 class CIncomingGarenaUser;
+class CStagePlayer;
 
 //
 // CPotentialPlayer
@@ -164,6 +165,7 @@ private:
 public:
 	CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );
 	CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );
+	CGamePlayer( CStagePlayer *potential, CGameProtocol *nProtocol, CBaseGame *nGame, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved );
 	virtual ~CGamePlayer( );
 
 	unsigned char GetPID( )						{ return m_PID; }

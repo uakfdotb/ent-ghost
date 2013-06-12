@@ -1229,9 +1229,18 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 			
 			if( Success )
 			{
-				boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
-				m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
-				spoofLock.unlock( );
+				if( !m_GHost->m_Stage )
+				{
+					boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
+					m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
+					spoofLock.unlock( );
+				}
+				else
+				{
+					boost::mutex::scoped_lock spoofLock( m_GHost->m_StageMutex );
+					m_GHost->m_DoSpoofAdd.push_back( SpoofAdd );
+					spoofLock.unlock( );
+				}
 			}
 		}
 		
@@ -1313,9 +1322,18 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) == string :: npos && Message.find( m_GHost->m_CurrentGame->GetLastGameName( ) ) == string :: npos )
 					SpoofAdd.failMessage = m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName );
 				
-				boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
-				m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
-				spoofLock.unlock( );
+				if( !m_GHost->m_Stage )
+				{
+					boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
+					m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
+					spoofLock.unlock( );
+				}
+				else
+				{
+					boost::mutex::scoped_lock spoofLock( m_GHost->m_StageMutex );
+					m_GHost->m_DoSpoofAdd.push_back( SpoofAdd );
+					spoofLock.unlock( );
+				}
 			}
 		}
 		
