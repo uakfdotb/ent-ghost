@@ -3200,7 +3200,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		else if( Matches == 1 )
 		{
 			player->UnIgnore( LastMatch->GetName( ) );
-			SendChat( player, "You have unignored player [" + Payload + "]." );
+			SendChat( player, "You have unignored player [" + LastMatch->GetName( ) + "]." );
 		}
 		else
 			SendChat( player, "Unable to unignore player [" + Payload + "]. Found more than one match." );
