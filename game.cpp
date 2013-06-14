@@ -992,7 +992,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 			} else {
 				string BanType = "";
 				
-				if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "eihl" )
+				if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "eihl" || m_MapType == "nwu" )
 					BanType = "dota";
 				
 				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "civwars" )
