@@ -2253,6 +2253,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 								m_OwnerRealm = Target->GetSpoofedRealm( );
 							else
 								m_OwnerRealm = Target->GetJoinedRealm( );
+
+							Target->SetReserved( true );
 						}
 						else
 							SendChat( player, "Error: target user is not in the lobby." );
