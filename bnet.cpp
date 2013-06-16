@@ -2753,6 +2753,16 @@ CDBBan *CBNET :: IsBannedIP( string ip, string context )
 	
 	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
 	{
+		if( !(*i)->GetIP( ).empty( ) && (*i)->GetIP( )[0] == ':' )
+		{
+			// this is from the range ban tool
+			string BanIP = (*i)->GetIP( ).substr( 1 );
+			int len = BanIP.length( );
+
+			if( ip.length( ) >= len && ip.substr( 0, len ) == BanIP )
+				return new CDBBan( *i );
+		}
+
 		if( (*i)->GetIP( ) == ip && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
 			return new CDBBan( *i );
 	}
