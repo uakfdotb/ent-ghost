@@ -148,9 +148,9 @@ uint32_t CGHostDB :: GameAdd( string server, string map, string gamename, string
 	return 0;
 }
 
-string CGHostDB :: GameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add )
+uint32_t CGHostDB :: GameUpdate( uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalPlayers, bool lobby, bool add )
 {
-	return "";
+	return 0;
 }
 
 void CGHostDB :: StreamGameUpdate( string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port )
@@ -363,7 +363,7 @@ CCallableGameAdd *CGHostDB :: ThreadedGameAdd( string server, string map, string
 	return NULL;
 }
 
-CCallableGameUpdate *CGHostDB :: ThreadedGameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add )
+CCallableGameUpdate *CGHostDB :: ThreadedGameUpdate( uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalPlayers, bool lobby, bool add )
 {
 	return NULL;
 }

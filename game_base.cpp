@@ -55,6 +55,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 	m_Socket = new CTCPServer( );
 	m_Protocol = new CGameProtocol( m_GHost );
 	m_Map = new CMap( *nMap );
+	m_MapPath = m_Map->GetMapPath( );
     m_DatabaseID = 0;
 
 	if( m_GHost->m_SaveReplays && !m_SaveGame )
@@ -345,7 +346,7 @@ uint32_t CBaseGame :: GetNextTimedActionTicks( )
 
 string CBaseGame :: GetMapName( )
 {
-	return m_Map->GetMapPath();
+	return m_MapPath;
 }
 
 uint32_t CBaseGame :: GetSlotsOccupied( )

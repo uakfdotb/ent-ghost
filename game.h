@@ -37,6 +37,7 @@ class CStats;
 class CCallableBanCheck;
 class CCallableBanAdd;
 class CCallableGameAdd;
+class CCallableGameUpdate;
 class CCallableGamePlayerSummaryCheck;
 class CCallableDotAPlayerSummaryCheck;
 class CCallableVampPlayerSummaryCheck;
@@ -94,6 +95,10 @@ protected:
 	bool m_FirstLeaver;							// first leaver more likely to be banned
 	uint32_t m_SetWinnerTicks;
 	uint32_t m_SetWinnerTeam;
+	
+	CCallableGameUpdate *m_CallableGameUpdate;	// threaded game update in progress
+	uint32_t m_GameUpdateID;
+	uint32_t m_LastGameUpdateTime;
 	
 	bool IsAutoBanned( string name );
 

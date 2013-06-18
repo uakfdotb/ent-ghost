@@ -82,6 +82,7 @@ protected:
 	vector<PIDPlayer> m_EnforcePlayers;				// vector of pids to force players to use (used with saved games)
 	vector<string> m_LobbyChat;						// vector of cached chat in lobby
 	CMap *m_Map;									// map data
+	string m_MapPath;								// cached map path for game updates
 	CSaveGame *m_SaveGame;							// savegame data (this is a pointer to global data)
 	CReplay *m_Replay;								// replay
 	bool m_Exiting;									// set to true and this class will be deleted next update

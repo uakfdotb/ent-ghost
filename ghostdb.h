@@ -127,7 +127,7 @@ public:
 	virtual void ReconUpdate( uint32_t hostcounter, uint32_t seconds );
 	virtual vector<string> CommandList(  );
 	virtual uint32_t GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype );
-	virtual string GameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add );
+	virtual uint32_t GameUpdate( uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalPlayers, bool lobby, bool add );
 	virtual void StreamGameUpdate( string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port );
 	virtual void StreamPlayerUpdate( string name, string gamename );
 	virtual uint32_t GamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour, string savetype );
@@ -173,7 +173,7 @@ public:
 	virtual CCallableReconUpdate *ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds );
 	virtual CCallableCommandList *ThreadedCommandList( );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype );
-	virtual CCallableGameUpdate *ThreadedGameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add );
+	virtual CCallableGameUpdate *ThreadedGameUpdate( uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalPlayers, bool lobby, bool add );
 	virtual CCallableStreamGameUpdate *ThreadedStreamGameUpdate( string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port );
 	virtual CCallableStreamPlayerUpdate *ThreadedStreamPlayerUpdate( string name, string gamename );
 	virtual CCallableGamePlayerAdd *ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour, string savetype );
@@ -529,23 +529,24 @@ public:
 class CCallableGameUpdate : virtual public CBaseCallable
 {
 protected:
-    string m_Map;
-    string m_GameName;
-    string m_OwnerName;
-    string m_CreatorName;
-    bool m_Add;
-    uint32_t m_Players;
-    string m_Usernames;
-    uint32_t m_SlotsTotal;
-    uint32_t m_TotalGames;
-    uint32_t m_TotalPlayers;
-    string m_Result;
+	uint32_t m_ID;
+	string m_Map;
+	string m_GameName;
+	string m_OwnerName;
+	string m_CreatorName;
+	bool m_Add;
+	uint32_t m_Players;
+	string m_Usernames;
+	uint32_t m_SlotsTotal;
+	uint32_t m_TotalPlayers;
+	bool m_Lobby;
+	uint32_t m_Result;
 public:
- CCallableGameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add ) : CBaseCallable( ), m_Map(map), m_GameName(gamename), m_OwnerName(ownername), m_CreatorName(creatorname), m_Add(add), m_Players(players), m_Usernames(usernames), m_SlotsTotal(slotsTotal), m_TotalGames(totalGames), m_TotalPlayers(totalPlayers) { }
+ CCallableGameUpdate( uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalPlayers, bool lobby, bool add ) : CBaseCallable( ), m_ID( id ), m_Map(map), m_GameName(gamename), m_OwnerName(ownername), m_CreatorName(creatorname), m_Add(add), m_Players(players), m_Usernames(usernames), m_SlotsTotal(slotsTotal), m_TotalPlayers(totalPlayers), m_Lobby( lobby ) { }
 	virtual ~CCallableGameUpdate( );
 
-	virtual string GetResult( )				{ return m_Result; }
-	virtual void SetResult( string nResult )	{ m_Result = nResult; }
+	virtual uint32_t GetResult( )				{ return m_Result; }
+	virtual void SetResult( uint32_t nResult )	{ m_Result = nResult; }
 };
 
 class CCallableStreamGameUpdate : virtual public CBaseCallable
