@@ -95,6 +95,7 @@ protected:
 	bool m_FirstLeaver;							// first leaver more likely to be banned
 	uint32_t m_SetWinnerTicks;
 	uint32_t m_SetWinnerTeam;
+	bool m_SoloTeam;							// if one of the teams has a single player
 	
 	CCallableGameUpdate *m_CallableGameUpdate;	// threaded game update in progress
 	uint32_t m_GameUpdateID;
