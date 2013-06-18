@@ -939,7 +939,13 @@ bool CGHost :: Update( long usecBlock )
 
 	for( vector<CBaseCallable *> :: iterator i = m_Callables.begin( ); i != m_Callables.end( ); )
 	{
-		if( (*i)->GetReady( ) )
+		if( !(*i) )
+		{
+			// NULL presumably because we're using SQLite database with unimplemented database call
+			// so just remove it from callables
+			i = m_Callables.erase( i );
+		}
+		else if( (*i)->GetReady( ) )
 		{
 			m_DB->RecoverCallable( *i );
 			delete *i;
