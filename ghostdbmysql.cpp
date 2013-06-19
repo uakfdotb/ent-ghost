@@ -1089,37 +1089,29 @@ vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string
 {
 	vector<CDBBan *> BanList;
 	
-	// clear expired bans first
-	string ClearQuery = "DELETE FROM bans WHERE expiredate < NOW( )";
-	
-	if( mysql_real_query( (MYSQL *)conn, ClearQuery.c_str( ), ClearQuery.size( ) ) != 0 )
+	string EscServer = MySQLEscapeString( conn, server );
+	string Query = "SELECT id, name, ip, date, gamename, admin, reason, expiredate, context FROM bans WHERE server='" + EscServer + "'";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
 	else
 	{
-		string EscServer = MySQLEscapeString( conn, server );
-		string Query = "SELECT id, name, ip, date, gamename, admin, reason, expiredate, context FROM bans WHERE server='" + EscServer + "'";
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
 
-		if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
-			*error = mysql_error( (MYSQL *)conn );
-		else
+		if( Result )
 		{
-			MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+			vector<string> Row = MySQLFetchRow( Result );
 
-			if( Result )
+			while( Row.size( ) == 9 )
 			{
-				vector<string> Row = MySQLFetchRow( Result );
-
-				while( Row.size( ) == 9 )
-				{
-					BanList.push_back( new CDBBan( UTIL_ToUInt32( Row[0] ), server, Row[1], Row[2], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8], 0 ) );
-					Row = MySQLFetchRow( Result );
-				}
-
-				mysql_free_result( Result );
+				BanList.push_back( new CDBBan( UTIL_ToUInt32( Row[0] ), server, Row[1], Row[2], Row[3], Row[4], Row[5], Row[6], Row[7], Row[8], 0 ) );
+				Row = MySQLFetchRow( Result );
 			}
-			else
-				*error = mysql_error( (MYSQL *)conn );
+
+			mysql_free_result( Result );
 		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
 	}
 
 	return BanList;
