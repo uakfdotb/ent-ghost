@@ -3140,8 +3140,16 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	else if( Command == "alias" && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 && !Payload.empty( ) )
 	{
 		CGamePlayer *Target = GetPlayerFromName( Payload, false );
-		m_PairedAliasChecks.push_back( PairedAliasCheck( User, m_GHost->m_DB->ThreadedAliasCheck( Target->GetExternalIPString( ) ) ) );
-		player->SetStatsDotASentTime( GetTime( ) );
+		
+		if( Target )
+		{
+			m_PairedAliasChecks.push_back( PairedAliasCheck( User, m_GHost->m_DB->ThreadedAliasCheck( Target->GetExternalIPString( ) ) ) );
+			player->SetStatsDotASentTime( GetTime( ) );
+		}
+		else
+		{
+			SendChat( player, "Error: no user found with that name in the lobby!" );
+		}
 	}
 
 	//
