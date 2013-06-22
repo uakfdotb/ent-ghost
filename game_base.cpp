@@ -2963,10 +2963,7 @@ void CBaseGame :: AddPlayerFast( CStagePlayer *potential )
 void CBaseGame :: EventPlayerLeft( CGamePlayer *player, uint32_t reason )
 {
 	// this function is only called when a player leave packet is received, not when there's a socket error, kick, etc...
-	if( !m_GameLoading && !m_GameLoaded )
-		m_GHost->DenyIP( player->GetExternalIPString( ), 10000, "user left lobby: " + UTIL_ToString( reason ) );
-	else
-		m_GHost->DenyIP( player->GetExternalIPString( ), 20000, "user left game: " + UTIL_ToString( reason ) );
+	m_GHost->DenyIP( player->GetExternalIPString( ), 10000, "user left game/lobby: " + UTIL_ToString( reason ) );
 	
 	player->SetDeleteMe( true );
 
