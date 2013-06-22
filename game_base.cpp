@@ -1043,16 +1043,17 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	if( !m_GameLoading && !m_GameLoaded && m_GHost->m_LobbyTimeLimit > 0 && ( m_GHost->m_AutoHostGameName.empty( ) || m_GHost->m_AutoHostMaximumGames == 0 || m_GHost->m_AutoHostAutoStartPlayers == 0 || m_AutoStartPlayers == 0 ) )
 	{
 		// check if there's a player with reserved status in the game
+		// if league, we let any player reset the timer
 
 		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 		{
-			if( (*i)->GetReserved( ) )
+			if( (*i)->GetReserved( ) || m_League )
 				m_LastReservedSeen = GetTime( );
 		}
 
 		// check if we've hit the time limit
 
-		if( GetTime( ) - m_LastReservedSeen >= m_GHost->m_LobbyTimeLimit * 60 && !m_League )
+		if( GetTime( ) - m_LastReservedSeen >= m_GHost->m_LobbyTimeLimit * 60 )
 		{
 			CONSOLE_Print( "[GAME: " + m_GameName + "] is over (lobby time limit hit)" );
 			return true;
