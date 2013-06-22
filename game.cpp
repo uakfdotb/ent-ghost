@@ -3093,7 +3093,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !LEGIONSTATSHR
 	//
 
-	else if( (Command == "legionstatshr" || Command == "lmshr" || Command == "lhr" || Command == "ls2" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
+	else if( ( Command == "legionstatshr" || Command == "lmshr" || Command == "lhr" || Command == "ls2" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
 	{
 		string StatsUser = User;
 
@@ -3107,6 +3107,28 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega2" ) ) );
 		else
 			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega2" ) ) );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
+	// !NWUSTATS
+	//
+
+	else if( ( Command == "nwustats" || Command == "nwus" || Command == "ns" || Command == "sn" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
+	{
+		string StatsUser = User;
+
+		if( !Payload.empty( ) )
+			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
+
+		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "nwu" ) ) );
+		else
+			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "nwu" ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
