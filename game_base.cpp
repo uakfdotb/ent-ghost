@@ -140,6 +140,21 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
 			CONSOLE_Print( "[GAME: " + m_GameName + "] loaded " + UTIL_ToString( m_IPBlackList.size( ) ) + " lines from IP blacklist file" );
 		}
 	}
+	
+	// calculate number of teams
+	vector<uint32_t> SeenTeams;
+	m_NumTeams = 0;
+	
+	for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); ++i )
+	{
+		if( (*i).GetTeam( ) < 12 && std::find( SeenTeams.begin( ), SeenTeams.end( ), (*i).GetTeam( ) ) == SeenTeams.end( ) )
+		{
+			m_NumTeams++;
+			SeenTeams.push_back( (*i).GetTeam( ) );
+		}
+	}
+	
+	CONSOLE_Print( "[GAME: " + m_GameName + "] detected number of teams = " + UTIL_ToString( m_NumTeams ) );
 
 	// start listening for connections
 

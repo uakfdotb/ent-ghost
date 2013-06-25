@@ -163,6 +163,7 @@ protected:
 	uint32_t m_TournamentMatchID;					// if m_Tournament, this is the tournament match ID
 	uint32_t m_TournamentChatID;					// if m_Tournament, this is the chat id
 	bool m_TournamentRestrict;						// whether to restrict joiners based on tournament players table
+	uint32_t m_NumTeams;							// number of teams in this game, excluding observers
 	
 	unsigned char m_StreamSID;						// slot that streamer should go in
 	unsigned char m_StreamPID;						// fake PID for streamer to use
