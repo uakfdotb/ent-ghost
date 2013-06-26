@@ -1315,18 +1315,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		/*****************
 		* ADMIN COMMANDS *
 		******************/
-
-        //
-        // !ACCEPT
-        //
-
-        if( Command == "accept" )
-		{
-			if( IsRootAdmin( User ) || ForceRoot )
-			    SendClanAcceptInvite( true );
-			else
-				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
-		}
 		
         //
 		// !ADDADMIN
@@ -1748,34 +1736,12 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			lock.unlock( );
 		}
 
-        //
-        // !GRUNT
-        //
-
-		if( Command == "grunt"  && !Payload.empty( ) )
-		{
-			SendClanChangeRank( Payload, CBNETProtocol :: CLAN_MEMBER );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] changing " + Payload + " to status grunt done by " + User );
-		}
-
 		//
 		// !HOSTSG
 		//
 
                         else if( Command == "hostsg" && !Payload.empty( ) )
 			m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, true, Payload, User, User, m_Server, Whisper );
-
-        //
-        // !INVITE
-        //
-
-        if( Command == "invite" && !Payload.empty( ) )
-		{
-			SendClanInvitation( Payload );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] inviting clan member " + Payload + " done by " + User );
-		}
 
         //
 		// !LOAD (load config file)
@@ -1968,49 +1934,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 					QueueChatCommand( m_GHost->m_Language->ErrorListingMaps( ), User, Whisper );
 				}
 			}
-		}
-
-        //
-        // !MOTD
-        //
-
-		if( Command == "motd"  && !Payload.empty( ) )
-		{
-			SendClanSetMotd( Payload );
-			CONSOLE_Print( "[GHOST] setting motd to " + Payload );
-		}
-
-        //
-        // !PEON
-        //
-
-		if( Command == "peon"  && !Payload.empty( ) )
-		{
-			SendClanChangeRank( Payload, CBNETProtocol :: CLAN_PARTIAL_MEMBER );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] changing " + Payload + " to status peon done by " + User );
-		}
-
-        //
-        // !REMOVE
-        //
-
-		if( Command == "remove" && !Payload.empty( ) )
-		{
-			SendClanRemoveMember( Payload );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] removing clan member " + Payload + " done by " + User );
-		}
-
-        //
-        // !SHAMAN
-        //
-
-		if( Command == "shaman"  && !Payload.empty( ) )
-		{
-			SendClanChangeRank( Payload, CBNETProtocol :: CLAN_OFFICER );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] changing " + Payload + " to status shaman done by " + User );
 		}
 
 		//
