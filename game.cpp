@@ -1220,7 +1220,7 @@ bool CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 						 		SendAllChat( "Trade hacking tool detected!" );
 						 		SendAllChat( "Player [" + player->GetName( ) + "] was prevented from transferring resources." );
 
-								m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( player->GetSpoofedRealm(), player->GetName( ), player->GetExternalIPString(), m_GameName, "antitradehack", "Trade hacking tool detected in game.", 3600 * 24 * 7, "ttr.cloud" ));
+								m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( player->GetSpoofedRealm(), player->GetName( ), player->GetExternalIPString(), m_GameName, "antitradehack", "Trade hacking tool detected in game.", 3600 * 24 * 30 * 12, "ttr.cloud" ));
 
 						 		player->SetDeleteMe( true );
 						 		player->SetLeftReason( "was kicked by anti-tradehack" );
