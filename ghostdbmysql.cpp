@@ -2243,6 +2243,11 @@ double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string categ
 		Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 10";
 		Query2 = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 10";
 	}
+	else if( category == "lod" )
+	{
+		Query = "SELECT score FROM lod_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 10";
+		Query2 = "SELECT score FROM lod_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 10";
+	}
 	else if( category == "legionmega" )
 	{
 		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 10";

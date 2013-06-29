@@ -124,6 +124,16 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_MinimumScore = 200;
 		m_MaximumScore = 99999;
 	}
+	else if( m_Map->GetMapType( ) == "lodab" )
+	{
+		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "lod" );
+		m_MapType = "lodab";
+		
+		// match making settings for autobalanced games
+		m_MatchMaking = true;
+		m_MinimumScore = 200;
+		m_MaximumScore = 99999;
+	}
 	else if( m_Map->GetMapType( ) == "lod" )
 	{
 		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "lod" );
@@ -1019,7 +1029,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 			} else {
 				string BanType = "";
 				
-				if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "eihl" || m_MapType == "nwu" )
+				if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "lod" || m_MapType == "dota2" || m_MapType == "eihl" || m_MapType == "nwu" || m_MapType == "lodab" )
 					BanType = "dota";
 				
 				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "civwars" )
@@ -1215,7 +1225,7 @@ bool CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 						{
 							n += 10;
 
-							if( m_MapType == "dota" || m_MapType == "dota2" || m_MapType == "dotaab" || m_MapType == "lod" || m_MapType == "eihl" )
+							if( m_MapType == "dota" || m_MapType == "dota2" || m_MapType == "dotaab" || m_MapType == "lod" || m_MapType == "eihl" || m_MapType == "lodab" )
 							{
 						 		SendAllChat( "Trade hacking tool detected!" );
 						 		SendAllChat( "Player [" + player->GetName( ) + "] was prevented from transferring resources." );
@@ -3617,7 +3627,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !FORFEIT
 	//
 	
-	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" ) && ( Command == "ff" || Command == "forfeit" ) && !m_SoftGameOver )
+	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" || m_MapType == "lodab" ) && ( Command == "ff" || Command == "forfeit" ) && !m_SoftGameOver )
 	{
 		bool ChangedVote = true;
 		
@@ -3736,7 +3746,7 @@ void CGame :: CloseGame( )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-eihl", CustomReason, 3600 * 12, "ttr.cloud" ));
 				else if( m_MapType == "lihl" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-lihl", CustomReason, 3600 * 12, "ttr.cloud" ));
-				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" || m_MapType == "cfone" )
+				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" || m_MapType == "cfone" || m_MapType == "lodab" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
 				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "legionmega_ab" || m_MapType == "civwars" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600, "ttr.cloud" ));
