@@ -848,7 +848,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 
 			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
 			{
-				if( *i && !(*i)->GetLeftMessageSent( ) )
+				if( *i && !(*i)->GetLeftMessageSent( ) && *i != player )
 				{
 					char sid = GetSIDFromPID( (*i)->GetPID( ) );
 					if( sid != 255 )
