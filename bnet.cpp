@@ -2733,6 +2733,8 @@ CDBBan *CBNET :: IsBannedIP( string ip, string context )
 
 			if( ip.length( ) >= len && ip.substr( 0, len ) == BanIP )
 				return new CDBBan( *i );
+			else if( BanIP.length( ) >= 3 && BanIP[0] == 'h' && ip.find( BanIP.substr( 1 ) ) != string::npos )
+				return new CDBBan( *i );
 		}
 
 		if( (*i)->GetIP( ) == ip && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
