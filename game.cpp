@@ -3582,7 +3582,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	//
 	// !DRAW
 	//
-	if( m_GameLoaded && !m_MapType.empty( ) && ( Command == "draw" || Command == "undraw" ) && !m_SoftGameOver )
+	if( m_GameLoaded && !m_MapType.empty( ) && ( Command == "draw" || Command == "undraw" ) && !m_SoftGameOver && !m_SoloTeam )
 	{
 		if( Command == "draw" )
 		{
