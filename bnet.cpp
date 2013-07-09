@@ -2150,12 +2150,12 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				
 				SS >> MapType;
 				
-				if( ( MapType == "m" || MapType == "l" ) && !SS.eof( ) )
+				if( ( MapType == "m" || MapType == "l" || MapType == "o" || MapType == "p" ) && !SS.eof( ) )
 				{
-					if( MapType == "m" )
-						MapType = "map";
-					else
-						MapType = "load";
+					string MapCommand = "load";
+					
+					if( MapType == "m" || MapType == "o" )
+						MapCommand = "map";
 					
 					SS >> Map;
 					
@@ -2175,9 +2175,16 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 							if( Start != string :: npos )
 								GameName = GameName.substr( Start );
 						
-							//execute secondary commands
-							BotCommand( m_CommandTrigger + MapType + " " + Map, User, Whisper, ForceRoot );
+							//load the map through secondary command
+							BotCommand( m_CommandTrigger + MapCommand + " " + Map, User, Whisper, ForceRoot );
+
+							//add observers if needed
+							if( MapType == "o" || MapType == "p" )
+								m_GHost->m_Map->ForceAddObservers( );
+
+							//host the game through secondary command
 							BotCommand( m_CommandTrigger + GameType + " " + Owner + " " + GameName, User, Whisper, ForceRoot );
+							
 						}
 					}
 				}

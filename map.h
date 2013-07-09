@@ -181,6 +181,7 @@ public:
 	void Load( CConfig *CFG, string nCFGFile );
 	void CheckValid( );
 	uint32_t XORRotateLeft( unsigned char *data, uint32_t length );
+	void ForceAddObservers( );
 };
 
 #endif

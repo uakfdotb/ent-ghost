@@ -1015,3 +1015,16 @@ uint32_t CMap :: XORRotateLeft( unsigned char *data, uint32_t length )
 
 	return Val;
 }
+
+void CMap :: ForceAddObservers( )
+{
+	// force add observer slots
+
+	if( m_MapObservers != MAPOBS_ALLOWED && m_MapObservers != MAPOBS_REFEREES )
+	{
+		m_MapObservers = MAPOBS_REFEREES;
+
+		while( m_Slots.size( ) < 12 )
+			m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 12, 12, SLOTRACE_RANDOM ) );
+	}
+}
