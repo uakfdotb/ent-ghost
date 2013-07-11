@@ -2398,7 +2398,7 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 			CDBBan *Ban = (*i)->IsBannedIP( potential->GetExternalIPString( ), m_OwnerName + "@" + m_OwnerRealm );
 			
 			if( !Ban && !potential->GetSocket( )->GetHostName( ).empty( ) )
-				Ban = (*i)->IsBannedIP( potential->GetSocket( )->GetHostName( ), m_OwnerName + "@" + m_OwnerRealm );
+				Ban = (*i)->IsBannedIP( "h" + potential->GetSocket( )->GetHostName( ), m_OwnerName + "@" + m_OwnerRealm );
 
 			if( Ban )
 			{

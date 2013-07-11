@@ -2725,6 +2725,7 @@ CDBBan *CBNET :: IsBannedName( string name, string context )
 
 CDBBan *CBNET :: IsBannedIP( string ip, string context )
 {
+	transform( ip.begin( ), ip.end( ), ip.begin( ), (int(*)(int))tolower ); //transform in case it's a hostname
 	transform( context.begin( ), context.end( ), context.begin( ), (int(*)(int))tolower );
 	// todotodo: optimize this - maybe use a map?
 
@@ -2740,7 +2741,7 @@ CDBBan *CBNET :: IsBannedIP( string ip, string context )
 
 			if( ip.length( ) >= len && ip.substr( 0, len ) == BanIP )
 				return new CDBBan( *i );
-			else if( BanIP.length( ) >= 3 && BanIP[0] == 'h' && ip.find( BanIP.substr( 1 ) ) != string::npos )
+			else if( BanIP.length( ) >= 3 && BanIP[0] == 'h' && ip.length( ) >= 3 && ip[0] == 'h' && ip.substr( 1 ).find( BanIP.substr( 1 ) ) != string::npos )
 				return new CDBBan( *i );
 		}
 
