@@ -135,6 +135,7 @@ protected:
 	uint32_t m_GameOverTime;						// GetTime when the game was over
 	uint32_t m_LastPlayerLeaveTicks;				// GetTicks when the most recent player left the game
 	uint32_t m_AutoHostPlayerCycle;
+	uint32_t m_LoadingTicksLimit;					// dynamic milliseconds limit on player loading time, or 0 if not set yet
 	double m_MinimumScore;							// the minimum allowed score for matchmaking mode
 	double m_MaximumScore;							// the maximum allowed score for matchmaking mode
 	bool m_SlotInfoChanged;							// if the slot info has changed and hasn't been sent to the players yet (optimization)
