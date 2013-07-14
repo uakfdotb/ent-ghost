@@ -3627,7 +3627,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !FORFEIT
 	//
 	
-	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" || m_MapType == "lodab" ) && ( Command == "ff" || Command == "forfeit" ) && !m_SoftGameOver )
+	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" || m_MapType == "lodab" || m_MapType == "lod" ) && ( Command == "ff" || Command == "forfeit" ) && !m_SoftGameOver )
 	{
 		bool ChangedVote = true;
 		
