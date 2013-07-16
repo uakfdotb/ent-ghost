@@ -3349,7 +3349,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !SLAP
 	//
 
-	else if( (Command == "slap" )&& !Payload.empty() && !m_GHost->m_SlapPhrases.empty() )
+	else if( (Command == "slap" )&& !Payload.empty() && !m_GHost->m_SlapPhrases.empty() && GetTime( ) - player->GetStatsDotASentTime( ) >= 4 )
 	{
 		//pick a phrase
 		uint32_t numPhrases = m_GHost->m_SlapPhrases.size();
