@@ -3593,7 +3593,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			else
 				ChangedVote = false; //continue in case someone left and now we have enough votes
 			
-			uint32_t VotesNeeded = (uint32_t)ceil( GetNumHumanPlayers( ) * (float)m_GHost->m_VoteKickPercentage / 100 );
+			uint32_t VotesNeeded = (uint32_t)ceil( (float) GetNumHumanPlayers( ) * 0.75 );
 			uint32_t Votes = 0;
 			
 			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
