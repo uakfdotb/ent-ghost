@@ -1254,7 +1254,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				sayLock.unlock( );
 			}
 			
-			if( Message.find( "is using Warcraft III The Frozen Throne in game" ) != string :: npos || Message.find( "is using Warcraft III Frozen Throne and is currently in  game" ) != string :: npos )
+			if( Message.find( "is using Warcraft III The Frozen Throne in game" ) != string :: npos || Message.find( "is using Warcraft III Frozen Throne and is currently in  game" ) != string :: npos || Message.find( "is using Warcraft III in game" ) != string :: npos || Message.find( "is using Warcraft III  in game" ) != string :: npos )
 			{
 				// check both the current game name and the last game name against the /whois response
 				// this is because when the game is rehosted, players who joined recently will be in the previous game according to battle.net
