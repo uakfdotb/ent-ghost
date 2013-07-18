@@ -141,12 +141,13 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 	}
 	else if( m_Map->GetMapType( ) == "dota2" )
 	{
-		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "dota2" );
-		m_MapType = "dota2";
+		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "dota" );
+		m_MapType = "dota";
 		
 		// match making settings for tier 2
 		m_MatchMaking = true;
-		m_MinimumScore = 1150;
+		m_MatchMakingBalance = false;
+		m_MinimumScore = 500;
 		m_MaximumScore = 99999;
 	}
 	else if( m_Map->GetMapType( ) == "castlefight2" )
@@ -156,17 +157,18 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		
 		// match making settings for tier 2
 		m_MatchMaking = true;
-		m_MinimumScore = 1100;
+		m_MinimumScore = 1150;
 		m_MaximumScore = 99999;
 	}
 	else if( m_Map->GetMapType( ) == "legionmega2" )
 	{
-		m_Stats = new CStatsW3MMD( this, "legionmega2", "" );
-		m_MapType = "legionmega2";
+		m_Stats = new CStatsW3MMD( this, "legionmega", "" );
+		m_MapType = "legionmega";
 		
 		// match making settings for tier 2
 		m_MatchMaking = true;
-		m_MinimumScore = 1300;
+		m_MatchMakingBalance = false;
+		m_MinimumScore = 500;
 		m_MaximumScore = 99999;
 	}
 	else if( m_Map->GetMapType( ) == "legionmega_ab" )

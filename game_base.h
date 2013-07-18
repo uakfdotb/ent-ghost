@@ -153,6 +153,7 @@ protected:
 	bool m_Lagging;									// if the lag screen is active or not
 	bool m_AutoSave;								// if we should auto save the game before someone disconnects
 	bool m_MatchMaking;								// if matchmaking mode is enabled
+	bool m_MatchMakingBalance;						// if enabled, will autobalance if m_MatchMaking is also enabled
 	bool m_LocalAdminMessages;						// if local admin messages should be relayed or not
 	bool m_SoftGameOver;							// whether the game is soft ended
 	bool m_AllowDownloads;

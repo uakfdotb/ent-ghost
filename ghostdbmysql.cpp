@@ -2225,8 +2225,10 @@ double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string categ
 	
 	if( category == "dota2" ) // dota2 checks normal DotA stats
 	{
-		Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 20";
-		Query2 = "SELECT score FROM dota2_elo_scores WHERE name = '" + EscName + "' AND server='" + EscServer + "'";
+		//Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 20";
+		//Query2 = "SELECT score FROM dota2_elo_scores WHERE name = '" + EscName + "' AND server='" + EscServer + "'";
+		Query = "SELECT dota_elo_scores.score FROM dota_elo_scores, gametrack WHERE dota_elo_scores.name='" + EscName + "' AND dota_elo_scores.server='" + EscServer + "' AND gametrack.name = dota_elo_scores.name AND gametrack.realm = dota_elo_scores.server AND dota_elo_scores.wins >= 20 AND ( (total_leftpercent / num_games)*100 > 90 OR (num_autoban / num_games)*100 < 5)";
+		Query2 = "SELECT -100000.0;";
 	}
 	else if( category == "castlefight2" ) // castlefight2 checks castlefight stats
 	{
@@ -2235,8 +2237,10 @@ double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string categ
 	}
 	else if( category == "legionmega2" ) // legionmega2 checks legion mega stats
 	{
-		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 15";
-		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega2' AND name='" + EscName + "' AND server='" + EscServer + "'";
+		//Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 15";
+		//Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega2' AND name='" + EscName + "' AND server='" + EscServer + "'";
+		Query = "SELECT w3mmd_elo_scores.score FROM w3mmd_elo_scores, gametrack WHERE w3mmd_elo_scores.name='" + EscName + "' AND w3mmd_elo_scores.server='" + EscServer + "' AND gametrack.name = w3mmd_elo_scores.name AND gametrack.realm = w3mmd_elo_scores.server AND w3mmd_elo_scores.category = 'legionmega' AND w3mmd_elo_scores.wins >= 20 AND ( (total_leftpercent / num_games)*100 > 90 OR (num_autoban / num_games)*100 < 5)";
+		Query2 = "SELECT -100000.0;";
 	}
 	else if( category == "dota" )
 	{
