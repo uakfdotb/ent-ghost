@@ -1288,7 +1288,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				sayLock.unlock( );
 			}
 			
-			if( Message.find( "is using Warcraft III The Frozen Throne in game" ) != string :: npos || Message.find( "is using Warcraft III Frozen Throne and is currently in  game" ) != string :: npos )
+			if( Message.find( "is using Warcraft III The Frozen Throne in game" ) != string :: npos || Message.find( "is using Warcraft III Frozen Throne and is currently in  game" ) != string :: npos || Message.find( "is using Warcraft III in game" ) != string :: npos || Message.find( "is using Warcraft III  in game" ) != string :: npos )
 			{
 				// check both the current game name and the last game name against the /whois response
 				// this is because when the game is rehosted, players who joined recently will be in the previous game according to battle.net
@@ -1354,18 +1354,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		/*****************
 		* ADMIN COMMANDS *
 		******************/
-
-        //
-        // !ACCEPT
-        //
-
-        if( Command == "accept" )
-		{
-			if( IsRootAdmin( User ) || ForceRoot )
-			    SendClanAcceptInvite( true );
-			else
-				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
-		}
 		
         //
 		// !ADDADMIN
@@ -1804,34 +1792,12 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			lock.unlock( );
 		}
 
-        //
-        // !GRUNT
-        //
-
-		if( Command == "grunt"  && !Payload.empty( ) )
-		{
-			SendClanChangeRank( Payload, CBNETProtocol :: CLAN_MEMBER );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] changing " + Payload + " to status grunt done by " + User );
-		}
-
 		//
 		// !HOSTSG
 		//
 
                         else if( Command == "hostsg" && !Payload.empty( ) )
 			m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, true, Payload, User, User, m_Server, Whisper );
-
-        //
-        // !INVITE
-        //
-
-        if( Command == "invite" && !Payload.empty( ) )
-		{
-			SendClanInvitation( Payload );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] inviting clan member " + Payload + " done by " + User );
-		}
 
         //
 		// !LOAD (load config file)
@@ -2024,49 +1990,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 					QueueChatCommand( m_GHost->m_Language->ErrorListingMaps( ), User, Whisper );
 				}
 			}
-		}
-
-        //
-        // !MOTD
-        //
-
-		if( Command == "motd"  && !Payload.empty( ) )
-		{
-			SendClanSetMotd( Payload );
-			CONSOLE_Print( "[GHOST] setting motd to " + Payload );
-		}
-
-        //
-        // !PEON
-        //
-
-		if( Command == "peon"  && !Payload.empty( ) )
-		{
-			SendClanChangeRank( Payload, CBNETProtocol :: CLAN_PARTIAL_MEMBER );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] changing " + Payload + " to status peon done by " + User );
-		}
-
-        //
-        // !REMOVE
-        //
-
-		if( Command == "remove" && !Payload.empty( ) )
-		{
-			SendClanRemoveMember( Payload );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] removing clan member " + Payload + " done by " + User );
-		}
-
-        //
-        // !SHAMAN
-        //
-
-		if( Command == "shaman"  && !Payload.empty( ) )
-		{
-			SendClanChangeRank( Payload, CBNETProtocol :: CLAN_OFFICER );
-			SendGetClanList( );
-			CONSOLE_Print( "[GHOST] changing " + Payload + " to status shaman done by " + User );
 		}
 
 		//
