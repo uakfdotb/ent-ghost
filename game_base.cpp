@@ -3149,9 +3149,6 @@ void CBaseGame :: EventPlayerChangeRace( CGamePlayer *player, unsigned char race
 	if( m_SaveGame )
 		return;
 
-	if( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS )
-		return;
-
 	if( m_Map->GetMapFlags( ) & MAPFLAG_RANDOMRACES )
 		return;
 
@@ -3162,6 +3159,9 @@ void CBaseGame :: EventPlayerChangeRace( CGamePlayer *player, unsigned char race
 
 	if( SID < m_Slots.size( ) )
 	{
+		if( ( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) && !( m_Slots[SID].GetRace( ) & SLOTRACE_SELECTABLE ) )
+			return;
+
 		m_Slots[SID].SetRace( race | SLOTRACE_SELECTABLE );
 		SendAllSlotInfo( );
 	}
