@@ -71,7 +71,7 @@ public:
 // CGame
 //
 
-CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ), m_CallableGameAdd( NULL ), m_ForfeitTime( 0 ), m_ForfeitTeam( 0 ), m_CallableGetTournament( NULL ), m_SetWinnerTicks( 0 ), m_SetWinnerTeam( 0 ), m_CallableGameUpdate( NULL ), m_GameUpdateID( 0 ), m_SoloTeam( false )
+CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ), m_CallableGameAdd( NULL ), m_ForfeitTime( 0 ), m_ForfeitTeam( 0 ), m_CallableGetTournament( NULL ), m_SetWinnerTicks( 0 ), m_SetWinnerTeam( 0 ), m_CallableGameUpdate( NULL ), m_GameUpdateID( 0 ), m_SoloTeam( false ), m_ForceBanTicks( 0 )
 {
     m_DBGame = new CDBGame( 0, string( ), m_Map->GetMapPath( ), string( ), string( ), string( ), 0 );
     m_MapType = "";
@@ -1116,6 +1116,29 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 					
 					SendAllChat( "The other team has left. If you stay for fifteen seconds, the game will be marked as your win." );
 				}
+			}
+		}
+		
+		// if stats and not solo, and at least two leavers in first four minutes, then draw the game
+		if( !m_SoftGameOver && !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && !m_Stats->IsWinner( ) && Team != 12 && m_NumTeams == 2 && !m_SoloTeam && m_GameTicks < 1000 * 60 * 4 )
+		{
+			// check how many leavers, by starting from start players and subtracting each non-leaver player
+			uint32_t m_NumLeavers = m_StartPlayers;
+			
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
+			{
+				if( *i && !(*i)->GetLeftMessageSent( ) && *i != player )
+					m_NumLeavers--;
+			}
+			
+			if( m_NumLeavers >= 2 )
+			{
+				SendAllChat( "Two players have left in the first few minutes." );
+				SendAllChat( "This game has been marked as a draw. You may leave at any time." );
+				
+				// make sure leavers will get banned
+				m_ForceBanTicks = m_GameTicks;
+				m_SoftGameOver = true;
 			}
 		}
 	}
@@ -3740,7 +3763,7 @@ void CGame :: CloseGame( )
 		{
 			uint32_t LeftTime = (*i)->GetLeft( );
 			
-			if( EndTime - LeftTime > 300 || ( m_MapType == "cfone" && LeftTime < 60 ) )
+			if( EndTime - LeftTime > 300 || ( m_MapType == "cfone" && LeftTime < 60 ) || ( m_ForceBanTicks != 0 && LeftTime <= m_ForceBanTicks ) )
 			{
 				string CustomReason = "autoban: left at " + UTIL_ToString( LeftTime ) + "/" + UTIL_ToString( EndTime );
 				

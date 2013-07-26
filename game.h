@@ -96,6 +96,7 @@ protected:
 	uint32_t m_SetWinnerTicks;
 	uint32_t m_SetWinnerTeam;
 	bool m_SoloTeam;							// if one of the teams has a single player
+	uint32_t m_ForceBanTicks;					// if non-zero, all players who left before this ingame ticks will be autobanned
 	
 	CCallableGameUpdate *m_CallableGameUpdate;	// threaded game update in progress
 	uint32_t m_GameUpdateID;
