@@ -3042,8 +3042,11 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 				m_LoadingTicksLimit = ( player->GetFinishedLoadingTicks( ) - m_StartedLoadingTicks ) * 3 + 2 * 60 * 1000;
 		}
 		
-		if( m_LoadingTicksLimit < 3 * 60 * 1000 )
+		if( m_LoadingTicksLimit != 0 && m_LoadingTicksLimit < 3 * 60 * 1000 )
 			m_LoadingTicksLimit = 3 * 60 * 1000;
+
+		if( m_LoadingTicksLimit != 0 )
+			CONSOLE_Print( "[GAME: " + m_GameName + "] setting loading ticks limit to " + UTIL_ToString( m_LoadingTicksLimit ) );
 	}
 	
 	// notify players about the loaded player
