@@ -1139,6 +1139,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				// make sure leavers will get banned
 				m_ForceBanTicks = m_GameTicks;
 				m_SoftGameOver = true;
+				m_Stats->LockStats( );
 			}
 		}
 	}
