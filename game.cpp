@@ -2117,6 +2117,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					{
 						LastMatch->SetDeleteMe( true );
 						LastMatch->SetLeftReason( m_GHost->m_Language->WasKickedByPlayer( User ) );
+						m_GHost->DenyIP( LastMatch->GetExternalIPString( ), 60000, "was kicked by !kick" );
 
 						if( !m_GameLoading && !m_GameLoaded )
 							LastMatch->SetLeftCode( PLAYERLEAVE_LOBBY );

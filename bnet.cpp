@@ -1401,6 +1401,17 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				QueueChatCommand( m_GHost->m_Language->UserIsAlreadyBanned( m_Server, Victim ), User, Whisper );
 			else
 				m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason, 3600 * 48, "ttr.cloud" ) ) );
+			
+			boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+				
+			if( m_GHost->m_CurrentGame )
+			{
+				boost::mutex::scoped_lock sayLock( m_GHost->m_CurrentGame->m_SayGamesMutex );
+				m_GHost->m_CurrentGame->m_DoSayGames.push_back( "/kick " + Victim );
+				sayLock.unlock( );
+			}
+			
+			lock.unlock( );
 		}
 
 		//
