@@ -767,6 +767,38 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		{
 			if( (*i)[0] == ':' )
 				SendAllChat( (*i).substr(1) );
+			else if( (*i)[0] == '/' )
+			{
+				string Command;
+				string Payload;
+				stringstream SS;
+				SS << (*i).substr(1);
+				SS >> Command;
+
+				if( !SS.eof( ) )
+					getline( SS, Payload );
+				
+				if( Command == "kick" )
+				{
+					CGamePlayer *LastMatch = NULL;
+					uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
+
+					if( Matches == 1 )
+					{
+						LastMatch->SetDeleteMe( true );
+						LastMatch->SetLeftReason( m_GHost->m_Language->WasKickedByPlayer( "Admin" ) );
+						m_GHost->DenyIP( LastMatch->GetExternalIPString( ), 60000, "was kicked by !kick" );
+
+						if( !m_GameLoading && !m_GameLoaded )
+							LastMatch->SetLeftCode( PLAYERLEAVE_LOBBY );
+						else
+							LastMatch->SetLeftCode( PLAYERLEAVE_LOST );
+
+						if( !m_GameLoading && !m_GameLoaded )
+							OpenSlot( GetSIDFromPID( LastMatch->GetPID( ) ), false );
+					}
+				}
+			}
 			else
 				SendAllChat( "ANNOUNCEMENT: " + *i );
 		}
