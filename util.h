@@ -86,8 +86,7 @@ BYTEARRAY UTIL_DecodeStatString( BYTEARRAY &data );
 bool UTIL_IsLanIP( BYTEARRAY ip );
 bool UTIL_IsLocalIP( BYTEARRAY ip, vector<BYTEARRAY> &localIPs );
 void UTIL_Replace( string &Text, string Key, string Value );
-vector<string> UTIL_Split( string &s, char delim, vector<string> &elems );
-vector<string> UTIL_Split( string &s, char delim );
+bool UTIL_IsNonPrintable( char c );
 vector<string> UTIL_Tokenize( string s, char delim );
 
 // math

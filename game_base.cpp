@@ -989,7 +989,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			}
 			else
 			{
-				vector<string> messages = UTIL_Split( *i, '\n' );
+				vector<string> messages = UTIL_Tokenize( *i, '\n' );
 				
 				for( vector<string> :: iterator j = messages.begin( ); j != messages.end( ); ++j )
 					SendAllChat( "ANNOUNCEMENT: " + *j );
