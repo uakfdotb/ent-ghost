@@ -951,13 +951,21 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			{
 				string Command;
 				string Payload;
-				stringstream SS;
-				SS << (*i).substr(1);
-				SS >> Command;
+				string Message = *i;
+				string :: size_type PayloadStart = Message.find( " " );
 
-				if( !SS.eof( ) )
-					getline( SS, Payload );
+				if( PayloadStart != string :: npos )
+				{
+					Command = Message.substr( 1, PayloadStart - 1 );
+					Payload = Message.substr( PayloadStart + 1 );
+				}
+				else
+					Command = Message.substr( 1 );
+
+				transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
 				
+				CONSOLE_Print( "[GAME: " + m_GameName + "] received command from announce [" + Command + "] with payload [" + Payload + "]" );
+
 				if( Command == "kick" )
 				{
 					CGamePlayer *LastMatch = NULL;

@@ -654,7 +654,7 @@ vector<string> UTIL_Split( string &s, char delim, vector<string> &elems ) {
 
 std::vector<std::string> UTIL_Split( string &s, char delim ) {
     vector<string> elems;
-    split( s, delim, elems );
+    UTIL_Split( s, delim, elems );
     return elems;
 }
 
