@@ -980,7 +980,12 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				}
 			}
 			else
-				SendAllChat( "ANNOUNCEMENT: " + *i );
+			{
+				vector<string> messages = UTIL_Split( *i, '\n' );
+				
+				for( vector<string> :: iterator j = messages.begin( ); j != messages.end( ); ++j )
+					SendAllChat( "ANNOUNCEMENT: " + *j );
+			}
 		}
 		
 		m_DoSayGames.clear( );
