@@ -2154,8 +2154,10 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 		return;
 	}
+	
+	gameName.erase( remove_if( gameName.begin( ), gameName.end( ), UTIL_IsNonPrintable ), gameName.end( ) );
 
-	if( gameName.size( ) > 31 )
+	if( gameName.size( ) > 31 || gameName.size( ) < 3 )
 	{
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		{
