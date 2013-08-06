@@ -1959,7 +1959,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !DROP
 			//
 
-			else if( Command == "drop" && m_GameLoaded && ( AdminCheck || RootAdminCheck ) )
+			else if( Command == "drop" && m_GameLoaded )
 				StopLaggers( "lagged out (dropped by admin)" );
 
 			//
