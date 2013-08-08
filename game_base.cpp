@@ -1037,7 +1037,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	
 	// update stream DB
 	
-	if( m_GHost->m_Stream && GetTime( ) - m_LastStreamDBUpdateTime > 30 )
+	if( m_GHost->m_Stream && GetTime( ) - m_LastStreamDBUpdateTime > 30 && m_StreamPackets )
 	{
 		boost::mutex::scoped_lock lock( m_GHost->m_CallablesMutex );
 		
