@@ -899,8 +899,8 @@ bool CGame :: Update( void *fd, void *send_fd )
 		m_CallableGetTournament = NULL;
 	}
 	
-	// update gamelist every 10 seconds if in lobby, or every 30 seconds otherwise
-	if( !m_CallableGameUpdate && ( m_LastGameUpdateTime == 0 || GetTime( ) - m_LastGameUpdateTime >= 30 || ( !m_GameLoaded && !m_GameLoading && GetTime( ) - m_LastGameUpdateTime >= 10 ) ) )
+	// update gamelist every 5 seconds if in lobby, or every 45 seconds otherwise
+	if( !m_CallableGameUpdate && ( m_LastGameUpdateTime == 0 || GetTime( ) - m_LastGameUpdateTime >= 30 || ( !m_GameLoaded && !m_GameLoading && GetTime( ) - m_LastGameUpdateTime >= 5 ) ) )
 	{
 		m_LastGameUpdateTime = GetTime( );
 		m_CallableGameUpdate =  m_GHost->m_DB->ThreadedGameUpdate( m_GameUpdateID, GetMapName( ), GetGameName( ), GetOwnerName( ), GetCreatorName( ), GetNumHumanPlayers( ), GetPlayerList( ), GetNumHumanPlayers( ) + GetSlotsOpen(), GetNumHumanPlayers( ), !( m_GameLoading || m_GameLoaded ), true );
