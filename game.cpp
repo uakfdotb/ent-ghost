@@ -2513,13 +2513,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			}
 
 			//
-			// !SCORES
-			//
-
-			else if( Command == "scores" )
-				ShowTeamScores( );
-
-			//
 			// !SENDLAN
 			//
 
@@ -2802,6 +2795,13 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		else
 			SendChat( player, "You have subscribed from <fun>. Type !fun again to unsubscribe." );
 	}
+
+	//
+	// !SCORES
+	//
+
+	else if( Command == "scores" && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
+		ShowTeamScores( player );
 
 	//
 	// !STATSDOTA

@@ -38,6 +38,7 @@
 #include "gameprotocol.h"
 #include "streamplayer.h"
 #include "stageplayer.h"
+#include "elo.h"
 #include "game_base.h"
 
 #include <cmath>
@@ -5543,7 +5544,7 @@ void CBaseGame :: DeleteFakePlayer( )
 	m_FakePlayers.clear( );
 }
 
-void CBaseGame :: ShowTeamScores( )
+void CBaseGame :: ShowTeamScores( CGamePlayer *player )
 {
 	vector<double> Team1;
 	double Team1Total = 0;
@@ -5596,9 +5597,71 @@ void CBaseGame :: ShowTeamScores( )
 		
 		Team1String += " Avg: " + UTIL_ToString( Team1Total / Team1.size( ), 2 );
 		Team2String += " Avg: " + UTIL_ToString( Team2Total / Team2.size( ), 2 );
-	
-		SendAllChat( Team1String );
-		SendAllChat( Team2String );
+		
+		//stuff for ELO calculation
+		int eloNumPlayers = Team1.size( ) + Team2.size( );
+		float *eloPlayerRatings = new float[eloNumPlayers];
+		int *eloPlayerTeams = new int[eloNumPlayers];
+		int eloNumTeams = 2;
+		float *eloTeamRatings = new float[2];
+		float *eloTeamWinners = new float[2];
+		
+		eloTeamRatings[0] = Team1Total / Team1.size( );
+		eloTeamRatings[1] = Team2Total / Team2.size( );
+		string eloChangeString = "ELO change: ";
+		
+		//repeat twice
+		//in first case, we get ELO difference if team 1 wins, and in second case, we get if team 2 wins
+		for( int k = 0; k < 2; ++k )
+		{
+			for( int i = 0; i < Team1.size( ); ++i )
+			{
+				eloPlayerRatings[i] = Team1[i];
+				eloPlayerTeams[i] = 0;
+			}
+		
+			for(int i = 0; i < Team2.size( ); ++i )
+			{
+				eloPlayerRatings[Team1.size( ) + i] = Team2[i];
+				eloPlayerTeams[Team1.size( ) + i] = 1;
+			}
+			
+			if( k == 0 )
+			{
+				eloTeamWinners[0] = 1;
+				eloTeamWinners[1] = 0;
+			}
+			else
+			{
+				eloTeamWinners[0] = 0;
+				eloTeamWinners[1] = 1;
+			}
+		
+			elo_recalculate_ratings(eloNumPlayers, eloPlayerRatings, eloPlayerTeams, eloNumTeams, eloTeamRatings, eloTeamWinners);
+			
+			if( k == 0 )
+				eloChangeString += UTIL_ToString( eloPlayerRatings[0] - Team1[0], 2 ) + " / ";
+			else
+				eloChangeString += UTIL_ToString( eloPlayerRatings[Team1.size( )] - Team2[0], 2 );
+		}
+		
+		delete eloPlayerRatings;
+		delete eloPlayerTeams;
+		delete eloTeamRatings;
+		delete eloTeamWinners;
+		
+		if( player )
+		{
+			SendChat( player, Team1String );
+			SendChat( player, Team2String );
+			SendChat( player, eloChangeString );
+		}
+		else
+		{
+			SendAllChat( Team1String );
+			SendAllChat( Team2String );
+			SendAllChat( eloChangeString );
+		}
 	}
 	else
 	{
