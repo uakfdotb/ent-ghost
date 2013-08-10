@@ -125,7 +125,7 @@ map<string, string> CGHostDB :: SpoofList( )
 
 vector<CDBBan *> CGHostDB :: BanListFast( string server, uint32_t banlistfasttime )
 {
-
+	return vector<CDBBan *>( );
 }
 
 void CGHostDB :: ReconUpdate( uint32_t hostcounter, uint32_t seconds )
