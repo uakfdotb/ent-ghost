@@ -2823,6 +2823,30 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		ShowTeamScores( player );
 
 	//
+	// !NAMES
+	//
+
+	else if( Command == "names" && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
+	{
+		string Names = "Names:";
+		
+		for( int i = 0; i < m_Slots.size( ); ++i )
+		{
+			CGamePlayer *player = GetPlayerFromSID( i );
+			
+			if( player )
+			{
+				string SafeName = player->GetName( );
+				transform( SafeName.begin( ), SafeName.end( ), SafeName.begin( ), (int(*)(int))tolower );
+				UTIL_Replace( SafeName, "l", "L" );
+				Names += "  " + SafeName;
+			}
+		}
+		
+		SendChat( player, Names );
+	}
+
+	//
 	// !STATSDOTA
 	//
 
