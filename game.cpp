@@ -1402,6 +1402,25 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			}
 
 			//
+			// !ALIAS
+			//
+
+			else if( Command == "alias" && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 && !Payload.empty( ) )
+			{
+				CGamePlayer *Target = GetPlayerFromName( Payload, false );
+		
+				if( Target )
+				{
+					m_PairedAliasChecks.push_back( PairedAliasCheck( User, m_GHost->m_DB->ThreadedAliasCheck( Target->GetExternalIPString( ) ) ) );
+					player->SetStatsDotASentTime( GetTime( ) );
+				}
+				else
+				{
+					SendChat( player, "Error: no user found with that name in the lobby!" );
+				}
+			}
+
+			//
 			// !ADDBAN
 			// !BAN
 			//
@@ -3190,25 +3209,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_PairedGPSChecks.push_back( PairedGPSCheck( User, m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser, StatsRealm ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
-	}
-
-	//
-	// !ALIAS
-	//
-
-	else if( Command == "alias" && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 && !Payload.empty( ) )
-	{
-		CGamePlayer *Target = GetPlayerFromName( Payload, false );
-		
-		if( Target )
-		{
-			m_PairedAliasChecks.push_back( PairedAliasCheck( User, m_GHost->m_DB->ThreadedAliasCheck( Target->GetExternalIPString( ) ) ) );
-			player->SetStatsDotASentTime( GetTime( ) );
-		}
-		else
-		{
-			SendChat( player, "Error: no user found with that name in the lobby!" );
-		}
 	}
 
 	//
