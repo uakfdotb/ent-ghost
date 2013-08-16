@@ -32,6 +32,8 @@ class CGameProtocol;
 class CGame;
 class CIncomingJoinPlayer;
 class CIncomingGarenaUser;
+class CCallableBanCheck;
+class CDBBan;
 
 //
 // CPotentialPlayer
@@ -54,7 +56,9 @@ protected:
 	string m_ErrorString;
 	CIncomingJoinPlayer *m_IncomingJoinPlayer;
 	CIncomingGarenaUser *m_IncomingGarenaUser;
+	
 	bool m_Banned;
+	CCallableBanCheck *m_CallableBanCheck;
 
     uint32_t m_ConnectionState; // zero if no packets received (wait REQJOIN), one if only REQJOIN received (wait MAPSIZE), two otherwise
     uint32_t m_ConnectionTime;  // last time the player did something relating to connection state
@@ -89,6 +93,7 @@ public:
 	// other functions
 
 	virtual void Send( BYTEARRAY data );
+	virtual void SendBannedInfo( CDBBan *Ban, string type );
 };
 
 //
@@ -110,7 +115,6 @@ private:
 	uint32_t m_TotalPacketsSent;
 	uint32_t m_TotalPacketsReceived;
 	uint32_t m_LeftCode;						// the code to be sent in W3GS_PLAYERLEAVE_OTHERS for why this player left the game
-	uint32_t m_LoginAttempts;					// the number of attempts to login (used with CAdminGame only)
 	uint32_t m_Cookies;					// the number of cookies this user has, for the !cookie and !eat command
 	uint32_t m_SyncCounter;						// the number of keepalive packets received from this player
 	uint32_t m_JoinTime;						// GetTime when the player joined the game (used to delay sending the /whois a few seconds to allow for some lag)
@@ -126,7 +130,6 @@ private:
 	uint32_t m_LastGProxyWaitNoticeSentTime;
 	queue<BYTEARRAY> m_LoadInGameData;			// queued data to be sent when the player finishes loading when using "load in game"
 	double m_Score;								// the player's generic "score" for the matchmaking algorithm
-	bool m_LoggedIn;							// if the player has logged in or not (used with CAdminGame only)
 	bool m_Spoofed;								// if the player has spoof checked or not
 	bool m_Reserved;							// if the player is reserved (VIP) or not
 	bool m_WhoisShouldBeSent;					// if a battle.net /whois should be sent for this player or not
@@ -172,7 +175,6 @@ public:
 	string GetJoinedRealm( )					{ return m_JoinedRealm; }
 	uint32_t GetCookies( )						{ return m_Cookies; }
 	uint32_t GetLeftCode( )						{ return m_LeftCode; }
-	uint32_t GetLoginAttempts( )				{ return m_LoginAttempts; }
 	uint32_t GetSyncCounter( )					{ return m_SyncCounter; }
 	uint32_t GetJoinTime( )						{ return m_JoinTime; }
 	uint32_t GetLastMapPartSent( )				{ return m_LastMapPartSent; }
@@ -187,7 +189,6 @@ public:
 	uint32_t GetLastGProxyWaitNoticeSentTime( )	{ return m_LastGProxyWaitNoticeSentTime; }
 	queue<BYTEARRAY> *GetLoadInGameData( )		{ return &m_LoadInGameData; }
 	double GetScore( )							{ return m_Score; }
-	bool GetLoggedIn( )							{ return m_LoggedIn; }
 	bool GetSpoofed( )							{ return m_Spoofed; }
 	bool GetReserved( )							{ return m_Reserved; }
 	bool GetWhoisShouldBeSent( )				{ return m_WhoisShouldBeSent; }
@@ -214,7 +215,6 @@ public:
 	void SetSpoofedRealm( string nSpoofedRealm )									{ m_SpoofedRealm = nSpoofedRealm; }
 	void SetLeftCode( uint32_t nLeftCode )											{ m_LeftCode = nLeftCode; }
 	void SetCookies( uint32_t nCookies )											{ m_Cookies = nCookies; }
-	void SetLoginAttempts( uint32_t nLoginAttempts )								{ m_LoginAttempts = nLoginAttempts; }
 	void SetSyncCounter( uint32_t nSyncCounter )									{ m_SyncCounter = nSyncCounter; }
 	void SetLastMapPartSent( uint32_t nLastMapPartSent )							{ m_LastMapPartSent = nLastMapPartSent; }
 	void SetLastMapPartAcked( uint32_t nLastMapPartAcked )							{ m_LastMapPartAcked = nLastMapPartAcked; }
@@ -226,7 +226,6 @@ public:
 	void SetStatsDotASentTime( uint32_t nStatsDotASentTime )						{ m_StatsDotASentTime = nStatsDotASentTime; }
 	void SetLastGProxyWaitNoticeSentTime( uint32_t nLastGProxyWaitNoticeSentTime )	{ m_LastGProxyWaitNoticeSentTime = nLastGProxyWaitNoticeSentTime; }
 	void SetScore( double nScore )													{ m_Score = nScore; }
-	void SetLoggedIn( bool nLoggedIn )												{ m_LoggedIn = nLoggedIn; }
 	void SetSpoofed( bool nSpoofed )												{ m_Spoofed = nSpoofed; }
 	void SetReserved( bool nReserved )												{ m_Reserved = nReserved; }
 	void SetWhoisShouldBeSent( bool nWhoisShouldBeSent )							{ m_WhoisShouldBeSent = nWhoisShouldBeSent; }

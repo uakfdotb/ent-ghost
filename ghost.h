@@ -41,7 +41,6 @@ class CCRC32;
 class CSHA1;
 class CBNET;
 class CBaseGame;
-class CAdminGame;
 class CGHostDB;
 class CBaseCallable;
 class CLanguage;
@@ -49,10 +48,7 @@ class CMap;
 class CSaveGame;
 class CConfig;
 class CCallableCommandList;
-class CCallableBanList;
-class CCallableWhiteList;
 class CCallableSpoofList;
-class CDBBan;
 struct DenyInfo;
 
 struct GProxyReconnector {
@@ -77,11 +73,9 @@ public:
 	CSHA1 *m_SHA;							// for calculating SHA1's
 	vector<CBNET *> m_BNETs;				// all our battle.net connections (there can be more than one)
 	CBaseGame *m_CurrentGame;				// this game is still in the lobby state
-	CAdminGame *m_AdminGame;				// this "fake game" allows an admin who knows the password to control the bot from the local network
 	vector<CBaseGame *> m_Games;			// these games are in progress
 	boost::mutex m_GamesMutex;
 	CGHostDB *m_DB;							// database
-	CGHostDB *m_DBLocal;					// local database (for temporary data)
 	vector<CBaseCallable *> m_Callables;	// vector of orphaned callables waiting to die
 	boost::mutex m_CallablesMutex;
 	vector<BYTEARRAY> m_LocalAddresses;		// vector of local IP addresses
@@ -141,7 +135,6 @@ public:
 	uint32_t m_MaxDownloadSpeed;			// config value: maximum total map download speed in KB/sec
 	bool m_LCPings;							// config value: use LC style pings (divide actual pings by two)
 	uint32_t m_AutoKickPing;				// config value: auto kick players with ping higher than this
-	uint32_t m_BanMethod;					// config value: ban method (ban by name/ip/both)
 	string m_IPBlackListFile;				// config value: IP blacklist file (ipblacklist.txt)
 	uint32_t m_LobbyTimeLimit;				// config value: auto close the game lobby after this many minutes without any reserved players
 	uint32_t m_Latency;						// config value: the latency (by default)
@@ -156,10 +149,6 @@ public:
 	string m_GameLoadedFile;				// config value: gameloaded.txt
 	string m_GameOverFile;					// config value: gameover.txt
 	bool m_LocalAdminMessages;				// config value: send local admin messages or not
-	bool m_AdminGameCreate;					// config value: create the admin game or not
-	uint16_t m_AdminGamePort;				// config value: the port to host the admin game on
-	string m_AdminGamePassword;				// config value: the admin game password
-	string m_AdminGameMap;					// config value: the admin game map config to use
 	unsigned char m_LANWar3Version;			// config value: LAN warcraft 3 version
 	uint32_t m_ReplayWar3Version;			// config value: replay warcraft 3 version (for saving replays)
 	uint32_t m_ReplayBuildNumber;			// config value: replay build number (for saving replays)
@@ -188,16 +177,6 @@ public:
 	
     string m_LocalIPs;						// config value: list of local IP's (which Garena is allowed from)
 	vector<string> m_FlameTriggers;			// triggers for antiflame system
-	vector<CDBBan *> m_BansConnect;			// bans not tied to other realms (entconnect realm)
-	vector<CDBBan *> m_BansGarena;			// bans not tied to other realms (lan/garena realm)
-	vector<string> m_WhiteList;				// entconnect whitelist
-    uint32_t m_LastBanRefreshTimeConnect;	// refresh ban list every 5 minutes
-    uint32_t m_LastBanRefreshTimeGarena;	// refresh ban list every 5 minutes
-	uint32_t m_LastWhiteListRefreshTime;	// refresh white list every 5 minutes
-	CCallableBanList *m_CallableBanListConnect;	// threaded database ban list in progress (entconnect)
-	CCallableBanList *m_CallableBanListGarena;	// threaded database ban list in progress (LAN/garena)
-	CCallableWhiteList *m_CallableWhiteList;	// threaded database white list in progress
-	boost::mutex m_BansMutex;
 	uint32_t m_LastDenyCleanTime;			// last time we cleaned the deny table
 	
 	boost::mutex m_SpoofMutex;
@@ -227,10 +206,6 @@ public:
 	void EventBNETChat( CBNET *bnet, string user, string message );
 	void EventBNETEmote( CBNET *bnet, string user, string message );
 	void EventGameDeleted( CBaseGame *game );
-
-	CDBBan *IsBannedName( string name, string context, string realm );
-	bool IsWhiteList( string name );
-	CDBBan *IsBannedIP( string ip, string context );
 
 	// other functions
 

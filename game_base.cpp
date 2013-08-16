@@ -164,7 +164,7 @@ CBaseGame :: ~CBaseGame( )
 
 	for( vector<CPotentialPlayer *> :: iterator i = m_Potentials.begin( ); i != m_Potentials.end( ); ++i )
 		delete *i;
-	
+
 	for( map<uint32_t, CPotentialPlayer *> :: iterator i = m_BannedPlayers.begin( ); i != m_BannedPlayers.end( ); ++i )
 		delete i->second;
 
@@ -410,15 +410,6 @@ unsigned int CBaseGame :: SetFD( void *fd, void *send_fd, int *nfds )
 			++NumFDs;
 		}
 	}
-	
-	for( map<uint32_t, CPotentialPlayer *> :: iterator i = m_BannedPlayers.begin( ); i != m_BannedPlayers.end( ); ++i )
-	{
-		if( i->second->GetSocket( ) )
-		{
-			i->second->GetSocket( )->SetFD( (fd_set *)fd, (fd_set *)send_fd, nfds );
-			++NumFDs;
-		}
-	}
 
 	return NumFDs;
 }
@@ -543,29 +534,6 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		}
 		else
 			++i;
-	}
-	
-	for( map<uint32_t, CPotentialPlayer *> :: iterator i = m_BannedPlayers.begin( ); i != m_BannedPlayers.end( ); )
-	{
-		if( i->second->Update( fd ) )
-		{
-			// flush the socket (e.g. in case a rejection message is queued)
-
-			if( i->second->GetSocket( ) )
-				i->second->GetSocket( )->DoSend( (fd_set *)send_fd );
-
-			delete i->second;
-			m_BannedPlayers.erase( i++ );
-		}
-		else
-		{
-			if( GetTicks( ) - i->first > 10000 )
-			{
-				i->second->SetDeleteMe( true );
-			}
-			
-			i++;
-		}
 	}
 
 	// create the virtual host player
@@ -1714,32 +1682,6 @@ void CBaseGame :: SendEndMessage( )
 	}
 }
 
-void CBaseGame :: SendBannedInfo( CPotentialPlayer *player, CDBBan *Ban )
-{
-	// send slot info to the banned player
-	
-	vector<CGameSlot> Slots = m_Map->GetSlots( );
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 2, player->GetSocket( )->GetPort( ), player->GetExternalIP( ), Slots, m_RandomSeed, m_Map->GetMapGameType( ) == GAMETYPE_CUSTOM ? 3 : 0, m_Map->GetMapNumPlayers( ) ) );
-	
-	BYTEARRAY IP;
-	IP.push_back( 0 );
-	IP.push_back( 0 );
-	IP.push_back( 0 );
-	IP.push_back( 0 );
-	
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( 1, m_VirtualHostName, IP, IP ) );
-	
-	// send a map check packet to the new player
-	
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_MAPCHECK( m_Map->GetMapPath( ), m_Map->GetMapSize( ), m_Map->GetMapInfo( ), m_Map->GetMapCRC( ), m_Map->GetMapSHA1( ) ) );
-	
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "Sorry, but you are currently banned." ) );
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Admin: " + Ban->GetAdmin( ) ) );
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Reason: " + Ban->GetReason( ) ) );
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "    Gamename: " + Ban->GetGameName( ) ) );
-	player->GetSocket( )->PutBytes( m_Protocol->SEND_W3GS_CHAT_FROM_HOST( 1, UTIL_CreateByteArray( 2 ), 16, BYTEARRAY( ), "You will be automatically kicked in a few seconds." ) );
-}
-
 void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 {
 	CONSOLE_Print( "[GAME: " + m_GameName + "] deleting player [" + player->GetName( ) + "]: " + player->GetLeftReason( ) );
@@ -2007,8 +1949,9 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	if( m_MatchMaking && score != NULL && ( score[0] < m_MinimumScore || score[0] > m_MaximumScore ) )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but has a rating [" + UTIL_ToString( score[0], 2 ) + "] outside the limits [" + UTIL_ToString( m_MinimumScore, 2 ) + "] to [" + UTIL_ToString( m_MaximumScore, 2 ) + "]" );
-		potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
-		potential->SetDeleteMe( true );
+		potential->SetBanned( );
+		potential->SendBannedInfo( NULL, "score" );
+		m_GHost->DenyIP( potential->GetExternalIPString( ), 30000, "score out of range" );
 		return NULL;
 	}
 
@@ -2028,19 +1971,10 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 	// the client sends the host counter when it joins so we can extract the ID value here
 	// note: this is not a replacement for spoof checking since it doesn't verify the player's name and it can be spoofed anyway
 
-	uint32_t HostCounterID = joinPlayer->GetHostCounter( ) >> 28;
-	string JoinedRealm;
-
-	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
-	{
-		if( (*i)->GetHostCounterID( ) == HostCounterID )
-			JoinedRealm = (*i)->GetServer( );
-	}
+	string JoinedRealm = GetJoinedRealm( joinPlayer->GetHostCounter( ) );
 	
-	if( HostCounterID == 15 )
+	if( JoinedRealm == "entconnect" )
 	{
-		JoinedRealm = "entconnect";
-		
 		// to spoof this user, we will validate their entry key with our copy in database
 		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joining from EntConnect; skey=" + UTIL_ToString( joinPlayer->GetEntryKey( ) ) );
 		m_ConnectChecks.push_back( m_GHost->m_DB->ThreadedConnectCheck( joinPlayer->GetName( ), joinPlayer->GetEntryKey( ) ) );
@@ -2060,133 +1994,6 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game over LAN but used an incorrect entry key" );
 			potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_WRONGPASSWORD ) );
 			potential->SetDeleteMe( true );
-			return NULL;
-		}
-	}
-
-	// check if the new player's name is banned but only if bot_banmethod is not 0
-	// this is because if bot_banmethod is 0 and we announce the ban here it's possible for the player to be rejected later because the game is full
-	// this would allow the player to spam the chat by attempting to join the game multiple times in a row
-
-	bool WhiteList = false;
-	
-	if( JoinedRealm == "entconnect" && m_GHost->IsWhiteList( joinPlayer->GetName( ) ) )
-		WhiteList = true;
-
-	if( m_GHost->m_BanMethod != 0 )
-	{
-		for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
-		{
-			if( (*i)->GetServer( ) == JoinedRealm )
-			{
-				CDBBan *Ban = (*i)->IsBannedName( joinPlayer->GetName( ), m_OwnerName );
-
-				if( Ban )
-				{
-					if( m_GHost->m_BanMethod == 1 || m_GHost->m_BanMethod == 3 )
-					{
-						CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned by name" );
-
-						if( m_IgnoredNames.find( joinPlayer->GetName( ) ) == m_IgnoredNames.end( ) )
-						{
-							SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButBannedByName( joinPlayer->GetName( ) ) );
-							SendAllChat( m_GHost->m_Language->UserWasBannedOnByBecause( Ban->GetServer( ), Ban->GetName( ), Ban->GetDate( ), Ban->GetAdmin( ), Ban->GetReason( ) ) );
-							m_IgnoredNames.insert( joinPlayer->GetName( ) );
-						}
-						
-						// let banned players "join" the game with virtual slots
-						// they will be given the admin and reason associated with their ban, and then kicked after a few seconds
-						
-						CPotentialPlayer *potentialCopy = new CPotentialPlayer( m_Protocol, this, potential->GetSocket( ) );
-						potentialCopy->SetBanned( );
-						potential->SetSocket( NULL );
-						potential->SetDeleteMe( true );
-						
-						m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
-						SendBannedInfo( potentialCopy, Ban );
-						m_GHost->DenyIP( potentialCopy->GetExternalIPString( ), 30000, "banned player message" );
-						delete Ban;
-						return NULL;
-					}
-
-					delete Ban;
-					break;
-				}
-			}
-
-			CDBBan *Ban = (*i)->IsBannedIP( potential->GetExternalIPString( ), m_OwnerName );
-
-			if( Ban )
-			{
-				if( !WhiteList && ( m_GHost->m_BanMethod == 2 || m_GHost->m_BanMethod == 3 ) )
-				{
-					CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned by IP address" );
-
-					if( m_IgnoredNames.find( joinPlayer->GetName( ) ) == m_IgnoredNames.end( ) )
-					{
-						SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButBannedByIP( joinPlayer->GetName( ), potential->GetExternalIPString( ), Ban->GetName( ) ) );
-						SendAllChat( m_GHost->m_Language->UserWasBannedOnByBecause( Ban->GetServer( ), Ban->GetName( ), Ban->GetDate( ), Ban->GetAdmin( ), Ban->GetReason( ) ) );
-						m_IgnoredNames.insert( joinPlayer->GetName( ) );
-					}
-						
-					// let banned players "join" the game with virtual slots
-					// they will be given the admin and reason associated with their ban, and then kicked after a few seconds
-					
-					CPotentialPlayer *potentialCopy = new CPotentialPlayer( m_Protocol, this, potential->GetSocket( ) );
-					potentialCopy->SetBanned( );
-					potential->SetSocket( NULL );
-					potential->SetDeleteMe( true );
-					
-					m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
-					SendBannedInfo( potentialCopy, Ban );
-					m_GHost->DenyIP( potentialCopy->GetExternalIPString( ), 30000, "banned player message" );
-					delete Ban;
-					return NULL;
-				}
-				
-				delete Ban;
-				break;
-			}
-		}
-		
-		CDBBan *Ban = NULL;
-		
-		if( JoinedRealm == "entconnect" )
-			Ban = m_GHost->IsBannedName( joinPlayer->GetName( ), m_OwnerName, "entconnect" );
-		
-		if( JoinedRealm == "" )
-			Ban = m_GHost->IsBannedName( joinPlayer->GetName( ), m_OwnerName, "" );
-		
-		// if still NULL, search by IP too
-		if( !Ban && !WhiteList )
-		{
-			Ban = m_GHost->IsBannedIP( potential->GetExternalIPString( ), m_OwnerName );
-		}
-		
-		if( Ban )
-		{
-			CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game but is banned via entconnect/lan/garena" );
-
-			if( m_IgnoredNames.find( joinPlayer->GetName( ) ) == m_IgnoredNames.end( ) )
-			{
-				SendAllChat( m_GHost->m_Language->TryingToJoinTheGameButBannedByName( joinPlayer->GetName( ) ) );
-				SendAllChat( m_GHost->m_Language->UserWasBannedOnByBecause( Ban->GetServer( ), Ban->GetName( ), Ban->GetDate( ), Ban->GetAdmin( ), Ban->GetReason( ) ) );
-				m_IgnoredNames.insert( joinPlayer->GetName( ) );
-			}
-			
-			// let banned players "join" the game with virtual slots
-			// they will be given the admin and reason associated with their ban, and then kicked after a few seconds
-			
-			CPotentialPlayer *potentialCopy = new CPotentialPlayer( m_Protocol, this, potential->GetSocket( ) );
-			potentialCopy->SetBanned( );
-			potential->SetSocket( NULL );
-			potential->SetDeleteMe( true );
-			
-			m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
-			SendBannedInfo( potentialCopy, Ban );
-			m_GHost->DenyIP( potentialCopy->GetExternalIPString( ), 30000, "banned player message" );
-			
-			delete Ban;
 			return NULL;
 		}
 	}
@@ -3258,7 +3065,7 @@ void CBaseGame :: EventPlayerMapSize( CGamePlayer *player, CIncomingMapSize *map
 			player->SetLeftCode( PLAYERLEAVE_LOBBY );
 			OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
 			
-			m_BannedPlayers.insert( pair<uint32_t, CPotentialPlayer*>( GetTicks( ), potentialCopy ) );
+			m_Potentials.push_back( potentialCopy );
 			m_GHost->DenyIP( potentialCopy->GetExternalIPString( ), 30000, "no map message" );
 		}
 	}
@@ -3444,13 +3251,6 @@ void CBaseGame :: EventGameStarted( )
 		delete *i;
 
 	m_Potentials.clear( );
-	
-	// delete any banned players that are still hanging around
-	
-	for( map<uint32_t, CPotentialPlayer *> :: iterator i = m_BannedPlayers.begin( ); i != m_BannedPlayers.end( ); ++i )
-		delete i->second;
-	
-	m_BannedPlayers.clear( );
 
 	// set initial values for replay
 
@@ -5026,4 +4826,23 @@ void CBaseGame :: ShowTeamScores( )
 	{
 		SendAllChat( "Error in showing team scores: there must be at least one player on each team!" );
 	}
+}
+
+string CBaseGame :: GetJoinedRealm( uint32_t hostcounter )
+{
+	uint32_t HostCounterID = hostcounter >> 28;
+	string JoinedRealm;
+
+	for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+	{
+		if( (*i)->GetHostCounterID( ) == HostCounterID )
+			JoinedRealm = (*i)->GetServer( );
+	}
+	
+	if( HostCounterID == 15 )
+	{
+		JoinedRealm = "entconnect";
+	}
+	
+	return JoinedRealm;
 }

@@ -88,7 +88,7 @@ uint32_t CGHostDB :: BanCount( string server )
 	return 0;
 }
 
-CDBBan *CGHostDB :: BanCheck( string server, string user, string ip )
+CDBBan *CGHostDB :: BanCheck( string server, string user, string ip, string hostname )
 {
 	return NULL;
 }
@@ -108,24 +108,9 @@ bool CGHostDB :: BanRemove( string user, string context )
 	return false;
 }
 
-vector<CDBBan *> CGHostDB :: BanList( string server )
-{
-	return vector<CDBBan *>( );
-}
-
-vector<string> CGHostDB :: WhiteList( )
-{
-	return vector<string>( );
-}
-
 map<string, string> CGHostDB :: SpoofList( )
 {
 	return map<string, string>( );
-}
-
-vector<CDBBan *> CGHostDB :: BanListFast( string server, uint32_t banlistfasttime )
-{
-	return vector<CDBBan *>( );
 }
 
 void CGHostDB :: ReconUpdate( uint32_t hostcounter, uint32_t seconds )
@@ -278,7 +263,7 @@ CCallableBanCount *CGHostDB :: ThreadedBanCount( string server )
 	return NULL;
 }
 
-CCallableBanCheck *CGHostDB :: ThreadedBanCheck( string server, string user, string ip )
+CCallableBanCheck *CGHostDB :: ThreadedBanCheck( string server, string user, string ip, string hostname )
 {
 	return NULL;
 }
@@ -298,22 +283,7 @@ CCallableBanRemove *CGHostDB :: ThreadedBanRemove( string user, string context )
 	return NULL;
 }
 
-CCallableBanList *CGHostDB :: ThreadedBanList( string server )
-{
-	return NULL;
-}
-
-CCallableWhiteList *CGHostDB :: ThreadedWhiteList( )
-{
-	return NULL;
-}
-
 CCallableSpoofList *CGHostDB :: ThreadedSpoofList( )
-{
-	return NULL;
-}
-
-CCallableBanListFast *CGHostDB :: ThreadedBanListFast( string server, uint32_t banlistfasttime )
 {
 	return NULL;
 }
@@ -503,22 +473,7 @@ CCallableBanRemove :: ~CCallableBanRemove( )
 
 }
 
-CCallableBanList :: ~CCallableBanList( )
-{
-	// don't delete anything in m_Result here, it's the caller's responsibility
-}
-
-CCallableWhiteList :: ~CCallableWhiteList( )
-{
-	// don't delete anything in m_Result here, it's the caller's responsibility
-}
-
 CCallableSpoofList :: ~CCallableSpoofList( )
-{
-	// don't delete anything in m_Result here, it's the caller's responsibility
-}
-
-CCallableBanListFast :: ~CCallableBanListFast( )
 {
 	// don't delete anything in m_Result here, it's the caller's responsibility
 }

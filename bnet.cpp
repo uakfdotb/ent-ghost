@@ -77,8 +77,6 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 		m_ServerAlias = m_Server;
 	
 	m_CallableAdminList = m_GHost->m_DB->ThreadedAdminList( nServer );
-	m_CallableBanList = NULL;
-	m_CallableBanListFast = NULL;
 
 	if( nPasswordHashType == "pvpgn" && !nBNLSServer.empty( ) )
 	{
@@ -132,8 +130,6 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_LastOutPacketTicks = 0;
 	m_LastOutPacketSize = 0;
 	m_LastAdminRefreshTime = GetTime( );
-	m_LastBanRefreshTime = GetTime( ) - 30;
-	m_LastBanHardRefreshTime = 0;
 	m_FirstConnect = true;
 	m_WaitingToConnect = true;
 	m_LoggedIn = false;
@@ -144,7 +140,6 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_LastInviteCreation = false;
 	m_ServerReconnectCount = 0;
 	m_AuthFailCount = 0;
-	m_BanListFastTime = 0;
 }
 
 CBNET :: ~CBNET( )
@@ -178,15 +173,6 @@ CBNET :: ~CBNET( )
         for( vector<PairedAdminRemove> :: iterator i = m_PairedAdminRemoves.begin( ); i != m_PairedAdminRemoves.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
-        for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); ++i )
-		m_GHost->m_Callables.push_back( i->second );
-
-        for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); ++i )
-		m_GHost->m_Callables.push_back( i->second );
-
-        for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); ++i )
-		m_GHost->m_Callables.push_back( i->second );
-
         for( vector<PairedGPSCheck> :: iterator i = m_PairedGPSChecks.begin( ); i != m_PairedGPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
@@ -199,17 +185,7 @@ CBNET :: ~CBNET( )
 	if( m_CallableAdminList )
 		m_GHost->m_Callables.push_back( m_CallableAdminList );
 
-	if( m_CallableBanList )
-		m_GHost->m_Callables.push_back( m_CallableBanList );
-
 	lock.unlock( );
-
-	boost::mutex::scoped_lock bansLock( m_BansMutex );
-	
-        for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
-		delete *i;
-	
-	bansLock.unlock( );
 }
 
 BYTEARRAY CBNET :: GetUniqueName( )
@@ -314,67 +290,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			m_GHost->m_DB->RecoverCallable( i->second );
 			delete i->second;
 			i = m_PairedAdminRemoves.erase( i );
-		}
-		else
-                        ++i;
-	}
-
-	for( vector<PairedBanCount> :: iterator i = m_PairedBanCounts.begin( ); i != m_PairedBanCounts.end( ); )
-	{
-		if( i->second->GetReady( ) )
-		{
-			uint32_t Count = i->second->GetResult( );
-
-			if( Count == 0 )
-				QueueChatCommand( m_GHost->m_Language->ThereAreNoBannedUsers( m_Server ), i->first, !i->first.empty( ) );
-			else if( Count == 1 )
-				QueueChatCommand( m_GHost->m_Language->ThereIsBannedUser( m_Server ), i->first, !i->first.empty( ) );
-			else
-				QueueChatCommand( m_GHost->m_Language->ThereAreBannedUsers( m_Server, UTIL_ToString( Count ) ), i->first, !i->first.empty( ) );
-
-			m_GHost->m_DB->RecoverCallable( i->second );
-			delete i->second;
-			i = m_PairedBanCounts.erase( i );
-		}
-		else
-                        ++i;
-	}
-
-	for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); )
-	{
-		if( i->second->GetReady( ) )
-		{
-			if( i->second->GetResult( ) )
-			{
-				AddBan( i->second->GetResult( ), i->second->GetUser( ), i->second->GetIP( ), "", i->second->GetGameName( ), i->second->GetAdmin( ), i->second->GetReason( ), "", i->second->GetContext( ) );
-				QueueChatCommand( m_GHost->m_Language->BannedUser( i->second->GetServer( ), i->second->GetUser( ) ), i->first, !i->first.empty( ) );
-			}
-			else
-				QueueChatCommand( m_GHost->m_Language->ErrorBanningUser( i->second->GetServer( ), i->second->GetUser( ) ), i->first, !i->first.empty( ) );
-
-			m_GHost->m_DB->RecoverCallable( i->second );
-			delete i->second;
-			i = m_PairedBanAdds.erase( i );
-		}
-		else
-                        ++i;
-	}
-
-	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); )
-	{
-		if( i->second->GetReady( ) )
-		{
-			if( i->second->GetResult( ) )
-			{
-				RemoveBan( i->second->GetUser( ), i->second->GetContext( ) );
-				QueueChatCommand( m_GHost->m_Language->UnbannedUser( i->second->GetUser( ) ), i->first, !i->first.empty( ) );
-			}
-			else
-				QueueChatCommand( m_GHost->m_Language->ErrorUnbanningUser( i->second->GetUser( ) ), i->first, !i->first.empty( ) );
-
-			m_GHost->m_DB->RecoverCallable( i->second );
-			delete i->second;
-			i = m_PairedBanRemoves.erase( i );
 		}
 		else
                         ++i;
@@ -495,7 +410,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			++i;
 	}
 
-
 	// refresh the admin list every hour
 
 	if( !m_CallableAdminList && GetTime( ) - m_LastAdminRefreshTime >= 3600 )
@@ -509,65 +423,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		delete m_CallableAdminList;
 		m_CallableAdminList = NULL;
 		m_LastAdminRefreshTime = GetTime( );
-	}
-
-	// fast-refresh the ban list every 3 minutes
-
-	if( !m_CallableBanListFast && GetTime( ) - m_LastBanRefreshTime >= 180 )
-		m_CallableBanListFast = m_GHost->m_DB->ThreadedBanListFast( m_Server, m_BanListFastTime );
-	
-	if( m_CallableBanListFast && m_CallableBanListFast->GetReady( ) )
-	{
-		vector<CDBBan *> ChangedBans = m_CallableBanListFast->GetResult( );
-		
-		for( vector<CDBBan *>::iterator i = ChangedBans.begin( ); i != ChangedBans.end( ); ++i )
-		{
-			if( (*i)->GetDelete( ) )
-				DeleteBanFast( (*i)->GetId( ) );
-			else
-			{
-				AddBan( (*i)->GetId( ), (*i)->GetName( ), (*i)->GetIP( ), (*i)->GetDate( ), (*i)->GetGameName( ), (*i)->GetAdmin( ), (*i)->GetReason( ), (*i)->GetExpireDate( ), (*i)->GetContext( ) );
-				
-				if( m_BanListFastTime < (*i)->GetCacheTime( ) )
-					m_BanListFastTime = (*i)->GetCacheTime( );
-			}
-			
-			delete *i;
-		}
-		
-		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (new size: " + UTIL_ToString( m_Bans.size( ) ) + "; changed: " + UTIL_ToString( ChangedBans.size( ) ) + ")" );
-		
-		m_GHost->m_DB->RecoverCallable( m_CallableBanListFast );
-		delete m_CallableBanListFast;
-		m_CallableBanListFast = NULL;
-		m_LastBanRefreshTime = GetTime( );
-	}
-	
-	// hard-refresh the ban list every 3 hours
-
-	if( !m_CallableBanList && GetTime( ) - m_LastBanHardRefreshTime >= 3 * 3600 )
-		m_CallableBanList = m_GHost->m_DB->ThreadedBanList( m_Server );
-
-	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
-	{
-		boost::mutex::scoped_lock lock( m_BansMutex );
-		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed ban list (" + UTIL_ToString( m_Bans.size( ) ) + " -> " + UTIL_ToString( m_CallableBanList->GetResult( ).size( ) ) + " bans)" );
-
-		
-		while( !m_Bans.empty( ) )
-		{
-			CDBBan *LastBan = m_Bans.back( );
-			m_Bans.pop_back( );
-			delete LastBan;
-		}
-
-		m_Bans = m_CallableBanList->GetResult( );
-		lock.unlock( );
-		
-		m_GHost->m_DB->RecoverCallable( m_CallableBanList );
-		delete m_CallableBanList;
-		m_CallableBanList = NULL;
-		m_LastBanHardRefreshTime = GetTime( );
 	}
 
 	// we return at the end of each if statement so we don't have to deal with errors related to the order of the if statements
@@ -1560,20 +1415,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		}
 
 		//
-		// !CHECKBAN
-		//
-
-		else if( Command == "checkban" && !Payload.empty( ) )
-		{
-			CDBBan *Ban = IsBannedName( Payload, "" );
-
-			if( Ban )
-				QueueChatCommand( m_GHost->m_Language->UserWasBannedOnByBecause( m_Server, Payload, Ban->GetDate( ), Ban->GetAdmin( ), Ban->GetReason( ) ), User, Whisper );
-			else
-				QueueChatCommand( m_GHost->m_Language->UserIsNotBanned( m_Server, Payload ), User, Whisper );
-		}
-
-		//
 		// !COUNTADMINS
 		//
 
@@ -1584,13 +1425,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			else
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
 		}
-
-		//
-		// !COUNTBANS
-		//
-
-		else if( Command == "countbans" )
-			m_PairedBanCounts.push_back( PairedBanCount( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanCount( m_Server ) ) );
 
 		//
 		// !DBSTATUS
@@ -1615,14 +1449,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			else
 				QueueChatCommand( m_GHost->m_Language->YouDontHaveAccessToThatCommand( ), User, Whisper );
 		}
-
-		//
-		// !DELBAN
-		// !UNBAN
-		//
-
-		else if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
-			m_PairedBanRemoves.push_back( PairedBanRemove( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanRemove( Payload, "" ) ) );
 
 		//
 		// !DISABLE
@@ -2557,92 +2383,10 @@ bool CBNET :: IsRootAdmin( string name )
 	return false;
 }
 
-CDBBan *CBNET :: IsBannedName( string name, string context )
-{
-	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	transform( context.begin( ), context.end( ), context.begin( ), (int(*)(int))tolower );
-
-	// todotodo: optimize this - maybe use a map?
-
-	boost::mutex::scoped_lock bansLock( m_BansMutex );
-	
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
-	{
-		if( (*i)->GetName( ) == name && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
-			return new CDBBan( *i );
-	}
-	
-	bansLock.unlock( );
-
-	return NULL;
-}
-
-CDBBan *CBNET :: IsBannedIP( string ip, string context )
-{
-	transform( context.begin( ), context.end( ), context.begin( ), (int(*)(int))tolower );
-	// todotodo: optimize this - maybe use a map?
-
-	boost::mutex::scoped_lock bansLock( m_BansMutex );
-	
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); ++i )
-	{
-		if( (*i)->GetIP( ) == ip && ( (*i)->GetContext( ) == "" || (*i)->GetContext( ) == "ttr.cloud" || (*i)->GetContext( ) == context ) )
-			return new CDBBan( *i );
-	}
-	
-	bansLock.unlock( );
-
-	return NULL;
-}
-
 void CBNET :: AddAdmin( string name )
 {
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	m_Admins.push_back( name );
-}
-
-void CBNET :: AddBan( uint32_t id, string name, string ip, string gamename, string admin, string reason )
-{
-	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	
-	// delete ban in case it already exists
-	DeleteBanFast( id );
-	
-	// add the new ban
-	boost::mutex::scoped_lock lock( m_BansMutex );
-	m_Bans.push_back( new CDBBan( id, m_Server, name, ip, "N/A", gamename, admin, reason, "", "ttr.cloud", 0 ) );
-	lock.unlock( );
-}
-
-void CBNET :: AddBan( uint32_t id, string name, string ip, string date, string gamename, string admin, string reason, string expiredate, string context )
-{
-	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	
-	// delete ban in case it already exists
-	DeleteBanFast( id );
-	
-	// add the new ban
-	boost::mutex::scoped_lock lock( m_BansMutex );
-	m_Bans.push_back( new CDBBan( id, m_Server, name, ip, date, gamename, admin, reason, expiredate, context, 0 ) );
-	lock.unlock( );
-}
-
-void CBNET :: DeleteBanFast( uint32_t id )
-{
-	boost::mutex::scoped_lock lock( m_BansMutex );
-	
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); )
-	{
-		if( (*i)->GetId( ) == id )
-		{
-			delete (*i);
-			i = m_Bans.erase( i );
-		}
-		else
-			i++;
-	}
-	
-	lock.unlock( );
 }
 
 void CBNET :: RemoveAdmin( string name )
@@ -2656,27 +2400,6 @@ void CBNET :: RemoveAdmin( string name )
 		else
                         ++i;
 	}
-}
-
-void CBNET :: RemoveBan( string name, string context )
-{
-	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
-	transform( context.begin( ), context.end( ), context.begin( ), (int(*)(int))tolower );
-
-	boost::mutex::scoped_lock lock( m_BansMutex );
-	
-	for( vector<CDBBan *> :: iterator i = m_Bans.begin( ); i != m_Bans.end( ); )
-	{
-		if( (*i)->GetName( ) == name && ( context == "ttr.cloud" || context == "" || context == (*i)->GetContext( ) ) )
-		{
-			delete (*i);
-			i = m_Bans.erase( i );
-		}
-		else
-                        ++i;
-	}
-	
-	lock.unlock( );
 }
 
 void CBNET :: HoldFriends( CBaseGame *game )
