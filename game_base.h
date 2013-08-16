@@ -70,7 +70,6 @@ protected:
 	CTCPServer *m_Socket;							// listening socket
 	CGameProtocol *m_Protocol;						// game protocol
 	vector<CPotentialPlayer *> m_Potentials;		// vector of potential players (connections that haven't sent a W3GS_REQJOIN packet yet)
-	map<uint32_t, CPotentialPlayer*> m_BannedPlayers;
 	vector<CCallableScoreCheck *> m_ScoreChecks;
 	vector<CCallableLeagueCheck *> m_LeagueChecks;
 	vector<CCallableConnectCheck *> m_ConnectChecks;	// session validation for entconnect system
@@ -197,6 +196,7 @@ public:
 	virtual unsigned char GetGProxyEmptyActions( )	{ return m_GProxyEmptyActions; }
 	virtual string GetGameName( )					{ return m_GameName; }
 	virtual string GetMapName( );
+	virtual CMap *GetMap( )							{ return m_Map; }
 	virtual string GetLastGameName( )				{ return m_LastGameName; }
 	virtual string GetVirtualHostName( )			{ return m_VirtualHostName; }
 	virtual unsigned char GetVirtualHostPID( )		{ return m_VirtualHostPID; }
@@ -271,7 +271,6 @@ public:
 	virtual void SendAllActions( );
 	virtual void SendWelcomeMessage( CGamePlayer *player );
 	virtual void SendEndMessage( );
-	virtual void SendBannedInfo( CPotentialPlayer *player, CDBBan *Ban, string type );
 
 	// events
 	// note: these are only called while iterating through the m_Potentials or m_Players vectors
@@ -349,6 +348,7 @@ public:
 	virtual void CreateFakePlayer( unsigned char SID, string name = "" );
 	virtual void DeleteFakePlayer( );
 	virtual void ShowTeamScores( CGamePlayer *player = NULL );
+	virtual string GetJoinedRealm( uint32_t hostcounter );
 };
 
 struct QueuedSpoofAdd {

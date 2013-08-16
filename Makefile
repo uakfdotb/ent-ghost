@@ -2,7 +2,7 @@ SHELL = /bin/sh
 SYSTEM = $(shell uname)
 C++ = g++
 CC = gcc
-DFLAGS = -DGHOST_MYSQL -DBOOST_FILESYSTEM_VERSION=2
+DFLAGS = -DBOOST_FILESYSTEM_VERSION=2
 OFLAGS = -O3 -g
 LFLAGS = -L. -L../bncsutil/src/bncsutil/ -L../StormLib/stormlib/ -lbncsutil -lpthread -ldl -lz -lStorm -lmysqlclient_r -lboost_date_time -lboost_thread -lboost_system -lboost_filesystem -lgmp
 CFLAGS =
@@ -29,8 +29,8 @@ ifeq ($(SYSTEM),Darwin)
 CFLAGS += -I../mysql/include/
 endif
 
-OBJS = amhprotocol.o bncsutilinterface.o bnet.o bnetprotocol.o bnlsclient.o bnlsprotocol.o commandpacket.o config.o crc32.o csvparser.o elo.o game.o game_admin.o game_base.o gameplayer.o gameprotocol.o gameslot.o gcbiprotocol.o ghost.o ghostdb.o ghostdbmysql.o ghostdbsqlite.o gpsprotocol.o language.o map.o packed.o replay.o savegame.o sha1.o socket.o stageplayer.o stats.o statsdota.o statsw3mmd.o streamplayer.o util.o
-COBJS = sqlite3.o
+OBJS = amhprotocol.o bncsutilinterface.o bnet.o bnetprotocol.o bnlsclient.o bnlsprotocol.o commandpacket.o config.o crc32.o csvparser.o elo.o game.o game_base.o gameplayer.o gameprotocol.o gameslot.o gcbiprotocol.o ghost.o ghostdb.o ghostdbmysql.o gpsprotocol.o language.o map.o packed.o replay.o savegame.o sha1.o socket.o stageplayer.o stats.o statsdota.o statsw3mmd.o streamplayer.o util.o
+COBJS = 
 PROGS = ./ghost++
 
 all: $(OBJS) $(COBJS) $(PROGS)
@@ -63,16 +63,14 @@ crc32.o: ghost.h includes.h crc32.h
 csvparser.o: csvparser.h
 elo.o: elo.h
 game.o: ghost.h includes.h util.h config.h language.h socket.h ghostdb.h bnet.h map.h packed.h savegame.h gameplayer.h gameprotocol.h game_base.h game.h stats.h statsdota.h statsw3mmd.h
-game_admin.o: ghost.h includes.h util.h config.h language.h socket.h ghostdb.h bnet.h map.h packed.h savegame.h replay.h gameplayer.h gameprotocol.h game_base.h game_admin.h
 game_base.o: ghost.h includes.h util.h config.h language.h socket.h ghostdb.h bnet.h map.h packed.h savegame.h replay.h gameplayer.h gameprotocol.h game_base.h next_combination.h streamplayer.h stageplayer.h elo.h
-gameplayer.o: ghost.h includes.h util.h language.h socket.h commandpacket.h bnet.h map.h gameplayer.h gameprotocol.h gpsprotocol.h game_base.h gcbiprotocol.h amhprotocol.h stageplayer.h
+gameplayer.o: ghost.h includes.h util.h language.h socket.h commandpacket.h bnet.h map.h gameplayer.h gameprotocol.h gpsprotocol.h game_base.h gcbiprotocol.h amhprotocol.h stageplayer.h ghostdb.h
 gameprotocol.o: ghost.h includes.h util.h crc32.h gameplayer.h gameprotocol.h game_base.h
 gameslot.o: ghost.h includes.h gameslot.h
 gcbiprotocol.o: gcbiprotocol.h ghost.h util.h
-ghost.o: ghost.h includes.h util.h crc32.h sha1.h csvparser.h config.h language.h socket.h ghostdb.h ghostdbsqlite.h ghostdbmysql.h bnet.h map.h packed.h savegame.h gameplayer.h gameprotocol.h gpsprotocol.h game_base.h game.h game_admin.h gcbiprotocol.h streamplayer.h stageplayer.h
+ghost.o: ghost.h includes.h util.h crc32.h sha1.h csvparser.h config.h language.h socket.h ghostdb.h ghostdbmysql.h bnet.h map.h packed.h savegame.h gameplayer.h gameprotocol.h gpsprotocol.h game_base.h game.h gcbiprotocol.h streamplayer.h stageplayer.h
 ghostdb.o: ghost.h includes.h util.h config.h ghostdb.h
 ghostdbmysql.o: ghost.h includes.h util.h config.h ghostdb.h ghostdbmysql.h
-ghostdbsqlite.o: ghost.h includes.h util.h config.h ghostdb.h ghostdbsqlite.h
 gpsprotocol.o: ghost.h util.h gpsprotocol.h
 language.o: ghost.h includes.h config.h language.h
 map.o: ghost.h includes.h util.h crc32.h sha1.h config.h map.h

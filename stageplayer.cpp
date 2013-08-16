@@ -376,59 +376,6 @@ void CStagePlayer :: ProcessPackets( )
 									m_Realm = (*i)->GetServer( );
 							}
 						}
-						
-						for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); i++ )
-						{
-							if( (*i)->GetServer( ) == m_Realm )
-							{
-								CDBBan *Ban = (*i)->IsBannedName( m_Name, "ttr.cloud" );
-
-								if( Ban )
-								{
-									CONSOLE_Print( "[STAGE " + GetExternalIPString( ) + "] Error: [" + m_Name + "] is trying to join the game but is banned by name" );
-
-									// let banned players "join" the game with an arbitrary PID then immediately close the connection
-									// this causes them to be kicked back to the chat channel on battle.net
-
-									vector<CGameSlot> Slots = m_GHost->m_Map->GetSlots( );
-									Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, m_Socket->GetPort( ), GetExternalIP( ), Slots, 0, m_GHost->m_Map->GetMapLayoutStyle( ), (unsigned char) m_GHost->m_Map->GetMapNumPlayers( ) ) );
-									m_DeleteMe = true;
-									delete Ban;
-									break;
-								}
-							}
-
-							CDBBan *Ban = (*i)->IsBannedIP( GetExternalIPString( ), "ttr.cloud" );
-
-							if( Ban )
-							{
-								CONSOLE_Print( "[STAGE " + GetExternalIPString( ) + "] Error: [" + m_Name + "] is trying to join the game but is banned by IP" );
-
-								// let banned players "join" the game with an arbitrary PID then immediately close the connection
-								// this causes them to be kicked back to the chat channel on battle.net
-
-								vector<CGameSlot> Slots = m_GHost->m_Map->GetSlots( );
-								Send( m_Protocol->SEND_W3GS_SLOTINFOJOIN( 1, m_Socket->GetPort( ), GetExternalIP( ), Slots, 0, m_GHost->m_Map->GetMapLayoutStyle( ), (unsigned char) m_GHost->m_Map->GetMapNumPlayers( ) ) );
-								m_DeleteMe = true;
-								delete Ban;
-								break;
-							}
-						}
-						
-						CDBBan *Ban = NULL;
-						
-						if( m_Realm == "entconnect" )
-							Ban = m_GHost->IsBannedName( IncomingPlayer->GetName( ), "ttr.cloud", "entconnect" );
-		
-						else if( m_Realm == "" )
-							Ban = m_GHost->IsBannedName( IncomingPlayer->GetName( ), "ttr.cloud", "" );
-						
-						if( Ban )
-						{
-							CONSOLE_Print( "[STAGE " + GetExternalIPString( ) + "] Error: [" + m_Name + "] is trying to join the game but is banned on entconnect/LAN/Garena" );
-							m_DeleteMe = true;
-							delete Ban;
-						}
 					
 						if( !m_DeleteMe )
 							CONSOLE_Print( "[STAGE " + GetExternalIPString( ) + "] Attempting to authenticate as [" + m_Name + "@" + m_Realm + "]" );
