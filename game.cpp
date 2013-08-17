@@ -874,8 +874,8 @@ bool CGame :: Update( void *fd, void *send_fd )
 			}
 		}
 		
-		string ForfeitTeamString = "Sentinel";
-		if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge";
+		string ForfeitTeamString = "Sentinel/West";
+		if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge/East";
 		
 		SendAllChat( "The " + ForfeitTeamString + " players have been removed from the game." );
 		SendAllChat( "Please wait five or so seconds before leaving so that stats can be properly saved." );
@@ -3646,7 +3646,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !FORFEIT
 	//
 	
-	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" || m_MapType == "lodab" || m_MapType == "lod" ) && ( Command == "ff" || Command == "forfeit" ) && !m_SoftGameOver )
+	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" || m_MapType == "lodab" || m_MapType == "lod" || m_MapType == "legionmega" ) && ( Command == "ff" || Command == "forfeit" ) && !m_SoftGameOver )
 	{
 		bool ChangedVote = true;
 		
@@ -3689,8 +3689,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// observers cannot forfeit!
 			if( m_ForfeitTeam == 0 || m_ForfeitTeam == 1 )
 			{
-				string ForfeitTeamString = "Sentinel";
-				if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge";
+				string ForfeitTeamString = "Sentinel/West";
+				if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge/East";
 			
 				if( AllVoted )
 				{
