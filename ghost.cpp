@@ -1475,6 +1475,9 @@ bool CGHost :: Update( long usecBlock )
 
 	// refresh spoof list
 
+	if( !m_CallableSpoofList && GetTime( ) - m_LastSpoofRefreshTime >= 1200 )
+		m_CallableSpoofList = m_DB->ThreadedSpoofList( );
+
 	if( m_CallableSpoofList && m_CallableSpoofList->GetReady( ) )
 	{
 		boost::mutex::scoped_lock lock( m_SpoofMutex );
