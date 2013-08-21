@@ -233,14 +233,14 @@ CCallableBanCount *CGHostDBMySQL :: ThreadedBanCount( string server )
 	return Callable;
 }
 
-CCallableBanCheck *CGHostDBMySQL :: ThreadedBanCheck( string server, string user, string ip, string hostname )
+CCallableBanCheck *CGHostDBMySQL :: ThreadedBanCheck( string server, string user, string ip, string hostname, string ownername )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableBanCheck *Callable = new CMySQLCallableBanCheck( server, user, ip, hostname, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port, this );
+	CCallableBanCheck *Callable = new CMySQLCallableBanCheck( server, user, ip, hostname, ownername, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port, this );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
@@ -830,13 +830,14 @@ uint32_t MySQLBanCount( void *conn, string *error, uint32_t botid, string server
 	return Count;
 }
 
-CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server, string user, string ip, string hostname )
+CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server, string user, string ip, string hostname, string ownername )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	string EscServer = MySQLEscapeString( conn, server );
 	string EscUser = MySQLEscapeString( conn, user );
 	string EscIP = MySQLEscapeString( conn, ip );
 	string EscHostName = MySQLEscapeString( conn, hostname );
+	string EscOwnerName = MySQLEscapeString( conn, ownername );
 	bool WhiteList = false;
 	
 	if( server == "entconnect" )
@@ -864,7 +865,7 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 	}
 	
 	CDBBan *Ban = NULL;
-	string Query = "SELECT id, name, ip, date, gamename, admin, reason, expiredate, context FROM bans WHERE context = 'ttr.cloud' AND ((server='" + EscServer + "' AND name='" + EscUser + "')";
+	string Query = "SELECT id, name, ip, date, gamename, admin, reason, expiredate, context FROM bans WHERE ( context = 'ttr.cloud' OR context = '" + EscOwnerName + "' ) AND ((server='" + EscServer + "' AND name='" + EscUser + "')";
 	
 	if( !ip.empty( ) && !WhiteList )
 	{
@@ -2327,7 +2328,7 @@ void CMySQLCallableBanCheck :: operator( )( )
 	Init( );
 
 	if( m_Error.empty( ) )
-		m_Result = MySQLBanCheck( m_Connection, &m_Error, m_SQLBotID, m_Server, m_User, m_IP, m_HostName );
+		m_Result = MySQLBanCheck( m_Connection, &m_Error, m_SQLBotID, m_Server, m_User, m_IP, m_HostName, m_OwnerName );
 
 	Close( );
 }

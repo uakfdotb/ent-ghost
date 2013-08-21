@@ -174,6 +174,7 @@ public:
 	virtual string GetLastGameName( )				{ return m_LastGameName; }
 	virtual string GetVirtualHostName( )			{ return m_VirtualHostName; }
 	virtual string GetOwnerName( )					{ return m_OwnerName; }
+	virtual string GetOwnerRealm( )					{ return m_OwnerRealm; }
 	virtual string GetCreatorName( )				{ return m_CreatorName; }
 	virtual string GetCreatorServer( )				{ return m_CreatorServer; }
 	virtual uint32_t GetGameTicks( )				{ return m_GameTicks; }
