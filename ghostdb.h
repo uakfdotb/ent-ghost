@@ -360,7 +360,7 @@ protected:
 	CDBBan *m_Result;
 
 public:
-	CCallableBanCheck( string nServer, string nUser, string nIP, string nHostName, string nOwnerName ) : CBaseCallable( ), m_Server( nServer ), m_User( nUser ), m_IP( nIP ), m_HostName( nHostName ), m_OwnerName( m_OwnerName ), m_Result( NULL ) { }
+	CCallableBanCheck( string nServer, string nUser, string nIP, string nHostName, string nOwnerName ) : CBaseCallable( ), m_Server( nServer ), m_User( nUser ), m_IP( nIP ), m_HostName( nHostName ), m_OwnerName( nOwnerName ), m_Result( NULL ) { }
 	virtual ~CCallableBanCheck( );
 
 	virtual string GetServer( )					{ return m_Server; }
