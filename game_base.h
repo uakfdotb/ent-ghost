@@ -201,6 +201,7 @@ public:
 	virtual string GetVirtualHostName( )			{ return m_VirtualHostName; }
 	virtual unsigned char GetVirtualHostPID( )		{ return m_VirtualHostPID; }
 	virtual string GetOwnerName( )					{ return m_OwnerName; }
+	virtual string GetOwnerRealm( )					{ return m_OwnerRealm; }
 	virtual string GetCreatorName( )				{ return m_CreatorName; }
 	virtual string GetCreatorServer( )				{ return m_CreatorServer; }
 	virtual uint32_t GetGameTicks( )				{ return m_GameTicks; }

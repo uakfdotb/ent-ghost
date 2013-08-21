@@ -113,7 +113,7 @@ public:
 	virtual bool AdminRemove( string server, string user );
 	virtual vector<string> AdminList( string server );
 	virtual uint32_t BanCount( string server );
-	virtual CDBBan *BanCheck( string server, string user, string ip, string hostname );
+	virtual CDBBan *BanCheck( string server, string user, string ip, string hostname, string ownername );
 	virtual uint32_t BanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context );
 	virtual bool BanRemove( string server, string user, string context );
 	virtual bool BanRemove( string user, string context );
@@ -156,7 +156,7 @@ public:
 	virtual CCallableAdminRemove *ThreadedAdminRemove( string server, string user );
 	virtual CCallableAdminList *ThreadedAdminList( string server );
 	virtual CCallableBanCount *ThreadedBanCount( string server );
-	virtual CCallableBanCheck *ThreadedBanCheck( string server, string user, string ip, string hostname );
+	virtual CCallableBanCheck *ThreadedBanCheck( string server, string user, string ip, string hostname, string ownername );
 	virtual CCallableBanAdd *ThreadedBanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t expiretime, string context );
 	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user, string context );
 	virtual CCallableBanRemove *ThreadedBanRemove( string user, string context );
@@ -356,16 +356,18 @@ protected:
 	string m_User;
 	string m_IP;
 	string m_HostName;
+	string m_OwnerName;
 	CDBBan *m_Result;
 
 public:
-	CCallableBanCheck( string nServer, string nUser, string nIP, string nHostName ) : CBaseCallable( ), m_Server( nServer ), m_User( nUser ), m_IP( nIP ), m_HostName( nHostName ), m_Result( NULL ) { }
+	CCallableBanCheck( string nServer, string nUser, string nIP, string nHostName, string nOwnerName ) : CBaseCallable( ), m_Server( nServer ), m_User( nUser ), m_IP( nIP ), m_HostName( nHostName ), m_OwnerName( m_OwnerName ), m_Result( NULL ) { }
 	virtual ~CCallableBanCheck( );
 
 	virtual string GetServer( )					{ return m_Server; }
 	virtual string GetUser( )					{ return m_User; }
 	virtual string GetIP( )						{ return m_IP; }
 	virtual string GetHostName( )				{ return m_HostName; }
+	virtual string GetOwnerName( )				{ return m_OwnerName; }
 	virtual CDBBan *GetResult( )				{ return m_Result; }
 	virtual void SetResult( CDBBan *nResult )	{ m_Result = nResult; }
 };
