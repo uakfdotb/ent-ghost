@@ -2105,8 +2105,8 @@ double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string categ
 	}
 	else if( category == "dota" )
 	{
-		Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 10";
-		Query2 = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 10";
+		Query = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 5";
+		Query2 = "SELECT score FROM dota_elo_scores WHERE name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 5";
 	}
 	else if( category == "lod" )
 	{
@@ -2115,8 +2115,8 @@ double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string categ
 	}
 	else if( category == "legionmega" )
 	{
-		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 10";
-		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 10";
+		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 5";
+		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 5";
 	}
 	else if( category == "cfone" )
 	{
