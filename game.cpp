@@ -2097,35 +2097,30 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( Command == "kick" && !Payload.empty( ) )
 			{
-				if( AdminCheck || RootAdminCheck || !m_GameLoaded )
+				CGamePlayer *LastMatch = NULL;
+				uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
+
+				if( Matches == 0 )
+					SendAllChat( m_GHost->m_Language->UnableToKickNoMatchesFound( Payload ) );
+				else if( Matches == 1 )
 				{
-					CGamePlayer *LastMatch = NULL;
-					uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
+					LastMatch->SetDeleteMe( true );
+					LastMatch->SetLeftReason( m_GHost->m_Language->WasKickedByPlayer( User ) );
+					m_GHost->DenyIP( LastMatch->GetExternalIPString( ), 60000, "was kicked by !kick" );
 
-					if( Matches == 0 )
-						SendAllChat( m_GHost->m_Language->UnableToKickNoMatchesFound( Payload ) );
-					else if( Matches == 1 )
-					{
-						LastMatch->SetDeleteMe( true );
-						LastMatch->SetLeftReason( m_GHost->m_Language->WasKickedByPlayer( User ) );
-						m_GHost->DenyIP( LastMatch->GetExternalIPString( ), 60000, "was kicked by !kick" );
-
-						if( !m_GameLoading && !m_GameLoaded )
-							LastMatch->SetLeftCode( PLAYERLEAVE_LOBBY );
-						else
-							LastMatch->SetLeftCode( PLAYERLEAVE_LOST );
-
-						if( !m_GameLoading && !m_GameLoaded )
-							OpenSlot( GetSIDFromPID( LastMatch->GetPID( ) ), false );
-						
-						if( AdminCheck || RootAdminCheck )
-							m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!kick", "kicked player [" + LastMatch->GetName( ) + "]", m_GameName ) );
-					}
+					if( !m_GameLoading && !m_GameLoaded )
+						LastMatch->SetLeftCode( PLAYERLEAVE_LOBBY );
 					else
-						SendAllChat( m_GHost->m_Language->UnableToKickFoundMoreThanOneMatch( Payload ) );
+						LastMatch->SetLeftCode( PLAYERLEAVE_LOST );
+
+					if( !m_GameLoading && !m_GameLoaded )
+						OpenSlot( GetSIDFromPID( LastMatch->GetPID( ) ), false );
+					
+					if( AdminCheck || RootAdminCheck )
+						m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedAdminCommand( player->GetName( ), "!kick", "kicked player [" + LastMatch->GetName( ) + "]", m_GameName ) );
 				}
 				else
-					SendAllChat( "Error: you cannot kick players in game. Please use the !votekick or !ban commands." );
+					SendAllChat( m_GHost->m_Language->UnableToKickFoundMoreThanOneMatch( Payload ) );
 			}
 
 			//
