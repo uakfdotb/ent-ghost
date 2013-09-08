@@ -580,7 +580,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			double SID = (*i)->GetResult( ); //convert to double so we don't need another parameter
 			double *Array = new double[2];
 			Array[0] = SID;
-			Array[1] = 1000.0;
+			Array[1] = -100000.0;
 
 			for( vector<CPotentialPlayer *> :: iterator j = m_Potentials.begin( ); j != m_Potentials.end( ); ++j )
 			{
