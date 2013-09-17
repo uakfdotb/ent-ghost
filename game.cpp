@@ -810,7 +810,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		if( m_GHost->m_Autoban && player->GetAutoban( ) && m_GHost->m_AutoHostMaximumGames != 0 && Team != 12 && !m_SoftGameOver )
 		{
 			// ban if game is loading or if it's dota and player has left >= 4v4 situation
-			if( m_GameLoading || ( m_AutobanFirstNumber + 1 < m_GHost->m_AutobanFirstLeavers && m_GameTicks < m_GHost->m_AutobanFirstLimit * 1000 ) ) {
+			if( m_GameLoading || ( m_AutobanFirstNumber < m_GHost->m_AutobanFirstLeavers && m_GameTicks < m_GHost->m_AutobanFirstLimit * 1000 ) ) {
 				m_AutoBans.push_back( player->GetName( ) );
 				m_AutobanFirstNumber++;
 			} else {
