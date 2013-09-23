@@ -621,11 +621,6 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostMap = new CMap( *m_Map );
 	m_SaveGame = new CSaveGame( );
 
-	// load the iptocountry data
-
-	if( IPToCountry )
-		LoadIPToCountryData( );
-
 	if( m_BNETs.empty( ) )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found" );
 
@@ -1206,9 +1201,6 @@ void CGHost :: EventBNETGameRefreshFailed( CBNET *bnet )
 			if( (*i)->GetServer( ) == m_CurrentGame->GetCreatorServer( ) )
 				(*i)->QueueChatCommand( m_Language->UnableToCreateGameTryAnotherName( bnet->GetServer( ), m_CurrentGame->GetGameName( ) ), m_CurrentGame->GetCreatorName( ), true );
 		}
-
-		if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->BNETGameHostingFailed( bnet->GetServer( ), m_CurrentGame->GetGameName( ) ) );
 
 		boost::mutex::scoped_lock sayLock( m_CurrentGame->m_SayGamesMutex );
 		m_CurrentGame->m_DoSayGames.push_back( m_Language->UnableToCreateGameTryAnotherName( bnet->GetServer( ), m_CurrentGame->GetGameName( ) ) );

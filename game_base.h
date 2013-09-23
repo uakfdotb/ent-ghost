@@ -171,10 +171,10 @@ public:
 	virtual unsigned char GetGProxyEmptyActions( )	{ return m_GProxyEmptyActions; }
 	virtual string GetGameName( )					{ return m_GameName; }
 	virtual string GetMapName( )					{ return m_MapName; }
+	virtual CMap* GetMap( )							{ return m_Map; }
 	virtual string GetLastGameName( )				{ return m_LastGameName; }
 	virtual string GetVirtualHostName( )			{ return m_VirtualHostName; }
 	virtual string GetOwnerName( )					{ return m_OwnerName; }
-	virtual string GetOwnerRealm( )					{ return m_OwnerRealm; }
 	virtual string GetCreatorName( )				{ return m_CreatorName; }
 	virtual string GetCreatorServer( )				{ return m_CreatorServer; }
 	virtual uint32_t GetGameTicks( )				{ return m_GameTicks; }

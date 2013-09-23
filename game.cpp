@@ -226,15 +226,6 @@ bool CGame :: Update( void *fd, void *send_fd )
 		{
 			if( i->second->GetResult( ) )
 			{
-				// don't add the ban, we'll sync with it and get proper information later anyway
-				/*
-                                for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
-				{
-					if( (*j)->GetServer( ) == i->second->GetServer( ) )
-						(*j)->AddBan( i->second->GetResult( ), i->second->GetUser( ), i->second->GetIP( ), i->second->GetGameName( ), i->second->GetAdmin( ), i->second->GetReason( ) );
-				}
-				*/
-
 				SendAllChat( m_GHost->m_Language->PlayerWasBannedByPlayer( i->second->GetServer( ), i->second->GetUser( ), i->first ) );
 			}
 
@@ -1169,7 +1160,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					else
 						SendAllChat( m_GHost->m_Language->UnableToCheckPlayerFoundMoreThanOneMatch( Payload ) );
 				}
-				else
+				else{}
 					/*SendAllChat( m_GHost->m_Language->CheckedPlayer( User, player->GetNumPings( ) > 0 ? UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "ms" : "N/A", m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( player->GetExternalIP( ), true ) ), AdminCheck || RootAdminCheck ? "Yes" : "No", IsOwner( User ) ? "Yes" : "No", player->GetSpoofed( ) ? "Yes" : "No", player->GetSpoofedRealm( ).empty( ) ? "Garena" : player->GetSpoofedRealm( ), player->GetReserved( ) ? "Yes" : "No" ) );*/
 			}
 
@@ -2288,56 +2279,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	//
 	// !CHECKME
 	//
-
-	if( Command == "checkme" )
-		/*SendChat( player, m_GHost->m_Language->CheckedPlayer( User, player->GetNumPings( ) > 0 ? UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "ms" : "N/A", m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( player->GetExternalIP( ), true ) ), AdminCheck || RootAdminCheck ? "Yes" : "No", IsOwner( User ) ? "Yes" : "No", player->GetSpoofed( ) ? "Yes" : "No", player->GetSpoofedRealm( ).empty( ) ? "Garena" : player->GetSpoofedRealm( ), player->GetReserved( ) ? "Yes" : "No" ) );*/
-
-	//
-	// !FUN
-	//
-
-	if( Command == "fun" )
-	{
-		bool Fun = player->GetFun( );
-		player->SetFun( !Fun );
-		
-		if( Fun )
-			SendChat( player, "You have unsubscribed from <fun>." );
-		else
-			SendChat( player, "You have subscribed from <fun>. Type !fun again to unsubscribe." );
-	}
-
-	//
-	// !SCORES
-	//
-
-	else if( Command == "scores" && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
-		ShowTeamScores( player );
-
-	//
-	// !NAMES
-	//
-
-	else if( Command == "names" && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
-	{
-		string Names = "Names:";
-		
-		for( int i = 0; i < m_Slots.size( ); ++i )
-		{
-			CGamePlayer *player = GetPlayerFromSID( i );
-			
-			if( player )
-			{
-				string SafeName = player->GetName( );
-				transform( SafeName.begin( ), SafeName.end( ), SafeName.begin( ), (int(*)(int))tolower );
-				UTIL_Replace( SafeName, "l", "L" );
-				Names += "  " + SafeName;
-			}
-		}
-		
-		SendChat( player, Names );
-	}
->>>>>>> d251934... Update ban system to do single checks instead of storing ban lists.
+if(false) {}
+	/*if( Command == "checkme" )
+		SendChat( player, m_GHost->m_Language->CheckedPlayer( User, player->GetNumPings( ) > 0 ? UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "ms" : "N/A", m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( player->GetExternalIP( ), true ) ), AdminCheck || RootAdminCheck ? "Yes" : "No", IsOwner( User ) ? "Yes" : "No", player->GetSpoofed( ) ? "Yes" : "No", player->GetSpoofedRealm( ).empty( ) ? "Garena" : player->GetSpoofedRealm( ), player->GetReserved( ) ? "Yes" : "No" ) );*/
 
 	//
 	// !STATSDOTA

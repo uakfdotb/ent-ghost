@@ -44,6 +44,7 @@ class CCallableAdminCount;
 class CCallableAdminAdd;
 class CCallableAdminRemove;
 class CCallableAdminList;
+class CCallableBanAdd;
 class CCallableGamePlayerSummaryCheck;
 class CCallableDotAPlayerSummaryCheck;
 class CCallableVampPlayerSummaryCheck;
@@ -52,6 +53,7 @@ class CDBBan;
 typedef pair<string,CCallableAdminCount *> PairedAdminCount;
 typedef pair<string,CCallableAdminAdd *> PairedAdminAdd;
 typedef pair<string,CCallableAdminRemove *> PairedAdminRemove;
+typedef pair<string,CCallableBanAdd *> PairedBanAdd;
 typedef pair<string,CCallableGamePlayerSummaryCheck *> PairedGPSCheck;
 typedef pair<string,CCallableDotAPlayerSummaryCheck *> PairedDPSCheck;
 typedef pair<string,CCallableVampPlayerSummaryCheck *> PairedVPSCheck;
@@ -74,6 +76,7 @@ private:
 	vector<PairedAdminCount> m_PairedAdminCounts;	// vector of paired threaded database admin counts in progress
 	vector<PairedAdminAdd> m_PairedAdminAdds;		// vector of paired threaded database admin adds in progress
 	vector<PairedAdminRemove> m_PairedAdminRemoves;	// vector of paired threaded database admin removes in progress
+	vector<PairedBanAdd> m_PairedBanAdds;                   // vector of paired threaded database ban adds in progress
 	vector<PairedGPSCheck> m_PairedGPSChecks;		// vector of paired threaded database game player summary checks in progress
 	vector<PairedDPSCheck> m_PairedDPSChecks;		// vector of paired threaded database DotA player summary checks in progress
 	vector<PairedVPSCheck> m_PairedVPSChecks;		// vector of paired threaded database vamp player summary checks in progress

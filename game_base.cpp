@@ -165,9 +165,6 @@ CBaseGame :: ~CBaseGame( )
 	for( vector<CPotentialPlayer *> :: iterator i = m_Potentials.begin( ); i != m_Potentials.end( ); ++i )
 		delete *i;
 
-	for( map<uint32_t, CPotentialPlayer *> :: iterator i = m_BannedPlayers.begin( ); i != m_BannedPlayers.end( ); ++i )
-		delete i->second;
-
 	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 		delete *i;
 
@@ -1301,12 +1298,6 @@ void CBaseGame :: UpdatePost( void *send_fd )
 	{
 		if( (*i)->GetSocket( ) )
 			(*i)->GetSocket( )->DoSend( (fd_set *)send_fd );
-	}
-	
-	for( map<uint32_t, CPotentialPlayer *> :: iterator i = m_BannedPlayers.begin( ); i != m_BannedPlayers.end( ); ++i )
-	{
-		if( i->second->GetSocket( ) )
-			i->second->GetSocket( )->DoSend( (fd_set *)send_fd );
 	}
 }
 

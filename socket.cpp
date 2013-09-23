@@ -154,6 +154,25 @@ void CSocket :: Reset( )
 	m_Error = 0;
 }
 
+string CSocket :: GetHostName( )
+{
+       if( m_CachedHostName.empty( ) )
+       {
+               char host[NI_MAXHOST], service[NI_MAXSERV];
+               int s = getnameinfo( ( struct sockaddr * ) &m_SIN, sizeof( m_SIN ), host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICSERV );
+               string str( host );
+
+               m_CachedHostName = str;
+
+               if( m_CachedHostName.empty( ) )
+                       m_CachedHostName = "Unknown";
+
+               return str;
+       }
+       else
+               return m_CachedHostName;
+}
+
 //
 // CTCPSocket
 //
