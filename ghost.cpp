@@ -650,6 +650,12 @@ CGHost :: CGHost( CConfig *CFG )
 
 		phrasein.close( );
 	}
+
+	CONSOLE_Print( "[GHOST] Loading GeoIP data" );
+	m_GeoIP = GeoIP_open( m_GeoIPFile.c_str( ), GEOIP_STANDARD | GEOIP_CHECK_CACHE );
+
+	if( m_GeoIP == NULL )
+		CONSOLE_Print( "[GHOST] GeoIP: error opening database" );
 	
 	//delete from gamelist if there's any residual entries
 	m_Callables.push_back( m_DB->ThreadedGameUpdate(0, "", "", "", "", 0, "", 0, 0, 0, false) );
@@ -1330,6 +1336,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_MOTDFile = CFG->GetString( "bot_motdfile", "motd.txt" );
 	m_GameLoadedFile = CFG->GetString( "bot_gameloadedfile", "gameloaded.txt" );
 	m_GameOverFile = CFG->GetString( "bot_gameoverfile", "gameover.txt" );
+	m_GeoIPFile = CFG->GetString( "bot_geoipfile", "geoip.dat" );
 	m_LocalAdminMessages = CFG->GetInt( "bot_localadminmessages", 1 ) == 0 ? false : true;
 	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
 	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
@@ -1701,4 +1708,20 @@ bool CGHost :: IsLocal( string ip )
 	}
 
 	return false;
+}
+
+string CGHost :: FromCheck( string ip )
+{
+	if( m_GeoIP != NULL )
+	{
+		const char *returnedCountry = GeoIP_country_code_by_addr( m_GeoIP, ip.c_str( ) );
+
+		if( returnedCountry != NULL )
+		{
+			string returnedCountryStr = returnedCountry;
+			return returnedCountryStr;
+		}
+	}
+
+	return "??";
 }

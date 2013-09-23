@@ -47,6 +47,7 @@
 #include <string>
 #include <vector>
 #include <boost/thread.hpp>
+#include <GeoIP.h>
 
 using namespace std;
 
