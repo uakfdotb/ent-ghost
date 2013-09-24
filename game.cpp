@@ -3468,7 +3468,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					}
 				}
 				
-				if( OnlyPlayer )
+				if( OnlyPlayer && !m_SoloTeam )
 					SendChat( player, "Unable to votekick player [" + LastMatch->GetName( ) + "]: cannot votekick when there is only one player on victim's team." );
 				else if( LastMatch == player )
 					SendChat( player, "You cannot votekick yourself!" );
