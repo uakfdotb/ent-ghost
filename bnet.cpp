@@ -312,6 +312,26 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			++i;
 	}
 
+	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); )
+	{
+		if( i->second->GetReady( ) )
+		{
+			if( i->second->GetResult( ) )
+			{
+				RemoveBan( i->second->GetUser( ), i->second->GetContext( ) );
+				QueueChatCommand( m_GHost->m_Language->UnbannedUser( i->second->GetUser( ) ), i->first, !i->first.empty( ) );
+			}
+			else
+				QueueChatCommand( m_GHost->m_Language->ErrorUnbanningUser( i->second->GetUser( ) ), i->first, !i->first.empty( ) );
+
+			m_GHost->m_DB->RecoverCallable( i->second );
+			delete i->second;
+			i = m_PairedBanRemoves.erase( i );
+		}
+		else
+			++i;
+	}
+
 	for( vector<PairedGPSCheck> :: iterator i = m_PairedGPSChecks.begin( ); i != m_PairedGPSChecks.end( ); )
 	{
 		if( i->second->GetReady( ) )
@@ -1446,6 +1466,14 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 		else if( Command == "dbstatus" )
 			QueueChatCommand( m_GHost->m_DB->GetStatus( ), User, Whisper );
+
+		//
+		// !DELBAN
+		// !UNBAN
+		//
+
+		else if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
+			m_PairedBanRemoves.push_back( PairedBanRemove( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanRemove( Payload, "" ) ) );
 
 		//
 		// !DELADMIN
