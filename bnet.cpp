@@ -318,7 +318,6 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		{
 			if( i->second->GetResult( ) )
 			{
-				RemoveBan( i->second->GetUser( ), i->second->GetContext( ) );
 				QueueChatCommand( m_GHost->m_Language->UnbannedUser( i->second->GetUser( ) ), i->first, !i->first.empty( ) );
 			}
 			else
