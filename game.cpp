@@ -195,6 +195,16 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		
 		m_League = true; 
 	}
+	else if( m_Map->GetMapType( ) == "nwuih" )
+	{
+		m_Stats = new CStatsW3MMD( this, "nwuih", "" );
+		m_MapType = "nwuih";
+		
+		// match making settings for autobalanced games
+		m_MatchMaking = true;
+		m_MinimumScore = 200;
+		m_MaximumScore = 99999;
+	}
 	
 	if( m_MapType == "islanddefense" || m_MapType == "cfone" )
 		m_SoloTeam = true;
@@ -791,6 +801,8 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else if( Category == "legionmega2" ) CategoryName = "high-ranked Legion TD";
 				else if( Category == "legionmega" || Category == "legionmega_ab" ) CategoryName = "Legion TD Mega";
 				else if( Category == "lihl" ) CategoryName = "LIHL";
+				else if( Category == "nwu" ) CategoryName = "NWU";
+				else if( Category == "nwuih" ) CategoryName = "in-house NWU";
 				
 				string Summary = "[" + StatsName + "] has played " + UTIL_ToString( W3MMDPlayerSummary->GetTotalGames( ) ) + " " + CategoryName + " games here (ELO: " + UTIL_ToString( W3MMDPlayerSummary->GetScore( ), 2 ) + "). W/L: " + UTIL_ToString( W3MMDPlayerSummary->GetTotalWins( ) ) + "/" + UTIL_ToString( W3MMDPlayerSummary->GetTotalLosses( ) ) + ".";
 
@@ -3172,6 +3184,28 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "nwu" ) ) );
 		else
 			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "nwu" ) ) );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
+	// !NWUIHSTATS
+	//
+
+	else if( ( Command == "nwuihstats" || Command == "nwuih" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
+	{
+		string StatsUser = User;
+
+		if( !Payload.empty( ) )
+			StatsUser = Payload;
+		
+		string StatsRealm = "";
+		GetStatsUser( &StatsUser, &StatsRealm );
+
+		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "nwuih" ) ) );
+		else
+			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "nwuih" ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
