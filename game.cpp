@@ -1133,7 +1133,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		}
 		
 		// if stats and not solo, and at least two leavers in first four minutes, then draw the game
-		if( !m_SoftGameOver && !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && !m_Stats->IsWinner( ) && Team != 12 && m_NumTeams == 2 && !m_SoloTeam && m_GameTicks < 1000 * 60 * 4 )
+		if( !m_SoftGameOver && !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && !m_Stats->IsWinner( ) && Team != 12 && m_NumTeams == 2 && !m_SoloTeam && ( m_GameTicks < 1000 * 90 || ( m_MapType != "legionmega" && m_MapType != "lihl" && m_MapType != "legionmega2" && m_GameTicks < 1000 * 60 * 4 ) )  )
 		{
 			// check how many leavers, by starting from start players and subtracting each non-leaver player
 			uint32_t m_NumLeavers = m_StartPlayers;
