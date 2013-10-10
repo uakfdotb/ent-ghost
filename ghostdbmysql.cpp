@@ -873,7 +873,7 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 		Query += " OR ip = '" + EscIP + "'";
 		
 		// also prefix partial
-		Query += " OR (LENGTH(ip) >= 3 AND SUBSTR(ip, 1, 1) = ':' AND LOCATE(SUBSTR(ip, 2), '" + EscIP + "') > 0)";
+		Query += " OR (LENGTH(ip) >= 3 AND SUBSTR(ip, 1, 1) = ':' AND LOCATE(SUBSTR(ip, 1), ':" + EscIP + "') > 0)";
 	}
 	
 	if( !hostname.empty( ) && !WhiteList )
