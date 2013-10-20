@@ -200,10 +200,7 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_Stats = new CStatsW3MMD( this, "nwuih", "" );
 		m_MapType = "nwuih";
 		
-		// match making settings for autobalanced games
-		m_MatchMaking = true;
-		m_MinimumScore = 200;
-		m_MaximumScore = 99999;
+		m_League = true;
 	}
 	
 	if( m_MapType == "islanddefense" || m_MapType == "cfone" )
