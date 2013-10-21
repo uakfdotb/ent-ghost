@@ -902,7 +902,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
         for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 	{
-		if( (*i)->GetServer( ) == player->GetSpoofedRealm( ) && (*i)->IsAdmin( User ) )
+		if( ( (*i)->GetServer( ) == player->GetSpoofedRealm( ) || ( (*i)->GetServer( ) == "Garena" && player->GetSpoofedRealm( ).empty( ) && player->GetSpoofed( ) ) ) && (*i)->IsAdmin( User ) )
 		{
 			AdminCheck = true;
 			break;
