@@ -203,7 +203,7 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_League = true;
 	}
 	
-	if( m_MapType == "islanddefense" || m_MapType == "cfone" )
+	if( m_MapType == "islanddefense" || m_MapType == "cfone" || m_MapType == "legionmegaone" )
 		m_SoloTeam = true;
 
 	// add fake players according to map
@@ -797,6 +797,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else if( Category == "castlefight2" ) CategoryName = "high-ranked CF";
 				else if( Category == "legionmega2" ) CategoryName = "high-ranked Legion TD";
 				else if( Category == "legionmega" || Category == "legionmega_ab" ) CategoryName = "Legion TD Mega";
+				else if( Category == "legionmegaone" ) CategoryName = "Legion TD Mega (1v1)";
 				else if( Category == "lihl" ) CategoryName = "LIHL";
 				else if( Category == "nwu" ) CategoryName = "NWU";
 				else if( Category == "nwuih" ) CategoryName = "in-house NWU";
@@ -983,6 +984,10 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega" ) ) );
 	}
+	else if( Player && m_MapType == "legionmegaone" )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmegaone" ) ) );
+	}
 	else if( Player && m_MapType == "civwars" )
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "civwars" ) ) );
@@ -1137,7 +1142,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "eihl" )
 			DrawTicks = 1000 * 60 * 2; //two minute, before game starts
 
-		if( !m_SoftGameOver && !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && !m_Stats->IsWinner( ) && Team != 12 && m_NumTeams == 2 && !m_SoloTeam && m_GameTicks < DrawTicks  )
+		if( !m_SoftGameOver && !m_MapType.empty( ) && m_Stats && m_GameOverTime == 0 && !m_Stats->IsWinner( ) && Team != 12 && m_NumTeams == 2 && !m_SoloTeam && m_GameTicks < DrawTicks && m_StartPlayers > 6  )
 		{
 			// check how many leavers, by starting from start players and subtracting each non-leaver player
 			uint32_t m_NumLeavers = m_StartPlayers;
@@ -3139,11 +3144,16 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		
 		string StatsRealm = "";
 		GetStatsUser( &StatsUser, &StatsRealm );
+		
+		string Category = "legionmega";
+		
+		if( m_MapType == "legionmegaone" )
+			Category = "legionmegaone";
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega" ) ) );
+			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, Category ) ) );
 		else
-			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega" ) ) );
+			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, Category ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
