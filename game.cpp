@@ -1157,7 +1157,8 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 			{
 				SendAllChat( "Two players have left in the first few minutes." );
 				SendAllChat( "This game has been marked as a draw. You may leave at any time." );
-				
+				m_GameOverTime = GetTime( );
+
 				// make sure leavers will get banned
 				m_ForceBanTicks = m_GameTicks;
 				m_SoftGameOver = true;
