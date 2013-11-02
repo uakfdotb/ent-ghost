@@ -148,6 +148,12 @@ bool CPotentialPlayer :: Update( void *fd )
 		
 		if( Ban )
 		{
+			string Name = "unknown";
+
+			if( m_IncomingJoinPlayer )
+				Name = m_IncomingJoinPlayer->GetName( );
+
+			CONSOLE_Print( "Player [" + Name + "|" + GetExternalIPString( ) + "] is attempting to join but is banned: [" + UTIL_ToString( Ban->GetId( ) ) + "]" );
 			m_Banned = true;
 			SendBannedInfo( Ban, "banned" );
 		}
