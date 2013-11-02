@@ -3263,7 +3263,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !EAT
 	//
 
-	else if( Command == "eat" )
+	else if( Command == "eat" && !player->GetMuted( ) )
 	{
 		uint32_t numCookies = player->GetCookies();
 
@@ -3344,7 +3344,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !STARTGUESS
 	//
 
-	else if( (Command == "startguess" || Command == "sg" )&& !Payload.empty() )
+	else if( (Command == "startguess" || Command == "sg" ) && !Payload.empty() && !player->GetMuted( ) )
 	{
 		uint32_t PlayerGuess = UTIL_ToUInt32(Payload);
 		uint32_t Guess = GetGuess();
