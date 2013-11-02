@@ -3690,69 +3690,74 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !FORFEIT
 	//
 	
-	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" || m_MapType == "lodab" || m_MapType == "lod" || m_MapType == "legionmega" || m_MapType == "nwu" ) && ( Command == "ff" || Command == "forfeit" ) && !m_SoftGameOver && m_GameTicks > 60 * 1000 * 10 )
+	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" || m_MapType == "lodab" || m_MapType == "lod" || m_MapType == "legionmega" || m_MapType == "nwu" ) && ( Command == "ff" || Command == "forfeit" ) && !m_SoftGameOver )
 	{
-		bool ChangedVote = true;
-		
-		if( !player->GetForfeitVote( ) )
-			player->SetForfeitVote( true );
-		else
-			ChangedVote = false;
-		
-		char playerSID = GetSIDFromPID( player->GetPID( ) );
-		
-		if( playerSID != 255 )
+		if( !( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" ) || m_GameTicks > 60 * 1000 * 10 )
 		{
-			char playerTeam = m_Slots[playerSID].GetTeam( );
+			bool ChangedVote = true;
 			
-			// whether or not all players on the team of the player who typed the command forfeited
-			bool AllVoted = true;
-			int numVoted = 0;
-			int numTotal = 0;
-
-			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
+			if( !player->GetForfeitVote( ) )
+				player->SetForfeitVote( true );
+			else
+				ChangedVote = false;
+			
+			char playerSID = GetSIDFromPID( player->GetPID( ) );
+			
+			if( playerSID != 255 )
 			{
-				if( *i && !(*i)->GetLeftMessageSent( ) )
+				char playerTeam = m_Slots[playerSID].GetTeam( );
+				
+				// whether or not all players on the team of the player who typed the command forfeited
+				bool AllVoted = true;
+				int numVoted = 0;
+				int numTotal = 0;
+				
+				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
 				{
-					char sid = GetSIDFromPID( (*i)->GetPID( ) );
-					
-					if( sid != 255 && m_Slots[sid].GetTeam( ) == playerTeam )
+					if( *i && !(*i)->GetLeftMessageSent( ) )
 					{
-						numTotal++;
+						char sid = GetSIDFromPID( (*i)->GetPID( ) );
 						
-						if( !(*i)->GetForfeitVote( ) )
-							AllVoted = false;
-						else
-							numVoted++;
+						if( sid != 255 && m_Slots[sid].GetTeam( ) == playerTeam )
+						{
+							numTotal++;
+							
+							if( !(*i)->GetForfeitVote( ) )
+								AllVoted = false;
+							else
+								numVoted++;
+						}
+					}
+				}
+			
+				m_ForfeitTeam = playerTeam;
+				
+				// observers cannot forfeit!
+				if( m_ForfeitTeam == 0 || m_ForfeitTeam == 1 )
+				{
+					string ForfeitTeamString = "Sentinel/West";
+					if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge/East";
+					
+					if( AllVoted )
+					{
+						m_Stats->SetWinner( ( playerTeam + 1 ) % 2 );
+						m_ForfeitTime = GetTime( );
+						m_SoftGameOver = true;
+						
+						SendAllChat( "The " + ForfeitTeamString + " has forfeited" );
+						SendAllChat( "Wait ten seconds before leaving or stats will not be properly recorded!" );
+					}
+					
+					else if( ChangedVote )
+					{
+						SendAllChat( "[" + player->GetName( ) + "] has voted to forfeit." );
+						SendAllChat( UTIL_ToString( numVoted ) + "/" + UTIL_ToString( numTotal ) + " players on the " + ForfeitTeamString + " have voted to forfeit." );
 					}
 				}
 			}
-			
-			m_ForfeitTeam = playerTeam;
-			
-			// observers cannot forfeit!
-			if( m_ForfeitTeam == 0 || m_ForfeitTeam == 1 )
-			{
-				string ForfeitTeamString = "Sentinel/West";
-				if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge/East";
-			
-				if( AllVoted )
-				{
-					m_Stats->SetWinner( ( playerTeam + 1 ) % 2 );
-					m_ForfeitTime = GetTime( );
-					m_SoftGameOver = true;
-				
-					SendAllChat( "The " + ForfeitTeamString + " has forfeited" );
-					SendAllChat( "Wait ten seconds before leaving or stats will not be properly recorded!" );
-				}
-			
-				else if( ChangedVote )
-				{
-					SendAllChat( "[" + player->GetName( ) + "] has voted to forfeit." );
-					SendAllChat( UTIL_ToString( numVoted ) + "/" + UTIL_ToString( numTotal ) + " players on the " + ForfeitTeamString + " have voted to forfeit." );
-				}
-			}
 		}
+		else
+			SendChat( player, "Error: please wait until after ten minutes before using the forfeit command." );
 	}
 
 	return HideCommand;
