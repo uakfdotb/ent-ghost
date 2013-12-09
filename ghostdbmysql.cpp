@@ -1190,14 +1190,7 @@ uint32_t MySQLGameUpdate( void *conn, string *error, uint32_t botid, uint32_t id
 	string EscOwnerName = MySQLEscapeString( conn, ownername );
 	string EscCreatorName = MySQLEscapeString( conn, creatorname );
 	string EscUsernames = MySQLEscapeString( conn, usernames );
-
-	Query = "UPDATE gamelist SET map = '" + EscMap + "', gamename = '" + EscGameName + "', ownername = '" + EscOwnerName + "', creatorname = '" + EscCreatorName + "', slotstaken = '" + UTIL_ToString( players ) + "', slotstotal = '" + UTIL_ToString( slotsTotal ) + "', usernames = '" + EscUsernames + "', totalplayers = '" + UTIL_ToString( totalPlayers ) + "', lobby = " + ( lobby ? "1" : "0" ) + ", age = NOW() WHERE botid='" + UTIL_ToString( botid ) + "' AND id = '" + UTIL_ToString( id ) + "'";
-
-	if( id == 0 )
-	{
-		Query = "INSERT INTO gamelist( botid, map, gamename, ownername, creatorname, slotstaken, slotstotal, usernames, totalplayers, lobby, age) VALUES ( '" + UTIL_ToString( botid ) + "', '" + EscMap + "', '" + EscGameName + "', '" + EscOwnerName + "', '" + EscCreatorName + "', '" + UTIL_ToString( players ) + "', '" + UTIL_ToString( slotsTotal ) + "', '" + EscUsernames + "', '" + UTIL_ToString( totalPlayers ) + "', '" + ( lobby ? "1" : "0" ) + "', NOW( ) )";
-	}
-
+	
 	if( !add )
 	{
 		if( gamename.empty( ) )
@@ -1208,6 +1201,46 @@ uint32_t MySQLGameUpdate( void *conn, string *error, uint32_t botid, uint32_t id
 			Query = "DELETE FROM gamelist WHERE gamename = '" + EscGameName + "'";
 		else
 			return 0;
+	}
+	else
+	{
+		Query = "INSERT INTO gamelist( botid, map, gamename, ownername, creatorname, slotstaken, slotstotal, usernames, totalplayers, lobby, age, eventtime) VALUES ( '" + UTIL_ToString( botid ) + "', '" + EscMap + "', '" + EscGameName + "', '" + EscOwnerName + "', '" + EscCreatorName + "', '" + UTIL_ToString( players ) + "', '" + UTIL_ToString( slotsTotal ) + "', '" + EscUsernames + "', '" + UTIL_ToString( totalPlayers ) + "', '" + ( lobby ? "1" : "0" ) + "', NOW( ), NOW( ) )";
+
+		if( id != 0 )
+		{
+			//confirm that the row exists
+			// also need to check if we're switching from lobby to ingame
+			string ExistQuery = "SELECT lobby FROM gamelist WHERE id = " + UTIL_ToString( id );
+
+			if( mysql_real_query( (MYSQL *)conn, ExistQuery.c_str( ), ExistQuery.size( ) ) == 0 )
+			{
+				MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+		
+				if( Result )
+				{
+					vector<string> Row = MySQLFetchRow( Result );
+			
+					if( !Row.empty( ) )
+					{
+						if( Row[0] == "1" && !lobby )
+						{
+							Query = "UPDATE gamelist SET map = '" + EscMap + "', gamename = '" + EscGameName + "', ownername = '" + EscOwnerName + "', creatorname = '" + EscCreatorName + "', slotstaken = '" + UTIL_ToString( players ) + "', slotstotal = '" + UTIL_ToString( slotsTotal ) + "', usernames = '" + EscUsernames + "', totalplayers = '" + UTIL_ToString( totalPlayers ) + "', lobby = " + ( lobby ? "1" : "0" ) + ", age = NOW(), eventtime = NOW() WHERE botid='" + UTIL_ToString( botid ) + "' AND id = '" + UTIL_ToString( id ) + "'";
+						}
+						else
+						{
+							Query = "UPDATE gamelist SET map = '" + EscMap + "', gamename = '" + EscGameName + "', ownername = '" + EscOwnerName + "', creatorname = '" + EscCreatorName + "', slotstaken = '" + UTIL_ToString( players ) + "', slotstotal = '" + UTIL_ToString( slotsTotal ) + "', usernames = '" + EscUsernames + "', totalplayers = '" + UTIL_ToString( totalPlayers ) + "', lobby = " + ( lobby ? "1" : "0" ) + ", age = NOW() WHERE botid='" + UTIL_ToString( botid ) + "' AND id = '" + UTIL_ToString( id ) + "'";
+						}
+					}
+			
+					mysql_free_result( Result );
+				}
+			}
+			else
+			{
+				*error = mysql_error( (MYSQL *)conn );
+				return 0;
+			}
+		}
 	}
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
