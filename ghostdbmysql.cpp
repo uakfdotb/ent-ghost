@@ -1211,6 +1211,7 @@ uint32_t MySQLGameUpdate( void *conn, string *error, uint32_t botid, uint32_t id
 			//confirm that the row exists
 			// also need to check if we're switching from lobby to ingame
 			string ExistQuery = "SELECT lobby FROM gamelist WHERE id = " + UTIL_ToString( id );
+			bool Exists = false;
 
 			if( mysql_real_query( (MYSQL *)conn, ExistQuery.c_str( ), ExistQuery.size( ) ) == 0 )
 			{
@@ -1222,6 +1223,8 @@ uint32_t MySQLGameUpdate( void *conn, string *error, uint32_t botid, uint32_t id
 			
 					if( !Row.empty( ) )
 					{
+						Exists = true;
+						
 						if( Row[0] == "1" && !lobby )
 						{
 							Query = "UPDATE gamelist SET map = '" + EscMap + "', gamename = '" + EscGameName + "', ownername = '" + EscOwnerName + "', creatorname = '" + EscCreatorName + "', slotstaken = '" + UTIL_ToString( players ) + "', slotstotal = '" + UTIL_ToString( slotsTotal ) + "', usernames = '" + EscUsernames + "', totalplayers = '" + UTIL_ToString( totalPlayers ) + "', lobby = " + ( lobby ? "1" : "0" ) + ", age = NOW(), eventtime = NOW() WHERE botid='" + UTIL_ToString( botid ) + "' AND id = '" + UTIL_ToString( id ) + "'";
@@ -1240,6 +1243,9 @@ uint32_t MySQLGameUpdate( void *conn, string *error, uint32_t botid, uint32_t id
 				*error = mysql_error( (MYSQL *)conn );
 				return 0;
 			}
+
+			if( !Exists )
+				id = 0;
 		}
 	}
 
