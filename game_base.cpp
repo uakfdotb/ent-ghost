@@ -1175,7 +1175,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 						// start the lag screen
 
-						Send( *i, m_Protocol->SEND_W3GS_START_LAG( m_Players, true ) );
+						Send( *i, m_Protocol->SEND_W3GS_START_LAG( m_Players, 0 ) );
 					}
 					else
 					{
@@ -1272,7 +1272,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				// start the lag screen
 
 				CONSOLE_Print( "[GAME: " + m_GameName + "] started lagging on [" + LaggingString + "]" );
-				SendAll( m_Protocol->SEND_W3GS_START_LAG( m_Players ) );
+				SendAll( m_Protocol->SEND_W3GS_START_LAG( m_Players, m_GameTicks ) );
 
 				// reset everyone's drop vote
 
@@ -1335,7 +1335,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 					// start the lag screen
 
-					Send( *i, m_Protocol->SEND_W3GS_START_LAG( m_Players ) );
+					Send( *i, m_Protocol->SEND_W3GS_START_LAG( m_Players, m_GameTicks ) );
 				}
 
 				// add actions to replay
@@ -2901,7 +2901,7 @@ void CBaseGame :: EventPlayerLoaded( CGamePlayer *player )
 		}
 
 		if( !FinishedLoading )
-			Send( player, m_Protocol->SEND_W3GS_START_LAG( m_Players, true ) );
+			Send( player, m_Protocol->SEND_W3GS_START_LAG( m_Players, 0 ) );
 
 		// remove the new player from previously loaded players' lag screens
 

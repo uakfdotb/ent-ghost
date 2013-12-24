@@ -554,7 +554,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_CHAT_FROM_HOST( unsigned char fromPID, BYTE
 	return packet;
 }
 
-BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, bool loadInGame )
+BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, uint32_t gameTicks )
 {
 	BYTEARRAY packet;
 
@@ -562,7 +562,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, b
 
 	for( vector<CGamePlayer *> :: iterator i = players.begin( ); i != players.end( ); i++ )
 	{
-		if( loadInGame )
+		if( gameTicks == 0 )
 		{
 			if( !(*i)->GetFinishedLoading( ) )
                                 ++NumLaggers;
@@ -584,7 +584,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, b
 
 		for( vector<CGamePlayer *> :: iterator i = players.begin( ); i != players.end( ); i++ )
 		{
-			if( loadInGame )
+			if( gameTicks == 0 )
 			{
 				if( !(*i)->GetFinishedLoading( ) )
 				{
@@ -597,7 +597,13 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, b
 				if( (*i)->GetLagging( ) )
 				{
 					packet.push_back( (*i)->GetPID( ) );
-					UTIL_AppendByteArray( packet, GetTicks( ) - (*i)->GetStartedLaggingTicks( ), false );
+					uint32_t TotalLaggingTicks = (*i)->GetTotalLaggingTicks( ) + GetTicks( ) - (*i)->GetStartedLaggingTicks( );
+					uint32_t LaggedForTicks = 0;
+
+					if( TotalLaggingTicks > gameTicks / 10 )
+						LaggedForTicks = TotalLaggingTicks - gameTicks / 10;
+					
+					UTIL_AppendByteArray( packet, LaggedForTicks, false );
 				}
 			}
 		}
