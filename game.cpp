@@ -2586,7 +2586,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !EAT
 	//
 
-	else if( Command == "eat" )
+	else if( Command == "eat" && !player->GetMuted( ) )
 	{
         uint32_t numCookies = player->GetCookies();
         
@@ -2598,6 +2598,22 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
             SendChat( player, "Error: you have no cookies in your cookie jar. Ask an admin to give you some with !cookie.");
         }
         HideCommand = true;
+	}
+
+	//
+	// !NOLAG
+	//
+
+	else if( Command == "nolag" && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	{
+		player->SetNoLag( !player->GetNoLag( ) );
+		
+		if( player->GetNoLag( ) )
+			SendAllChat( "No lag has been enabled for player [" + player->GetName( ) + "]." );
+		else
+			SendAllChat( "No lag has been disabled for player [" + player->GetName( ) + "]." );
+
+		player->SetStatsDotASentTime( GetTime( ) );
 	}
 
 	//
