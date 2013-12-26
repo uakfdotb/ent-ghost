@@ -1038,7 +1038,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 			{
-				if( m_SyncCounter - (*i)->GetSyncCounter( ) > m_SyncLimit )
+				if( m_SyncCounter - (*i)->GetSyncCounter( ) > m_SyncLimit && !(*i)->GetNoLag( ) )
 				{
 					// drop them immediately if they have already exceeded their total lagging time (5 minutes)
 					if( (*i)->GetTotalLaggingTicks( ) > 300000 )

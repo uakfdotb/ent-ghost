@@ -2672,6 +2672,22 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	}
 
 	//
+	// !NOLAG
+	//
+
+	else if( Command == "nolag" && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	{
+		player->SetNoLag( !player->GetNoLag( ) );
+		
+		if( player->GetNoLag( ) )
+			SendAllChat( "No lag has been enabled for player [" + player->GetName( ) + "]." );
+		else
+			SendAllChat( "No lag has been disabled for player [" + player->GetName( ) + "]." );
+
+		player->SetStatsDotASentTime( GetTime( ) );
+	}
+
+	//
 	// !GUESS
 	//
 
