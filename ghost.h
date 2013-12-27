@@ -63,6 +63,7 @@ class CGHost
 {
 public:
 	CUDPSocket *m_UDPSocket;				// a UDP socket for sending broadcasts and other junk (used with !sendlan)
+	CUDPSocket *m_GamelistSocket;				// a UDP socket for sending broadcasts and other junk (used with !sendlan)
 	CUDPSocket *m_LocalSocket;				// a UDP socket for sending broadcasts and other junk (used with !sendlan)
 	CTCPServer *m_ReconnectSocket;			// listening socket for GProxy++ reliable reconnects
 	vector<CTCPSocket *> m_ReconnectSockets;// vector of sockets attempting to reconnect (connected but not identified yet)
@@ -72,6 +73,7 @@ public:
 	CCRC32 *m_CRC;							// for calculating CRC's
 	CSHA1 *m_SHA;							// for calculating SHA1's
 	vector<CBNET *> m_BNETs;				// all our battle.net connections (there can be more than one)
+	string m_UserName;						// first username seen in battle.net connection, to identify this bot
 	CBaseGame *m_CurrentGame;				// this game is still in the lobby state
 	vector<CBaseGame *> m_Games;			// these games are in progress
 	boost::mutex m_GamesMutex;

@@ -384,6 +384,9 @@ CGHost :: CGHost( CConfig *CFG )
 	m_UDPSocket = new CUDPSocket( );
 	m_UDPSocket->SetBroadcastTarget( CFG->GetString( "udp_broadcasttarget", string( ) ) );
 	m_UDPSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
+	m_GamelistSocket = new CUDPSocket( );
+	m_GamelistSocket->SetBroadcastTarget( CFG->GetString( "udp_gamelisttarget", string( ) ) );
+	m_GamelistSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
 	m_LocalSocket = new CUDPSocket( );
 	m_LocalSocket->SetBroadcastTarget( "localhost" );
 	m_LocalSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
@@ -534,6 +537,10 @@ CGHost :: CGHost( CConfig *CFG )
 			LocaleID = UTIL_ToUInt32( Locale );
 
 		string UserName = CFG->GetString( Prefix + "username", string( ) );
+
+		if( m_UserName.empty( ) )
+			m_UserName = UserName;
+		
 		string UserPassword = CFG->GetString( Prefix + "password", string( ) );
 		string KeyOwnerName = CFG->GetString( Prefix + "keyownername", "GHost" );
 		string FirstChannel = CFG->GetString( Prefix + "firstchannel", "The Void" );
@@ -664,6 +671,7 @@ CGHost :: CGHost( CConfig *CFG )
 CGHost :: ~CGHost( )
 {
 	delete m_UDPSocket;
+	delete m_GamelistSocket;
 	delete m_LocalSocket;
 	delete m_ReconnectSocket;
 
