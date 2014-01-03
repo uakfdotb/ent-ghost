@@ -1121,7 +1121,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 			{
 				// if less than one minute has elapsed, draw the game
 				// this may be abused for mode voting and such, but hopefully not (and that's what bans are for)
-				if( m_GameTicks < 1000 * 60 )
+				if( m_GameTicks < 1000 * 2 || ( m_MapType != "cfone" && m_MapType != "legionmegaone" && m_GameTicks < 1000 * 60 ) )
 				{
 					SendAllChat( "Only one team is remaining, this game will end in sixty seconds and be recorded as a draw." );
 					m_GameOverTime = GetTime( );
