@@ -71,7 +71,7 @@ public:
 // CGame
 //
 
-CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ), m_CallableGameAdd( NULL ), m_ForfeitTime( 0 ), m_ForfeitTeam( 0 ), m_CallableGetTournament( NULL ), m_SetWinnerTicks( 0 ), m_SetWinnerTeam( 0 ), m_CallableGameUpdate( NULL ), m_GameUpdateID( 0 ), m_SoloTeam( false ), m_ForceBanTicks( 0 )
+CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : CBaseGame( nGHost, nMap, nSaveGame, nHostPort, nGameState, nGameName, nOwnerName, nCreatorName, nCreatorServer ), m_DBBanLast( NULL ), m_Stats( NULL ), m_CallableGameAdd( NULL ), m_ForfeitTime( 0 ), m_ForfeitTeam( 0 ), m_CallableGetTournament( NULL ), m_SetWinnerTicks( 0 ), m_SetWinnerTeam( 0 ), m_CallableGameUpdate( NULL ), m_GameUpdateID( 0 ), m_SoloTeam( false ), m_ForceBanTicks( 0 ), m_LastInvalidActionNotifyTime( 0 )
 {
     m_DBGame = new CDBGame( 0, string( ), m_Map->GetMapPath( ), string( ), string( ), string( ), 0 );
     m_MapType = "";
@@ -1213,7 +1213,7 @@ bool CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 
 				switch ( CurrentID )
 				{
-						case 0x00 : SendAllChat( "WARNING: Invalid action packet detected (id=0x00, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x00 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x00, username=" + player->GetName( ) + ")." ); Failed = true; break;
 						case 0x01 : n += 1; break;
 						case 0x02 : n += 1; break;
 						case 0x03 : n += 2; break;
@@ -1234,7 +1234,7 @@ bool CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 							++n;
 							
 							if( Failed )
-								SendAllChat( "WARNING: Invalid action packet detected (id=0x06, bad content, username=" + player->GetName( ) + ")." );
+								InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x06, bad content, username=" + player->GetName( ) + ")." );
 
 							// notify everyone that a player is saving the game
 							CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + player->GetName( ) + "] is saving the game" );
@@ -1242,23 +1242,23 @@ bool CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 						}
 						break;
 						case 0x07 : n += 5; break;
-						case 0x08 : SendAllChat( "WARNING: Invalid action packet detected (id=0x08, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x09 : SendAllChat( "WARNING: Invalid action packet detected (id=0x09, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x08 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x08, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x09 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x09, username=" + player->GetName( ) + ")." ); Failed = true; break;
 						case 0x10 : n += 15; break;
 						case 0x11 : n += 23; break;
 						case 0x12 : n += 31; break;
 						case 0x13 : n += 39; break;
 						case 0x14 : n += 44; break;
-						case 0x15 : SendAllChat( "WARNING: Invalid action packet detected (id=0x15, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x15 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x15, username=" + player->GetName( ) + ")." ); Failed = true; break;
 						case 0x16 :
 						case 0x17 :
 							if( n + 4 > PacketLength )
-								SendAllChat( "WARNING: Invalid action packet detected (id=0x17, bad packet length, username=" + player->GetName( ) + ")." );
+								InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x17, bad packet length, username=" + player->GetName( ) + ")." );
 							else
 							{
 								unsigned char i = (*ActionData)[n+2];
 								if( (*ActionData)[n+3] != 0x00 || i > 16 )
-									SendAllChat( "WARNING: Invalid action packet detected (id=0x17, bad subsection, username=" + player->GetName( ) + ")." );
+									InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x17, bad subsection, username=" + player->GetName( ) + ")." );
 								else
 									n += (4 + (i * 8));
 							}
@@ -1270,8 +1270,8 @@ bool CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 						case 0x1C : n += 10; break;
 						case 0x1D : n += 9; break;
 						case 0x1E : n += 6; break;
-						case 0x1F : SendAllChat( "WARNING: Invalid action packet detected (id=0x1F, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x20 : SendAllChat( "WARNING: Invalid action packet detected (id=0x20, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x1F : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x1F, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x20 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x20, username=" + player->GetName( ) + ")." ); Failed = true; break;
 						case 0x21 : n += 9; break;
 
 						case 0x50 : n += 6; break;
@@ -1292,20 +1292,20 @@ bool CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 							}
 						}
 						break;
-						case 0x52 : SendAllChat( "WARNING: Invalid action packet detected (id=0x52, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x53 : SendAllChat( "WARNING: Invalid action packet detected (id=0x53, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x54 : SendAllChat( "WARNING: Invalid action packet detected (id=0x54, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x55 : SendAllChat( "WARNING: Invalid action packet detected (id=0x55, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x56 : SendAllChat( "WARNING: Invalid action packet detected (id=0x56, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x57 : SendAllChat( "WARNING: Invalid action packet detected (id=0x57, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x58 : SendAllChat( "WARNING: Invalid action packet detected (id=0x58, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x59 : SendAllChat( "WARNING: Invalid action packet detected (id=0x59, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x5A : SendAllChat( "WARNING: Invalid action packet detected (id=0x5A, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x5B : SendAllChat( "WARNING: Invalid action packet detected (id=0x5B, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x5C : SendAllChat( "WARNING: Invalid action packet detected (id=0x5C, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x5D : SendAllChat( "WARNING: Invalid action packet detected (id=0x5D, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x5E : SendAllChat( "WARNING: Invalid action packet detected (id=0x5E, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x5F : SendAllChat( "WARNING: Invalid action packet detected (id=0x5F, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x52 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x52, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x53 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x53, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x54 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x54, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x55 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x55, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x56 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x56, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x57 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x57, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x58 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x58, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x59 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x59, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x5A : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x5A, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x5B : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x5B, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x5C : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x5C, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x5D : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x5D, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x5E : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x5E, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x5F : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x5F, username=" + player->GetName( ) + ")." ); Failed = true; break;
 						case 0x60 :
 						{
 							n += 9;
@@ -1324,7 +1324,7 @@ bool CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 							++n;
 
 							if( Failed )
-								SendAllChat( "WARNING: Invalid action packet detected (id=0x60, bad content, username=" + player->GetName( ) + ")." );
+								InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x60, bad content, username=" + player->GetName( ) + ")." );
 						}
 						break;
 						case 0x61 : n += 1; break;
@@ -1351,18 +1351,18 @@ bool CGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction *action )
 							n += 4;
 						}
 						break;
-						case 0x6C : SendAllChat( "WARNING: Invalid action packet detected (id=0x6C, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x6D : SendAllChat( "WARNING: Invalid action packet detected (id=0x6D, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x6E : SendAllChat( "WARNING: Invalid action packet detected (id=0x6E, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x6F : SendAllChat( "WARNING: Invalid action packet detected (id=0x6F, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x70 : SendAllChat( "WARNING: Invalid action packet detected (id=0x70, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x71 : SendAllChat( "WARNING: Invalid action packet detected (id=0x71, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x72 : SendAllChat( "WARNING: Invalid action packet detected (id=0x72, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x73 : SendAllChat( "WARNING: Invalid action packet detected (id=0x73, username=" + player->GetName( ) + ")." ); Failed = true; break;
-						case 0x74 : SendAllChat( "WARNING: Invalid action packet detected (id=0x74, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x6C : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x6C, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x6D : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x6D, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x6E : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x6E, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x6F : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x6F, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x70 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x70, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x71 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x71, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x72 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x72, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x73 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x73, username=" + player->GetName( ) + ")." ); Failed = true; break;
+						case 0x74 : InvalidActionNotify( "WARNING: Invalid action packet detected (id=0x74, username=" + player->GetName( ) + ")." ); Failed = true; break;
 						case 0x75 : n += 2; break;
 						default:
-							SendAllChat( "WARNING: Invalid action packet detected (id=" + UTIL_ToString( CurrentID ) + ", username=" + player->GetName( ) + ")." );
+							InvalidActionNotify( "WARNING: Invalid action packet detected (id=" + UTIL_ToString( CurrentID ) + ", username=" + player->GetName( ) + ")." );
 							Failed = true;
 				}
 
@@ -3923,5 +3923,14 @@ void CGame :: GetStatsUser( string *statsUser, string *statsRealm )
 			*statsUser = player->GetName( );
 			*statsRealm = player->GetJoinedRealm( );
 		}
+	}
+}
+
+void CGame :: InvalidActionNotify( string message )
+{
+	if( GetTime( ) - m_LastInvalidActionNotifyTime > 20 )
+	{
+		m_LastInvalidActionNotifyTime = GetTime( );
+		SendAllChat( message );
 	}
 }

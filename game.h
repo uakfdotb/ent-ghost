@@ -101,6 +101,7 @@ protected:
 	CCallableGameUpdate *m_CallableGameUpdate;	// threaded game update in progress
 	uint32_t m_GameUpdateID;
 	uint32_t m_LastGameUpdateTime;
+	uint32_t m_LastInvalidActionNotifyTime;
 	
 	bool IsAutoBanned( string name );
 
@@ -120,6 +121,7 @@ public:
     virtual uint32_t GetGuess() {return m_Guess;}
     virtual void SetGuess( uint32_t nGuess )     { m_Guess = nGuess; }
     virtual void GetStatsUser( string *statsUser, string *statsRealm );
+    virtual void InvalidActionNotify( string message );
 
 };
 
