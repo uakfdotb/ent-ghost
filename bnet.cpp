@@ -1260,6 +1260,13 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				m_GHost->m_CurrentGame->m_DoSayGames.push_back( "/kick " + Victim );
 				sayLock.unlock( );
 			}
+
+			for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
+			{
+				boost::mutex::scoped_lock sayLock( (*i)->m_SayGamesMutex );
+				(*i)->m_DoSayGames.push_back( "/kick " + Victim );
+				sayLock.unlock( );
+			}
 			
 			lock.unlock( );
 		}
