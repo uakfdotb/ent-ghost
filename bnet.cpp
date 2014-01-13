@@ -1635,14 +1635,14 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		// !HOSTSG
 		//
 
-                        else if( Command == "hostsg" && !Payload.empty( ) )
+		else if( Command == "hostsg" && !Payload.empty( ) )
 			m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, true, Payload, User, User, m_Server, Whisper );
 
         //
 		// !LOAD (load config file)
 		//
 
-		else if( Command == "load" )
+		else if( Command == "load" || Command == "loadobs" )
 		{
 			if( Payload.empty( ) )
 				QueueChatCommand( m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ), User, Whisper );
@@ -1700,9 +1700,13 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 						{
 							string File = LastMatch.filename( );
 							QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( m_GHost->m_MapCFGPath + File ), User, Whisper );
-							CConfig MapCFG;
-							MapCFG.Read( LastMatch.string( ) );
-							m_GHost->m_Map->Load( &MapCFG, m_GHost->m_MapCFGPath + File );
+							CConfig *MapCFG = new CConfig( );
+							MapCFG->Read( LastMatch.string( ) );
+
+							if( Command == "loadobs" )
+								MapCFG->Set( "map_observers", "4" );
+							
+							m_GHost->AsynchronousMapLoad( MapCFG, m_GHost->m_MapCFGPath + File );
 						}
 						else
 							QueueChatCommand( m_GHost->m_Language->FoundMapConfigs( FoundMapConfigs ), User, Whisper );
@@ -1753,7 +1757,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		// !MAP (load map file)
 		//
 
-		else if( Command == "map" )
+		else if( Command == "map" || Command == "mapobs" )
 		{
 			if( Payload.empty( ) )
 				QueueChatCommand( m_GHost->m_Language->CurrentlyLoadedMapCFGIs( m_GHost->m_Map->GetCFGFile( ) ), User, Whisper );
@@ -1814,10 +1818,14 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 							// hackhack: create a config file in memory with the required information to load the map
 
-							CConfig MapCFG;
-							MapCFG.Set( "map_path", "Maps\\Download\\" + File );
-							MapCFG.Set( "map_localpath", File );
-							m_GHost->m_Map->Load( &MapCFG, File );
+							CConfig *MapCFG = new CConfig( );
+							MapCFG->Set( "map_path", "Maps\\Download\\" + File );
+							MapCFG->Set( "map_localpath", File );
+
+							if( Command == "mapobs" )
+								MapCFG->Set( "map_observers", "4" );
+							
+							m_GHost->AsynchronousMapLoad( MapCFG, File );
 						}
 						else
 							QueueChatCommand( m_GHost->m_Language->FoundMaps( FoundMaps ), User, Whisper );
@@ -1836,7 +1844,23 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		//
 
 		else if( Command == "priv" && !Payload.empty( ) )
-			m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, false, Payload, User, User, m_Server, Whisper );
+		{
+			if( !m_GHost->m_MapGameCreateRequest )
+			{
+				GameCreateRequest *Request = new GameCreateRequest;
+				Request->gameState = GAME_PRIVATE;
+				Request->saveGame = false;
+				Request->gameName = Payload;
+				Request->ownerName = User;
+				Request->creatorName = User;
+				Request->creatorServer = m_Server;
+				Request->whisper = Whisper;
+				m_GHost->m_MapGameCreateRequest = Request;
+				m_GHost->m_MapGameCreateRequestTicks = GetTicks( );
+			}
+			else
+				QueueChatCommand( "Unable to create game: there is already a game being created.", User, Whisper );
+		}
 
 		//
 		// !PRIVBY (host private game by other player)
@@ -1855,7 +1879,22 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			{
 				Owner = Payload.substr( 0, GameNameStart );
 				GameName = Payload.substr( GameNameStart + 1 );
-				m_GHost->CreateGame( m_GHost->m_Map, GAME_PRIVATE, false, GameName, Owner, User, m_Server, Whisper );
+
+				if( !m_GHost->m_MapGameCreateRequest )
+				{
+					GameCreateRequest *Request = new GameCreateRequest;
+					Request->gameState = GAME_PRIVATE;
+					Request->saveGame = false;
+					Request->gameName = GameName;
+					Request->ownerName = Owner;
+					Request->creatorName = User;
+					Request->creatorServer = m_Server;
+					Request->whisper = Whisper;
+					m_GHost->m_MapGameCreateRequest = Request;
+					m_GHost->m_MapGameCreateRequestTicks = GetTicks( );
+				}
+				else
+					QueueChatCommand( "Unable to create game: there is already a game being created.", User, Whisper );
 			}
 		}
 
@@ -1864,7 +1903,23 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		//
 
 		else if( Command == "pub" && !Payload.empty( ) )
-			m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, Payload, User, User, m_Server, Whisper );
+		{
+			if( !m_GHost->m_MapGameCreateRequest )
+			{
+				GameCreateRequest *Request = new GameCreateRequest;
+				Request->gameState = GAME_PUBLIC;
+				Request->saveGame = false;
+				Request->gameName = Payload;
+				Request->ownerName = User;
+				Request->creatorName = User;
+				Request->creatorServer = m_Server;
+				Request->whisper = Whisper;
+				m_GHost->m_MapGameCreateRequest = Request;
+				m_GHost->m_MapGameCreateRequestTicks = GetTicks( );
+			}
+			else
+				QueueChatCommand( "Unable to create game: there is already a game being created.", User, Whisper );
+		}
 
 		//
 		// !PUBBY (host public game by other player)
@@ -1883,7 +1938,22 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			{
 				Owner = Payload.substr( 0, GameNameStart );
 				GameName = Payload.substr( GameNameStart + 1 );
-				m_GHost->CreateGame( m_GHost->m_Map, GAME_PUBLIC, false, GameName, Owner, User, m_Server, Whisper );
+
+				if( !m_GHost->m_MapGameCreateRequest )
+				{
+					GameCreateRequest *Request = new GameCreateRequest;
+					Request->gameState = GAME_PUBLIC;
+					Request->saveGame = false;
+					Request->gameName = GameName;
+					Request->ownerName = Owner;
+					Request->creatorName = User;
+					Request->creatorServer = m_Server;
+					Request->whisper = Whisper;
+					m_GHost->m_MapGameCreateRequest = Request;
+					m_GHost->m_MapGameCreateRequestTicks = GetTicks( );
+				}
+				else
+					QueueChatCommand( "Unable to create game: there is already a game being created.", User, Whisper );
 			}
 		}
 
@@ -1915,9 +1985,13 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 				if( ( MapType == "m" || MapType == "l" || MapType == "o" || MapType == "p" ) && !SS.eof( ) )
 				{
 					string MapCommand = "load";
-					
-					if( MapType == "m" || MapType == "o" )
+
+					if( MapType == "p" )
+						MapCommand = "loadobs";
+					else if( MapType == "m" )
 						MapCommand = "map";
+					else if( MapType == "o" )
+						MapCommand = "mapobs";
 					
 					SS >> Map;
 					
@@ -1939,10 +2013,6 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 						
 							//load the map through secondary command
 							BotCommand( m_CommandTrigger + MapCommand + " " + Map, User, Whisper, ForceRoot );
-
-							//add observers if needed
-							if( MapType == "o" || MapType == "p" )
-								m_GHost->m_Map->ForceAddObservers( );
 
 							//host the game through secondary command
 							BotCommand( m_CommandTrigger + GameType + " " + Owner + " " + GameName, User, Whisper, ForceRoot );

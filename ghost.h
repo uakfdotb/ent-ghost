@@ -54,6 +54,7 @@ class CConfig;
 class CCallableCommandList;
 class CCallableSpoofList;
 struct DenyInfo;
+struct GameCreateRequest;
 struct QueuedSpoofAdd;
 
 struct GProxyReconnector {
@@ -93,6 +94,9 @@ public:
 	boost::mutex m_DenyMutex;
 	CLanguage *m_Language;					// language
 	CMap *m_Map;							// the currently loaded map
+	boost::mutex m_MapMutex;				// mutex to protect asynchronous map loading
+	GameCreateRequest *m_MapGameCreateRequest; // game create request after last asynchronous load completes
+	uint32_t m_MapGameCreateRequestTicks;
 	CMap *m_AdminMap;						// the map to use in the admin game
 	vector<CMap*> m_AutoHostMap;			// the maps to use when autohosting
 	CSaveGame *m_SaveGame;					// the save game to use
@@ -229,12 +233,25 @@ public:
 	
 	uint32_t CountStagePlayers( );
 	void BroadcastChat( string name, string message );
+
+	void AsynchronousMapLoad( CConfig *CFG, string nCFGFile );
+	void AsynchronousMapLoadHelper( CConfig *CFG, string nCFGFile );
 };
 
 struct DenyInfo {
 	uint32_t Time;
 	uint32_t Duration;
 	uint32_t Count;
+};
+
+struct GameCreateRequest {
+	unsigned char gameState;
+	bool saveGame;
+	string gameName;
+	string ownerName;
+	string creatorName;
+	string creatorServer;
+	bool whisper;
 };
 
 #endif

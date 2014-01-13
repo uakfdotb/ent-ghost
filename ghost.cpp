@@ -622,6 +622,7 @@ CGHost :: CGHost( CConfig *CFG )
 	CConfig MapCFG;
 	MapCFG.Read( m_MapCFGPath + m_DefaultMap );
 	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap );
+	m_MapGameCreateRequest = NULL;
 
 	for( int i = 0; i < 100; i++)
 	{
@@ -1400,13 +1401,13 @@ bool CGHost :: Update( long usecBlock )
 
 						if( m_AutoHostMatchMaking )
 						{
-							if( !m_Map->GetMapMatchMakingCategory( ).empty( ) )
+							if( !AutoHostMap->GetMapMatchMakingCategory( ).empty( ) )
 							{
-								if( !( m_Map->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) )
-									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with fixed player settings, matchmaking disabled" );
+								if( !( AutoHostMap->GetMapOptions( ) & MAPOPT_FIXEDPLAYERSETTINGS ) )
+									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + AutoHostMap->GetMapMatchMakingCategory( ) + "] found but matchmaking can only be used with fixed player settings, matchmaking disabled" );
 								else
 								{
-									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + m_Map->GetMapMatchMakingCategory( ) + "] found, matchmaking enabled" );
+									CONSOLE_Print( "[GHOST] autohostmm - map_matchmakingcategory [" + AutoHostMap->GetMapMatchMakingCategory( ) + "] found, matchmaking enabled" );
 
 									m_CurrentGame->SetMatchMaking( true );
 									m_CurrentGame->SetMinimumScore( m_AutoHostMinimumScore );
@@ -1507,6 +1508,19 @@ bool CGHost :: Update( long usecBlock )
 		
 		lock.unlock( );
 		m_LastDenyCleanTime = GetTime( );
+	}
+
+	//try to handle an existing game request
+	if( m_MapGameCreateRequest && GetTicks( ) - m_MapGameCreateRequestTicks > 1000 )
+	{
+		boost::mutex::scoped_lock lock( m_MapMutex, boost::try_to_lock );
+
+		if( lock )
+		{
+			CreateGame( m_Map, m_MapGameCreateRequest->gameState, m_MapGameCreateRequest->saveGame, m_MapGameCreateRequest->gameName, m_MapGameCreateRequest->ownerName, m_MapGameCreateRequest->creatorName, m_MapGameCreateRequest->creatorServer, m_MapGameCreateRequest->whisper );
+			delete m_MapGameCreateRequest;
+			m_MapGameCreateRequest = NULL;
+		}
 	}
 
 	return m_Exiting || AdminExit || BNETExit;
@@ -2086,4 +2100,26 @@ void CGHost :: BroadcastChat( string name, string message )
 		if( (*i)->GetReady( ) )
 			(*i)->SendChat( overallMessage, false );
 	}
+}
+
+void CGHost :: AsynchronousMapLoad( CConfig *CFG, string nCFGFile )
+{
+	boost::thread(boost::bind(&CGHost::AsynchronousMapLoadHelper, this, CFG, nCFGFile));
+}
+
+void CGHost :: AsynchronousMapLoadHelper( CConfig *CFG, string nCFGFile )
+{
+	boost::mutex::scoped_lock lock( m_MapMutex, boost::try_to_lock );
+
+	if( lock )
+	{
+		CONSOLE_Print( "[GHOST] AsynchronousMapLoad: loading from [" + nCFGFile + "]" );
+		m_Map->Load( CFG, nCFGFile );
+	}
+	else
+	{
+		CONSOLE_Print( "[GHOST] AsynchronousMapLoad: failed to acquire lock" );
+	}
+
+	delete CFG; // we are responsible for handling the configuration
 }
