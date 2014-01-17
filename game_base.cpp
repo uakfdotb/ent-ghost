@@ -4051,7 +4051,14 @@ string CBaseGame :: GetPlayerList( )
 			CGamePlayer *player = GetPlayerFromSID( i );
 			
 			if( player )
-				players += player->GetName( ) + "\t" + player->GetSpoofedRealm( ) + "\t" + UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "\t" + player->GetExternalIPString( ) + "\t";
+			{
+				string Realm = player->GetSpoofedRealm( );
+
+				if( !player->GetSpoofed( ) )
+					Realm = player->GetJoinedRealm( );
+				
+				players += player->GetName( ) + "\t" + Realm + "\t" + UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "\t" + player->GetExternalIPString( ) + "\t";
+			}
 		}
 		
 		else if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN )
