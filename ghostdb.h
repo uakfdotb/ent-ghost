@@ -43,7 +43,6 @@ class CCallableBanAdd;
 class CCallableBanRemove;
 class CCallableSpoofList;
 class CCallableReconUpdate;
-class CCallableCommandList;
 class CCallableGameAdd;
 class CCallableGameUpdate;
 class CCallableStreamGameUpdate;
@@ -119,7 +118,6 @@ public:
 	virtual bool BanRemove( string user, string context );
 	virtual map<string, string> SpoofList( );
 	virtual void ReconUpdate( uint32_t hostcounter, uint32_t seconds );
-	virtual vector<string> CommandList(  );
 	virtual uint32_t GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype );
 	virtual uint32_t GameUpdate( uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalPlayers, bool lobby, bool add );
 	virtual void StreamGameUpdate( string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port );
@@ -162,7 +160,6 @@ public:
 	virtual CCallableBanRemove *ThreadedBanRemove( string user, string context );
 	virtual CCallableSpoofList *ThreadedSpoofList( );
 	virtual CCallableReconUpdate *ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds );
-	virtual CCallableCommandList *ThreadedCommandList( );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype );
 	virtual CCallableGameUpdate *ThreadedGameUpdate( uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalPlayers, bool lobby, bool add );
 	virtual CCallableStreamGameUpdate *ThreadedStreamGameUpdate( string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port );
@@ -431,19 +428,6 @@ public:
 
 	virtual map<string, string> GetResult( )				{ return m_Result; }
 	virtual void SetResult( map<string, string> nResult )	{ m_Result = nResult; }
-};
-
-class CCallableCommandList : virtual public CBaseCallable
-{
-protected:
-	vector<string> m_Result;
-
-public:
-	CCallableCommandList( ) : CBaseCallable( ) { }
-	virtual ~CCallableCommandList( );
-
-	virtual vector<string> GetResult( )				{ return m_Result; }
-	virtual void SetResult( vector<string> nResult )	{ m_Result = nResult; }
 };
 
 class CCallableReconUpdate : virtual public CBaseCallable

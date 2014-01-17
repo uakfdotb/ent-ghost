@@ -205,7 +205,6 @@ public:
 	virtual CCallableBanRemove *ThreadedBanRemove( string user, string context );
 	virtual CCallableSpoofList *ThreadedSpoofList( );
 	virtual CCallableReconUpdate *ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds );
-	virtual CCallableCommandList *ThreadedCommandList(  );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype );
 	virtual CCallableGameUpdate *ThreadedGameUpdate( uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalPlayers, bool lobby, bool add );
 	virtual CCallableStreamGameUpdate *ThreadedStreamGameUpdate( string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port );
@@ -257,7 +256,6 @@ bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, s
 bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user, string context );
 map<string, string> MySQLSpoofList( void *conn, string *error, uint32_t botid );
 void MySQLReconUpdate( void *conn, string *error, uint32_t botid, uint32_t hostcounter, uint32_t seconds );
-vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid );
 uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype );
 uint32_t MySQLGameUpdate( void *conn, string *error, uint32_t botid, uint32_t id, string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalPlayers, bool lobby, bool add );
 void MySQLStreamGameUpdate( void *conn, string *error, uint32_t botid, string gamename, string map, uint32_t mapcrc, uint32_t mapflags, uint32_t port );
@@ -428,17 +426,6 @@ class CMySQLCallableSpoofList : public CCallableSpoofList, public CMySQLCallable
 public:
 	CMySQLCallableSpoofList( void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CCallableSpoofList( ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
 	virtual ~CMySQLCallableSpoofList( ) { }
-
-	virtual void operator( )( );
-	virtual void Init( ) { CMySQLCallable :: Init( ); }
-	virtual void Close( ) { CMySQLCallable :: Close( ); }
-};
-
-class CMySQLCallableCommandList : public CCallableCommandList, public CMySQLCallable
-{
-public:
-	CMySQLCallableCommandList( void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort, CGHostDBMySQL *nDB ) : CBaseCallable( ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort, nDB ) { }
-	virtual ~CMySQLCallableCommandList( ) { }
 
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }

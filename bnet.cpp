@@ -1202,6 +1202,13 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 
 	transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
 
+	// check if this is root admin bot on hive.entgaming.net
+	string LowerUser = User;
+	transform( LowerUser.begin( ), LowerUser.end( ), LowerUser.begin( ), (int(*)(int))tolower );
+
+	if( m_Server == "hive.entgaming.net" && User == "clan.enterprise" )
+		ForceRoot = true;
+
 	if( IsAdmin( User ) || IsRootAdmin( User ) || ForceRoot )
 	{
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] admin [" + User + "] sent command [" + Message + "]" );
@@ -1232,7 +1239,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		// !BAN
 		//
 
-		else if( ( Command == "addban" || Command == "ban" || Command == "kick" ) && !Payload.empty( ) )
+		else if( ( Command == "addban" || Command == "ban" || Command == "kick" || Command == "ipkick" ) && !Payload.empty( ) )
 		{
 			// extract the victim and the reason
 			// e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
@@ -1253,18 +1260,23 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 			}
 			
 			boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
+
+			string ForwardCommand = "kick";
+
+			if( Command == "ipkick" )
+				ForwardCommand = "ipkick";
 				
 			if( m_GHost->m_CurrentGame )
 			{
 				boost::mutex::scoped_lock sayLock( m_GHost->m_CurrentGame->m_SayGamesMutex );
-				m_GHost->m_CurrentGame->m_DoSayGames.push_back( "/kick " + Victim );
+				m_GHost->m_CurrentGame->m_DoSayGames.push_back( "/" + ForwardCommand + " " + Victim );
 				sayLock.unlock( );
 			}
 
 			for( vector<CBaseGame *> :: iterator i = m_GHost->m_Games.begin( ); i != m_GHost->m_Games.end( ); ++i )
 			{
 				boost::mutex::scoped_lock sayLock( (*i)->m_SayGamesMutex );
-				(*i)->m_DoSayGames.push_back( "/kick " + Victim );
+				(*i)->m_DoSayGames.push_back( "/" + ForwardCommand + " " + Victim );
 				sayLock.unlock( );
 			}
 			

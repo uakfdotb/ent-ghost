@@ -400,7 +400,6 @@ CGHost :: CGHost( CConfig *CFG )
 	m_CRC->Initialize( );
 	m_SHA = new CSHA1( );
 	m_CurrentGame = NULL;
-	m_CallableCommandList = NULL;
 	m_LastDenyCleanTime = 0;
 
 	m_CallableSpoofList = NULL;
@@ -485,7 +484,6 @@ CGHost :: CGHost( CConfig *CFG )
 	m_LocalIPs = CFG->GetString( "bot_local", "127.0.0.1 127.0.1.1" );
 	m_LastAutoHostTime = GetTime( );
 	m_AutoHostMatchMaking = false;
-	m_LastCommandListTime = GetTime( );
 	m_AutoHostMinimumScore = 0.0;
 	m_AutoHostMaximumScore = 0.0;
 	m_AllGamesFinished = false;
@@ -1447,31 +1445,6 @@ bool CGHost :: Update( long usecBlock )
 		}
 
 		m_LastAutoHostTime = GetTime( );
-	}
-	
-	//refresh command list every 20 seconds
-    if( !m_CallableCommandList && GetTime( ) - m_LastCommandListTime >= 20 )
-	{
-	    m_CallableCommandList = m_DB->ThreadedCommandList( );
-	    m_LastCommandListTime = GetTime();
-	}
-
-	if( m_CallableCommandList && m_CallableCommandList->GetReady( ) )
-	{
-		vector<string> commands = m_CallableCommandList->GetResult( );
-		
-		for( vector<string> :: iterator i = commands.begin( ); i != commands.end( ); ++i )
-		{
-			CONSOLE_Print("[GHOST] Executing command from MYSQL: " + *i);
-			
-			if( !m_BNETs.empty( ) && !(*i).empty( ) )
-				m_BNETs[0]->BotCommand( *i, m_BNETs[0]->GetUserName(), true, true );
-		}
-		
-		m_DB->RecoverCallable( m_CallableCommandList );
-		delete m_CallableCommandList;
-		m_CallableCommandList = NULL;
-	    m_LastCommandListTime = GetTime();
 	}
 
 	// refresh spoof list

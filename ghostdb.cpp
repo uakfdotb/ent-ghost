@@ -123,11 +123,6 @@ void CGHostDB :: ReconUpdate( uint32_t hostcounter, uint32_t seconds )
 
 }
 
-vector<string> CGHostDB :: CommandList( )
-{
-	return vector<string>( );
-}
-
 uint32_t CGHostDB :: GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver, string savetype )
 {
 	return 0;
@@ -319,11 +314,6 @@ CCallableSpoofList *CGHostDB :: ThreadedSpoofList( )
 }
 
 CCallableReconUpdate *CGHostDB :: ThreadedReconUpdate( uint32_t hostcounter, uint32_t seconds )
-{
-	return NULL;
-}
-
-CCallableCommandList *CGHostDB :: ThreadedCommandList( )
 {
 	return NULL;
 }
@@ -541,11 +531,6 @@ CCallableSpoofList :: ~CCallableSpoofList( )
 CCallableReconUpdate :: ~CCallableReconUpdate( )
 {
 
-}
-
-CCallableCommandList :: ~CCallableCommandList( )
-{
-	// don't delete anything in m_Result here, it's the caller's responsibility
 }
 
 CCallableGameAdd :: ~CCallableGameAdd( )

@@ -932,7 +932,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				
 				CONSOLE_Print( "[GAME: " + m_GameName + "] received command from announce [" + Command + "] with payload [" + Payload + "]" );
 
-				if( Command == "kick" )
+				if( Command == "kick" ) // format: /kick username
 				{
 					CGamePlayer *LastMatch = NULL;
 					uint32_t Matches = GetPlayerFromNamePartial( Payload, &LastMatch );
@@ -950,6 +950,26 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 						if( !m_GameLoading && !m_GameLoaded )
 							OpenSlot( GetSIDFromPID( LastMatch->GetPID( ) ), false );
+					}
+				}
+				else if( Command == "ipkick" ) // format: /ipkick ipaddrstring
+				{
+					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+					{
+						if( (*i)->GetExternalIPString( ) == Payload )
+						{
+							(*i)->SetDeleteMe( true );
+							(*i)->SetLeftReason( m_GHost->m_Language->WasKickedByPlayer( "Admin" ) );
+							m_GHost->DenyIP( (*i)->GetExternalIPString( ), 60000, "was kicked by !kick" );
+
+							if( !m_GameLoading && !m_GameLoaded )
+								(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
+							else
+								(*i)->SetLeftCode( PLAYERLEAVE_LOST );
+
+							if( !m_GameLoading && !m_GameLoaded )
+								OpenSlot( GetSIDFromPID( (*i)->GetPID( ) ), false );
+						}
 					}
 				}
 			}
