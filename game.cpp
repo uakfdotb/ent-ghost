@@ -3833,7 +3833,7 @@ void CGame :: CloseGame( )
 		{
 			uint32_t LeftTime = (*i)->GetLeft( );
 			
-			if( EndTime - LeftTime > 300 || ( m_MapType == "cfone" && LeftTime < 60 ) || ( m_ForceBanTicks != 0 && LeftTime <= m_ForceBanTicks ) )
+			if( EndTime - LeftTime > 300 || ( ( m_MapType == "cfone" || m_MapType == "legionmegaone" ) && LeftTime < 60 ) || ( m_ForceBanTicks != 0 && LeftTime <= m_ForceBanTicks ) )
 			{
 				string CustomReason = "autoban: left at " + UTIL_ToString( LeftTime ) + "/" + UTIL_ToString( EndTime );
 				
