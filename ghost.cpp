@@ -44,7 +44,6 @@
 #include "gpsprotocol.h"
 #include "game_base.h"
 #include "game.h"
-#include "game_admin.h"
 #include "streamplayer.h"
 #include "stageplayer.h"
 
