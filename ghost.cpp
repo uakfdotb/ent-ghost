@@ -383,9 +383,23 @@ int main( int argc, char **argv )
 
 CGHost :: CGHost( CConfig *CFG )
 {
-	m_UDPSocket = new CUDPSocket( );
-	m_UDPSocket->SetBroadcastTarget( CFG->GetString( "udp_broadcasttarget", string( ) ) );
-	m_UDPSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
+	for( int i = 0; i < 10; i++)
+	{
+		string Key = "udp_broadcasttarget";
+
+		if( i != 0 )
+			Key += UTIL_ToString( i );
+
+		string Target = CFG->GetString( Key, string( ) );
+
+		if( Target.empty( ) )
+			continue;
+		
+		CUDPSocket *UDPSocket = new CUDPSocket( );
+		UDPSocket->SetBroadcastTarget( Target );
+		UDPSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
+		m_UDPSockets.push_back( UDPSocket );
+	}
 	m_LocalSocket = new CUDPSocket( );
 	m_LocalSocket->SetBroadcastTarget( "localhost" );
 	m_LocalSocket->SetDontRoute( CFG->GetInt( "udp_dontroute", 0 ) == 0 ? false : true );
@@ -713,7 +727,9 @@ CGHost :: CGHost( CConfig *CFG )
 
 CGHost :: ~CGHost( )
 {
-	delete m_UDPSocket;
+	for( vector<CUDPSocket *> :: iterator i = m_UDPSockets.begin( ); i != m_UDPSockets.end( ); ++i )
+		delete *i;
+		
 	delete m_LocalSocket;
 	delete m_ReconnectSocket;
 	delete m_StreamSocket;
