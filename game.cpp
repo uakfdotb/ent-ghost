@@ -798,6 +798,7 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else if( Category == "legionmega2" ) CategoryName = "high-ranked Legion TD";
 				else if( Category == "legionmega" || Category == "legionmega_ab" ) CategoryName = "Legion TD Mega";
 				else if( Category == "legionmegaone" ) CategoryName = "Legion TD Mega (1v1)";
+				else if( Category == "legionmega_nc" ) CategoryName = "Legion TD Mega (No Cross)";
 				else if( Category == "lihl" ) CategoryName = "LIHL";
 				else if( Category == "nwu" ) CategoryName = "NWU";
 				else if( Category == "nwuih" ) CategoryName = "in-house NWU";
@@ -984,6 +985,10 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	else if( Player && ( m_MapType == "legionmega" || m_MapType == "legionmega_ab" ) )
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega" ) ) );
+	}
+	else if( Player && m_MapType == "legionmega_nc" )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega_nc" ) ) );
 	}
 	else if( Player && m_MapType == "legionmegaone" )
 	{
@@ -3185,6 +3190,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		
 		if( m_MapType == "legionmegaone" )
 			Category = "legionmegaone";
+		
+		if( m_MapType == "legionmega_nc" )
+			Category = "legionmega_nc";
 
 		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
 			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, Category ) ) );
@@ -3725,7 +3733,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !FORFEIT
 	//
 	
-	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" || m_MapType == "lodab" || m_MapType == "lod" || m_MapType == "legionmega" || m_MapType == "nwu" ) && ( Command == "ff" || Command == "forfeit" ) && !m_SoftGameOver )
+	if( m_GameLoaded && m_ForfeitTime == 0 && ( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" || m_MapType == "lodab" || m_MapType == "lod" || m_MapType == "legionmega" || m_MapType == "nwu" || m_MapType == "legionmega_nc" ) && ( Command == "ff" || Command == "forfeit" ) && !m_SoftGameOver )
 	{
 		if( !( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "eihl" ) || m_GameTicks > 60 * 1000 * 10 )
 		{
@@ -3851,7 +3859,7 @@ void CGame :: CloseGame( )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-lihl", CustomReason, 3600 * 12, "ttr.cloud" ));
 				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" || m_MapType == "cfone" || m_MapType == "lodab" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
-				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "legionmega_ab" || m_MapType == "civwars" )
+				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "legionmega_ab" || m_MapType == "civwars" || m_MapType == "legionmega_nc" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600, "ttr.cloud" ));
 				else
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 1800, "ttr.cloud" ));
