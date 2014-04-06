@@ -1148,7 +1148,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		// if stats and not solo, and at least two leavers in first four minutes, then draw the game
 		uint32_t DrawTicks = 1000 * 60 * 3; //four minutes
 		
-		if( m_MapType == "legionmega" || m_MapType == "lihl" || m_MapType == "legionmega2" )
+		if( m_MapType == "legionmega" || m_MapType == "lihl" || m_MapType == "legionmega2" || m_MapType == "legionmega_nc" )
 			DrawTicks = 1000 * 80; //1:20 before 
 		else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "eihl" )
 			DrawTicks = 1000 * 60 * 2; //two minute, before game starts
