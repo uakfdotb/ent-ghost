@@ -1362,10 +1362,10 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_GameCounterLimit = CFG->GetInt( "bot_gamecounterlimit", 100 );
 	
 	m_BanDuration = CFG->GetInt( "bot_banduration", 48 );
-	m_CBanDuration = CFG->GetInt( "bot_banduration", 720 );
-	m_PBanDuration = CFG->GetInt( "bot_banduration", 9999 );
-	m_TBanDuration = CFG->GetInt( "bot_banduration", 4 );
-	m_WBanDuration = CFG->GetInt( "bot_banduration", 120 );
+	m_CBanDuration = CFG->GetInt( "bot_cbanduration", 720 );
+	m_PBanDuration = CFG->GetInt( "bot_pbanduration", 9999 );
+	m_TBanDuration = CFG->GetInt( "bot_tbanduration", 4 );
+	m_WBanDuration = CFG->GetInt( "bot_wbanduration", 120 );
 	
 	m_AutoMuteSpammer = CFG->GetInt( "bot_automutespammer", 1 ) == 0 ? false : true;
 	m_StatsOnJoin = CFG->GetInt( "bot_statsonjoin", 1 ) == 0 ? false : true;
