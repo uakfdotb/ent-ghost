@@ -1675,53 +1675,65 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 					}
 					else
 					{
-						directory_iterator EndIterator;
-						path LastMatch;
-						uint32_t Matches = 0;
+						string File = "";
+						string PayloadFileName = UTIL_FileSafeName( Payload );
 
-                                                        for( directory_iterator i( MapCFGPath ); i != EndIterator; ++i )
+						if( UTIL_FileExists( m_GHost->m_MapCFGPath + PayloadFileName ) )
+							File = PayloadFileName;
+						else if( UTIL_FileExists( m_GHost->m_MapCFGPath + PayloadFileName + ".cfg" ) )
+							File = PayloadFileName + ".cfg";
+						else
 						{
-							string FileName = i->filename( );
-							string Stem = i->path( ).stem( );
-							transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
-							transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
+							directory_iterator EndIterator;
+							path LastMatch;
+							uint32_t Matches = 0;
 
-							if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && FileName.find( Pattern ) != string :: npos )
+							for( directory_iterator i( MapCFGPath ); i != EndIterator; ++i )
 							{
-								LastMatch = i->path( );
-                                                                        ++Matches;
+								string FileName = i->filename( );
+								string Stem = i->path( ).stem( );
+								transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
+								transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
 
-								if( FoundMapConfigs.empty( ) )
-									FoundMapConfigs = i->filename( );
-								else
-									FoundMapConfigs += ", " + i->filename( );
-
-								// if the pattern matches the filename exactly, with or without extension, stop any further matching
-
-								if( FileName == Pattern || Stem == Pattern )
+								if( !is_directory( i->status( ) ) && i->path( ).extension( ) == ".cfg" && FileName.find( Pattern ) != string :: npos )
 								{
-									Matches = 1;
-									break;
+									LastMatch = i->path( );
+		                                                                    ++Matches;
+
+									if( FoundMapConfigs.empty( ) )
+										FoundMapConfigs = i->filename( );
+									else
+										FoundMapConfigs += ", " + i->filename( );
+
+									// if the pattern matches the filename exactly, with or without extension, stop any further matching
+
+									if( FileName == Pattern || Stem == Pattern )
+									{
+										Matches = 1;
+										break;
+									}
 								}
 							}
+
+							if( Matches == 0 )
+								QueueChatCommand( m_GHost->m_Language->NoMapConfigsFound( ), User, Whisper );
+							else if( Matches == 1 )
+								File = LastMatch.filename( );
+							else
+								QueueChatCommand( m_GHost->m_Language->FoundMapConfigs( FoundMapConfigs ), User, Whisper );
 						}
 
-						if( Matches == 0 )
-							QueueChatCommand( m_GHost->m_Language->NoMapConfigsFound( ), User, Whisper );
-						else if( Matches == 1 )
+						if( !File.empty( ) )
 						{
-							string File = LastMatch.filename( );
 							QueueChatCommand( m_GHost->m_Language->LoadingConfigFile( m_GHost->m_MapCFGPath + File ), User, Whisper );
 							CConfig *MapCFG = new CConfig( );
-							MapCFG->Read( LastMatch.string( ) );
+							MapCFG->Read( m_GHost->m_MapCFGPath + File );
 
 							if( Command == "loadobs" )
 								MapCFG->Set( "map_observers", "4" );
-							
+						
 							m_GHost->AsynchronousMapLoad( MapCFG, m_GHost->m_MapCFGPath + File );
 						}
-						else
-							QueueChatCommand( m_GHost->m_Language->FoundMapConfigs( FoundMapConfigs ), User, Whisper );
 					}
 				}
 				catch( const exception &ex )
