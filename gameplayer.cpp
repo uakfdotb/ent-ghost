@@ -151,9 +151,19 @@ bool CPotentialPlayer :: Update( void *fd )
 		}
 		else
 			m_Game->EventPlayerJoined( this, m_IncomingJoinPlayer, NULL );
-		
-		m_Game->m_GHost->m_DB->RecoverCallable( m_CallableBanCheck );
-		delete m_CallableBanCheck; //deletes Ban too
+
+		if( m_CallableBanCheck->GetReady( ) )
+		{
+			m_Game->m_GHost->m_DB->RecoverCallable( m_CallableBanCheck );
+			delete m_CallableBanCheck; //deletes Ban too
+		}
+		else
+		{
+			boost::mutex::scoped_lock lock( m_Game->m_GHost->m_CallablesMutex );
+			m_Game->m_GHost->m_Callables.push_back( m_CallableBanCheck );
+			lock.unlock( );
+		}
+
 		m_CallableBanCheck = NULL;
 	}
 
