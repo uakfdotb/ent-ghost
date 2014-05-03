@@ -454,7 +454,9 @@ bool CBNET :: Update( void *fd, void *send_fd )
 	if( m_CallableAdminList && m_CallableAdminList->GetReady( ) )
 	{
 		// CONSOLE_Print( "[BNET: " + m_ServerAlias + "] refreshed admin list (" + UTIL_ToString( m_Admins.size( ) ) + " -> " + UTIL_ToString( m_CallableAdminList->GetResult( ).size( ) ) + " admins)" );
-		m_Admins = m_CallableAdminList->GetResult( );
+		if( m_CallableAdminList->GetError( ).empty( ) )
+			m_Admins = m_CallableAdminList->GetResult( );
+
 		m_GHost->m_DB->RecoverCallable( m_CallableAdminList );
 		delete m_CallableAdminList;
 		m_CallableAdminList = NULL;

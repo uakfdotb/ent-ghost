@@ -139,8 +139,8 @@ bool CPotentialPlayer :: Update( void *fd )
         m_Game->m_GHost->DenyIP( GetExternalIPString( ), 30000, "banned player message" );
 	}
 	
-	// request join if we're ready
-	if( m_ConnectionState == 0 && m_CallableBanCheck && m_CallableBanCheck->GetReady( ) )
+	// request join if we're ready or if ban check is taking too long
+	if( m_ConnectionState == 0 && m_CallableBanCheck && ( m_CallableBanCheck->GetReady( ) || GetTicks( ) - m_ConnectionTime > 2000 ) )
 	{
 		CDBBan *Ban = m_CallableBanCheck->GetResult( );
 		
