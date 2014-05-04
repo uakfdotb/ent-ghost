@@ -160,15 +160,14 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_MinimumScore = 1150;
 		m_MaximumScore = 99999;
 	}
-	else if( m_Map->GetMapType( ) == "legionmega2" )
+	else if( m_Map->GetMapType( ) == "legionmegaone2" )
 	{
-		m_Stats = new CStatsW3MMD( this, "legionmega", "" );
-		m_MapType = "legionmega";
+		m_Stats = new CStatsW3MMD( this, "legionmegaone2", "" );
+		m_MapType = "legionmegaone2";
 		
 		// match making settings for tier 2
 		m_MatchMaking = true;
-		m_MatchMakingBalance = false;
-		m_MinimumScore = 500;
+		m_MinimumScore = 1200;
 		m_MaximumScore = 99999;
 	}
 	else if( m_Map->GetMapType( ) == "legionmega_ab" )
@@ -203,7 +202,7 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_League = true;
 	}
 	
-	if( m_MapType == "islanddefense" || m_MapType == "cfone" || m_MapType == "legionmegaone" )
+	if( m_MapType == "islanddefense" || m_MapType == "cfone" || m_MapType == "legionmegaone" || m_MapType == "legionmegaone2" )
 		m_SoloTeam = true;
 
 	// add fake players according to map
@@ -795,9 +794,9 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else if( Category == "castlefight" ) CategoryName = "castle fight";
 				else if( Category == "cfone" ) CategoryName = "castle fight (1v1)";
 				else if( Category == "castlefight2" ) CategoryName = "high-ranked CF";
-				else if( Category == "legionmega2" ) CategoryName = "high-ranked Legion TD";
 				else if( Category == "legionmega" || Category == "legionmega_ab" ) CategoryName = "Legion TD Mega";
 				else if( Category == "legionmegaone" ) CategoryName = "Legion TD Mega (1v1)";
+				else if( Category == "legionmegaone2" ) CategoryName = "Legion TD Mega (1v1 high-ranked)";
 				else if( Category == "legionmega_nc" ) CategoryName = "Legion TD Mega (No Cross)";
 				else if( Category == "lihl" ) CategoryName = "LIHL";
 				else if( Category == "nwu" ) CategoryName = "NWU";
@@ -967,10 +966,6 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "castlefight2" ) ) );
 	}
-	else if( Player && m_MapType == "legionmega2" && score != NULL )
-	{
-		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmega2" ) ) );
-	}
 	else if( Player && m_MapType == "lihl" && score != NULL )
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "lihl" ) ) );
@@ -994,6 +989,10 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	else if( Player && m_MapType == "legionmegaone" )
 	{
 		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmegaone" ) ) );
+	}
+	else if( Player && m_MapType == "legionmegaone2" )
+	{
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmegaone2" ) ) );
 	}
 	else if( Player && m_MapType == "civwars" )
 	{
@@ -1063,7 +1062,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "civwars" )
 					BanType = "3v3";
 				
-				else if( m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "legionmega_ab" || m_MapType == "lihl" )
+				else if( m_MapType == "legionmega" || m_MapType == "legionmega_ab" || m_MapType == "lihl" )
 					BanType = "4v4";
 				
 				if( !BanType.empty( ) )
@@ -1127,7 +1126,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 			{
 				// if less than one minute has elapsed, draw the game
 				// this may be abused for mode voting and such, but hopefully not (and that's what bans are for)
-				if( m_GameTicks < 1000 * 2 || ( m_MapType != "cfone" && m_MapType != "legionmegaone" && m_GameTicks < 1000 * 60 ) )
+				if( m_GameTicks < 1000 * 2 || ( m_MapType != "cfone" && m_MapType != "legionmegaone" && m_MapType != "legionmegaone2" && m_GameTicks < 1000 * 60 ) )
 				{
 					SendAllChat( "Only one team is remaining, this game will end in sixty seconds and be recorded as a draw." );
 					m_GameOverTime = GetTime( );
@@ -1148,7 +1147,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		// if stats and not solo, and at least two leavers in first four minutes, then draw the game
 		uint32_t DrawTicks = 1000 * 60 * 3; //four minutes
 		
-		if( m_MapType == "legionmega" || m_MapType == "lihl" || m_MapType == "legionmega2" || m_MapType == "legionmega_nc" )
+		if( m_MapType == "legionmega" || m_MapType == "lihl" || m_MapType == "legionmega_nc" )
 			DrawTicks = 1000 * 80; //1:20 before 
 		else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "eihl" )
 			DrawTicks = 1000 * 60 * 2; //two minute, before game starts
@@ -3214,6 +3213,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		if( m_MapType == "legionmegaone" )
 			Category = "legionmegaone";
 		
+		if( m_MapType == "legionmegaone2" )
+			Category = "legionmegaone2";
+		
 		if( m_MapType == "legionmega_nc" )
 			Category = "legionmega_nc";
 
@@ -3221,28 +3223,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, Category ) ) );
 		else
 			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, Category ) ) );
-
-		player->SetStatsDotASentTime( GetTime( ) );
-	}
-
-	//
-	// !LEGIONSTATSHR
-	//
-
-	else if( ( Command == "legionstatshr" || Command == "lmshr" || Command == "lhr" || Command == "ls2" ) && GetTime( ) - player->GetStatsDotASentTime( ) >= 3 )
-	{
-		string StatsUser = User;
-
-		if( !Payload.empty( ) )
-			StatsUser = Payload;
-		
-		string StatsRealm = "";
-		GetStatsUser( &StatsUser, &StatsRealm );
-
-		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega2" ) ) );
-		else
-			m_PairedWPSChecks.push_back( PairedWPSCheck( User, m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( StatsUser, StatsRealm, "legionmega2" ) ) );
 
 		player->SetStatsDotASentTime( GetTime( ) );
 	}
@@ -3872,7 +3852,7 @@ void CGame :: CloseGame( )
 		{
 			uint32_t LeftTime = (*i)->GetLeft( );
 			
-			if( EndTime - LeftTime > 300 || ( ( m_MapType == "cfone" || m_MapType == "legionmegaone" ) && LeftTime < 60 ) || ( m_ForceBanTicks != 0 && LeftTime <= m_ForceBanTicks ) )
+			if( EndTime - LeftTime > 300 || ( ( m_MapType == "cfone" || m_MapType == "legionmegaone" || m_MapType == "legionmegaone2" ) && LeftTime < 60 ) || ( m_ForceBanTicks != 0 && LeftTime <= m_ForceBanTicks ) )
 			{
 				string CustomReason = "autoban: left at " + UTIL_ToString( LeftTime ) + "/" + UTIL_ToString( EndTime );
 				
@@ -3882,7 +3862,7 @@ void CGame :: CloseGame( )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-lihl", CustomReason, 3600 * 12, "ttr.cloud" ));
 				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" || m_MapType == "cfone" || m_MapType == "lodab" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
-				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega2" || m_MapType == "legionmega_ab" || m_MapType == "civwars" || m_MapType == "legionmega_nc" )
+				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega_ab" || m_MapType == "civwars" || m_MapType == "legionmega_nc" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600, "ttr.cloud" ));
 				else
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 1800, "ttr.cloud" ));

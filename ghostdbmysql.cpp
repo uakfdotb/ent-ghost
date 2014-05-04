@@ -2087,12 +2087,10 @@ double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string categ
 		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='castlefight' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 15";
 		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='castlefight2' AND name='" + EscName + "' AND server='" + EscServer + "'";
 	}
-	else if( category == "legionmega2" ) // legionmega2 checks legion mega stats
+	else if( category == "legionmegaone2" ) // legionmegaone2 checks legion mega stats
 	{
-		//Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 15";
-		//Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega2' AND name='" + EscName + "' AND server='" + EscServer + "'";
-		Query = "SELECT w3mmd_elo_scores.score FROM w3mmd_elo_scores, gametrack WHERE w3mmd_elo_scores.name='" + EscName + "' AND w3mmd_elo_scores.server='" + EscServer + "' AND gametrack.name = w3mmd_elo_scores.name AND gametrack.realm = w3mmd_elo_scores.server AND w3mmd_elo_scores.category = 'legionmega' AND w3mmd_elo_scores.wins >= 20 AND ( (total_leftpercent / num_games)*100 > 90 OR (num_autoban / num_games)*100 < 5)";
-		Query2 = "SELECT -100000.0;";
+		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "'";
+		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmegaone2' AND name='" + EscName + "' AND server='" + EscServer + "'";
 	}
 	else if( category == "dota" )
 	{
