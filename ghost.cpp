@@ -2124,14 +2124,24 @@ string CGHost :: HostNameLookup( string ip )
 	lockFind.unlock( );
 
 	//couldn't find, so attempt to do the lookup
-	struct hostent *he = gethostbyname( ip.c_str( ) );
+	struct sockaddr_in sin;
+	sin.sin_family = AF_INET;
 
-	if( he == NULL )
+	if( ( sin.sin_addr.s_addr = inet_addr( ip.c_str( ) ) ) == INADDR_NONE )
+		return "Unknown";
+
+	sin.sin_port = htons( 5555 ); //an arbitrary port since we're only interested in rdns
+	char host[NI_MAXHOST], service[NI_MAXSERV];
+	int s = getnameinfo( ( struct sockaddr * ) &sin, sizeof( sin ), host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICSERV );
+	string hostname( host );
+	memset( &sin, 0, sizeof( sin ) );
+
+	if( hostname.empty( ) )
 		return "Unknown";
 
 	HostNameInfo info;
 	info.ip = ip;
-	info.hostname = he->h_name;
+	info.hostname = hostname;
 
 	boost::mutex::scoped_lock lockInsert( m_HostNameCacheMutex );
 	m_HostNameCache.push_back( info );
