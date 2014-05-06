@@ -50,6 +50,7 @@ class CConfig;
 class CCallableCommandList;
 class CCallableSpoofList;
 struct DenyInfo;
+struct HostNameInfo;
 
 struct GProxyReconnector {
 	CTCPSocket *socket;
@@ -191,6 +192,9 @@ public:
 
 	bool m_DisableBot;						// whether this bot is currently disabled
 
+	deque<HostNameInfo> m_HostNameCache;	// host name lookup cache
+	boost::mutex m_HostNameCacheMutex;
+
 	CGHost( CConfig *CFG );
 	~CGHost( );
 
@@ -225,12 +229,18 @@ public:
 	string GetSpoofName( string name );
 	bool IsLocal( string ip );
 	string FromCheck( string ip );
+	string HostNameLookup( string ip );
 };
 
 struct DenyInfo {
 	uint32_t Time;
 	uint32_t Duration;
 	uint32_t Count;
+};
+
+struct HostNameInfo {
+	string ip;
+	string hostname;
 };
 
 #endif

@@ -1737,3 +1737,32 @@ string CGHost :: FromCheck( string ip )
 
 	return "??";
 }
+
+string CGHost :: HostNameLookup( string ip )
+{
+	//try to find in cache first
+	boost::mutex::scoped_lock lockFind( m_HostNameCacheMutex );
+	for( deque<HostNameInfo> :: iterator i = m_HostNameCache.begin( ); i != m_HostNameCache.end( ); i++ )
+	{
+		if( i->ip == ip )
+			return i->hostname;
+	}
+	lockFind.unlock( );
+
+	//couldn't find, so attempt to do the lookup
+	struct hostent *he = gethostbyname( ip.c_str( ) );
+
+	if( he == NULL )
+		return "Unknown";
+
+	HostNameInfo info;
+	info.ip = ip;
+	info.hostname = he->h_name;
+
+	boost::mutex::scoped_lock lockInsert( m_HostNameCacheMutex );
+	m_HostNameCache.push_back( info );
+	while( m_HostNameCache.size( ) > 512 ) m_HostNameCache.pop_front( );
+	lockInsert.unlock( );
+
+	return info.hostname;
+}
