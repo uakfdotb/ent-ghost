@@ -243,7 +243,7 @@ void CPotentialPlayer :: ProcessPackets( )
 				if( m_IncomingJoinPlayer && !m_Banned )
 				{
 					// check for bans on this player
-					m_CallableBanCheck = m_Game->m_GHost->m_DB->ThreadedBanCheck( m_Game->GetJoinedRealm( m_IncomingJoinPlayer->GetHostCounter( ) ), m_IncomingJoinPlayer->GetName( ), GetExternalIPString( ), GetSocket( )->GetHostName( ), m_Game->GetOwnerName( ) + "@" + m_Game->GetOwnerRealm( ) );
+					m_CallableBanCheck = m_Game->m_GHost->m_DB->ThreadedBanCheck( m_Game->GetJoinedRealm( m_IncomingJoinPlayer->GetHostCounter( ) ), m_IncomingJoinPlayer->GetName( ), GetExternalIPString( ), m_Game->m_GHost->HostNameLookup( GetExternalIPString( ) ), m_Game->GetOwnerName( ) + "@" + m_Game->GetOwnerRealm( ) );
 				}
 
 				// don't continue looping because there may be more packets waiting and this parent class doesn't handle them

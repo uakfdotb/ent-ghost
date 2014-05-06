@@ -55,6 +55,7 @@ class CCallableSpoofList;
 struct DenyInfo;
 struct GameCreateRequest;
 struct QueuedSpoofAdd;
+struct HostNameInfo;
 
 struct GProxyReconnector {
 	CTCPSocket *socket;
@@ -192,6 +193,9 @@ public:
 	uint32_t m_LastStageTime;				// last time we tried to create a staging game
 	vector<QueuedSpoofAdd> m_DoSpoofAdd;	// pending spoof checks to process
 
+	deque<HostNameInfo> m_HostNameCache;	// host name lookup cache
+	boost::mutex m_HostNameCacheMutex;
+
 	CGHost( CConfig *CFG );
 	~CGHost( );
 
@@ -233,6 +237,8 @@ public:
 
 	void AsynchronousMapLoad( CConfig *CFG, string nCFGFile );
 	void AsynchronousMapLoadHelper( CConfig *CFG, string nCFGFile );
+
+	string HostNameLookup( string ip );
 };
 
 struct DenyInfo {
@@ -249,6 +255,11 @@ struct GameCreateRequest {
 	string creatorName;
 	string creatorServer;
 	bool whisper;
+};
+
+struct HostNameInfo {
+	string ip;
+	string hostname;
 };
 
 #endif
