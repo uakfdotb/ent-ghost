@@ -1458,7 +1458,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !BAN
 			//
 
-			else if( ( Command == "addban" || Command == "ban" || Command == "pban" || Command == "tban" || Command == "wban" ) && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) )
+			else if( ( Command == "addban" || Command == "ban" || Command == "pban" || Command == "tban" || Command == "wban" || Command == "pubban" ) && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) )
 			{
 				uint32_t BanDuration = 3600 * 48;
 				
@@ -1468,7 +1468,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				
 				string userContext = User + "@" + player->GetSpoofedRealm( );
 				
-				if( AdminCheck || RootAdminCheck )
+				if( ( AdminCheck || RootAdminCheck ) && Command != "pubban" )
 					userContext = "ttr.cloud";
 				else
 					BanDuration = 3600 * 24 * 365; //!pban for non-admins to non give unexpected results
