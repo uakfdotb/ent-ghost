@@ -1231,7 +1231,7 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 		// !BAN
 		//
 
-		else if( ( Command == "addban" || Command == "ban" || Command == "pban" || Command == "tban" || Command == "wban" || Command == "cban" ) && !Payload.empty( ) )
+		else if( ( Command == "addban" || Command == "ban" || Command == "pban" || Command == "tban" || Command == "wban" || Command == "cban" || Command == "kick" ) && !Payload.empty( ) )
 		{
 			uint32_t BanDuration = 3600 * m_GHost->m_BanDuration;
 			
@@ -1258,7 +1258,8 @@ void CBNET :: BotCommand( string Message, string User, bool Whisper, bool ForceR
 					Reason = Reason.substr( Start );
 			}
 
-			m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason, BanDuration, "ttr.cloud" ) ) );
+			if( Command != "kick" )
+				m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason, BanDuration, "ttr.cloud" ) ) );
 
 			boost::mutex::scoped_lock lock( m_GHost->m_GamesMutex );
 				
