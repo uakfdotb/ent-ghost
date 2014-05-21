@@ -957,7 +957,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				uint32_t BanDuration = 3600 * m_GHost->m_BanDuration;
 				
 				if( Command == "pban" ) BanDuration = 3600 * m_GHost->m_PBanDuration;
-				else if( Command == "tban" ) BanDuration = 3600 * m_GHost->m_PBanDuration;
+				else if( Command == "tban" ) BanDuration = 3600 * m_GHost->m_TBanDuration;
 				else if( Command == "wban" ) BanDuration = 3600 * m_GHost->m_WBanDuration;
 				else if( Command == "cban" ) BanDuration = 3600 * m_GHost->m_CBanDuration;
 				
