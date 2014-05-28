@@ -2773,6 +2773,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
                     
                     uint32_t VotesNeeded = GetNumHumanPlayers( ) - 1;
                     uint32_t Votes = 0;
+
+                    if( VotesNeeded == 1 )
+                    	VotesNeeded = 2;
                     
                     for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
                         {
