@@ -835,33 +835,37 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	string EscServer = MySQLEscapeString( conn, server );
 	string EscUser = MySQLEscapeString( conn, user );
+	string EscUserServer = MySQLEscapeString( conn, user + "@" + server );
 	string EscIP = MySQLEscapeString( conn, ip );
 	string EscHostName = MySQLEscapeString( conn, hostname );
 	string EscOwnerName = MySQLEscapeString( conn, ownername );
 	bool WhiteList = false;
+	string Query;
 	
 	if( server == "entconnect" )
+		Query = "SELECT name FROM whitelist WHERE name = '" + EscUser + "'";
+	else
+		Query = "SELECT name FROM whitelist WHERE name = '" + EscUserServer + "'";
+
+	Query += " OR (LENGTH(name) >= 3 AND SUBSTR(name, 1, 1) = ':' AND LOCATE(name, ':" + EscIP + "') = 1)";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
 	{
-		string Query = "SELECT name FROM whitelist WHERE name = '" + EscUser + "'";
-		
-		if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
-			*error = mysql_error( (MYSQL *)conn );
-		else
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
 		{
-			MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+			vector<string> Row = MySQLFetchRow( Result );
 
-			if( Result )
-			{
-				vector<string> Row = MySQLFetchRow( Result );
+			if( Row.size( ) == 1 )
+				WhiteList = true;
 
-				if( Row.size( ) == 1 )
-					WhiteList = true;
-
-				mysql_free_result( Result );
-			}
-			else
-				*error = mysql_error( (MYSQL *)conn );
+			mysql_free_result( Result );
 		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
 	}
 	
 	CDBBan *Ban = NULL;
