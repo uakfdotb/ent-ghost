@@ -2091,10 +2091,10 @@ double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string categ
 		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='castlefight' AND name='" + EscName + "' AND server='" + EscServer + "' AND wins >= 15";
 		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='castlefight2' AND name='" + EscName + "' AND server='" + EscServer + "'";
 	}
-	else if( category == "legionmegaone2" ) // legionmegaone2 checks legion mega stats
+	else if( category == "legionmegaone2" ) // legionmegaone2 is really legionmegaone but with score restrictoin
 	{
-		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmega' AND name='" + EscName + "' AND server='" + EscServer + "'";
-		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmegaone2' AND name='" + EscName + "' AND server='" + EscServer + "'";
+		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmegaone' AND name='" + EscName + "' AND server='" + EscServer + "'";
+		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='legionmegaone' AND name='" + EscName + "' AND server='" + EscServer + "'";
 	}
 	else if( category == "dota" )
 	{

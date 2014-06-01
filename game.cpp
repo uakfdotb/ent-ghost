@@ -162,7 +162,7 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 	}
 	else if( m_Map->GetMapType( ) == "legionmegaone2" )
 	{
-		m_Stats = new CStatsW3MMD( this, "legionmegaone2", "" );
+		m_Stats = new CStatsW3MMD( this, "legionmegaone", "" );
 		m_MapType = "legionmegaone2";
 		
 		// match making settings for tier 2
@@ -796,7 +796,6 @@ bool CGame :: Update( void *fd, void *send_fd )
 				else if( Category == "castlefight2" ) CategoryName = "high-ranked CF";
 				else if( Category == "legionmega" || Category == "legionmega_ab" ) CategoryName = "Legion TD Mega";
 				else if( Category == "legionmegaone" ) CategoryName = "Legion TD Mega (1v1)";
-				else if( Category == "legionmegaone2" ) CategoryName = "Legion TD Mega (1v1 high-ranked)";
 				else if( Category == "legionmega_nc" ) CategoryName = "Legion TD Mega (No Cross)";
 				else if( Category == "lihl" ) CategoryName = "LIHL";
 				else if( Category == "nwu" ) CategoryName = "NWU";
@@ -992,7 +991,7 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 	}
 	else if( Player && m_MapType == "legionmegaone2" )
 	{
-		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmegaone2" ) ) );
+		m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), "legionmegaone" ) ) );
 	}
 	else if( Player && m_MapType == "civwars" )
 	{
@@ -3210,11 +3209,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		
 		string Category = "legionmega";
 		
-		if( m_MapType == "legionmegaone" )
+		if( m_MapType == "legionmegaone" || m_MapType == "legionmegaone2" )
 			Category = "legionmegaone";
-		
-		if( m_MapType == "legionmegaone2" )
-			Category = "legionmegaone2";
 		
 		if( m_MapType == "legionmega_nc" )
 			Category = "legionmega_nc";
