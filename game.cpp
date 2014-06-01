@@ -1134,7 +1134,7 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 				
 				// otherwise, if more than five minutes have elapsed, give the other team the win
 				// this is now delayed by fifteen seconds to prevent setting winner on lag and such
-				else if( m_GameTicks > 1000 * 60 * 5 || ( m_SoloTeam && m_GameTicks > 1000 * 60 * 2 ) )
+				else if( m_GameTicks > 1000 * 60 * 5 || ( m_SoloTeam && m_GameTicks > 1000 * 10 ) )
 				{
 					m_SetWinnerTicks = m_GameTicks;
 					m_SetWinnerTeam = Team;
