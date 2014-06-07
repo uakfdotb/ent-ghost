@@ -1336,7 +1336,7 @@ CDBGamePlayerSummary *MySQLGamePlayerSummaryCheck( void *conn, string *error, ui
 	string EscName = MySQLEscapeString( conn, name );
 	string EscRealm = MySQLEscapeString( conn, realm );
 	CDBGamePlayerSummary *GamePlayerSummary = NULL;
-	string Query = "SELECT IFNULL(SUM(num_games), 0), (IFNULL(SUM(total_leftpercent), 1) / IFNULL(SUM(num_games), 1) * 100), ROUND(playingtime / 3600) FROM gametrack WHERE name='" + EscName + "'";
+	string Query = "SELECT IFNULL(SUM(num_games), 0), (IFNULL(SUM(total_leftpercent), 1) / IFNULL(SUM(num_games), 1) * 100), ROUND(SUM(playingtime) / 3600) FROM gametrack WHERE name='" + EscName + "'";
 	
 	if( !realm.empty( ) )
 		Query += " AND realm = '" + EscRealm + "'";
