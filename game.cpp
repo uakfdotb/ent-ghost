@@ -160,6 +160,16 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_MinimumScore = 1150;
 		m_MaximumScore = 99999;
 	}
+	else if( m_Map->GetMapType( ) == "battleships" )
+	{
+		m_Stats = new CStatsW3MMD( this, "battleships", "" );
+		m_MapType = "battleships";
+		
+		// match making settings for tier 2
+		m_MatchMaking = true;
+		m_MinimumScore = 200;
+		m_MaximumScore = 99999;
+	}
 	else if( m_Map->GetMapType( ) == "legionmegaone2" )
 	{
 		m_Stats = new CStatsW3MMD( this, "legionmegaone", "" );

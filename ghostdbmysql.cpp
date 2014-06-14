@@ -2121,6 +2121,12 @@ double *MySQLScoreCheck( void *conn, string *error, uint32_t botid, string categ
 		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='nwuih' AND name='" + EscName + "' AND server='" + EscServer + "'";
 		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='nwuih' AND name='" + EscName + "' AND server='" + EscServer + "'";
 	}
+	else if( category == "battleships" )
+	{
+		Score[0] = 1000.0;
+		Query = "SELECT score FROM w3mmd_elo_scores WHERE category='battleships' AND name='" + EscName + "' AND server='" + EscServer + "'";
+		Query2 = "SELECT score FROM w3mmd_elo_scores WHERE category='battleships' AND name='" + EscName + "' AND server='" + EscServer + "'";
+	}
 	else
 		CONSOLE_Print( "[MYSQL] Requested score check on invalid category: " + category );
 
