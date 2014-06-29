@@ -3794,6 +3794,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					{
 						m_Stats->SetWinner( ( playerTeam + 1 ) % 2 );
 						m_ForfeitTime = GetTime( );
+						m_Stats->LockStats( );
 						m_SoftGameOver = true;
 						
 						SendAllChat( "The " + ForfeitTeamString + " has forfeited" );
