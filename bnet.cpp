@@ -1142,33 +1142,48 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				m_GHost->m_CurrentGame->m_DoSayGames.push_back( FailMessage );
 				sayLock.unlock( );
 			}
-			
-			if( Message.find( "is using Warcraft III The Frozen Throne in game" ) != string :: npos || Message.find( "is using Warcraft III Frozen Throne and is currently in  game" ) != string :: npos || Message.find( "is using Warcraft III in game" ) != string :: npos || Message.find( "is using Warcraft III  in game" ) != string :: npos )
+
+
+			vector<string> SearchMessages;
+			SearchMessages.push_back( "is using Warcraft III The Frozen Throne in game" );
+			SearchMessages.push_back( "is using Warcraft III Frozen Throne and is currently in  game");
+			SearchMessages.push_back( "is using Warcraft III in game" );
+			SearchMessages.push_back( "is using Warcraft III  in game" );
+
+			for( vector<string> :: iterator it = SearchMessages.begin( ); it != SearchMessages.end( ); it++ )
 			{
-				// check both the current game name and the last game name against the /whois response
-				// this is because when the game is rehosted, players who joined recently will be in the previous game according to battle.net
-				// note: if the game is rehosted more than once it is possible (but unlikely) for a false positive because only two game names are checked
+				size_t pos = Message.find( *it );
 
-				QueuedSpoofAdd SpoofAdd;
-				SpoofAdd.server = m_Server;
-				SpoofAdd.name = UserName;
-				SpoofAdd.sendMessage = false;
-				SpoofAdd.failMessage = string( );
+				if( pos != string :: npos && Message.length( ) > pos + it->length() + 1 )
+				{
+					// extract the gamename from the message: "... game [GAMENAME]."
+					size_t start = pos + it->length() + 1;
+					string MessageGameName = Message.substr( start, Message.length( ) - 1 - start );
+					
+					// check both the current game name and the last game name against the /whois response
+					// this is because when the game is rehosted, players who joined recently will be in the previous game according to battle.net
+					// note: if the game is rehosted more than once it is possible (but unlikely) for a false positive because only two game names are checked
+					QueuedSpoofAdd SpoofAdd;
+					SpoofAdd.server = m_Server;
+					SpoofAdd.name = UserName;
+					SpoofAdd.sendMessage = false;
+					SpoofAdd.failMessage = string( );
 
-				if( Message.find( m_GHost->m_CurrentGame->GetGameName( ) ) == string :: npos && Message.find( m_GHost->m_CurrentGame->GetLastGameName( ) ) == string :: npos )
-					SpoofAdd.failMessage = m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName );
-				
-				if( !m_GHost->m_Stage )
-				{
-					boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
-					m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
-					spoofLock.unlock( );
-				}
-				else
-				{
-					boost::mutex::scoped_lock spoofLock( m_GHost->m_StageMutex );
-					m_GHost->m_DoSpoofAdd.push_back( SpoofAdd );
-					spoofLock.unlock( );
+					if( MessageGameName != m_GHost->m_CurrentGame->GetGameName( ) && MessageGameName != m_GHost->m_CurrentGame->GetLastGameName( ) )
+						SpoofAdd.failMessage = m_GHost->m_Language->SpoofDetectedIsInAnotherGame( UserName );
+
+					if( !m_GHost->m_Stage )
+					{
+						boost::mutex::scoped_lock spoofLock( m_GHost->m_CurrentGame->m_SpoofAddMutex );
+						m_GHost->m_CurrentGame->m_DoSpoofAdd.push_back( SpoofAdd );
+						spoofLock.unlock( );
+					}
+					else
+					{
+						boost::mutex::scoped_lock spoofLock( m_GHost->m_StageMutex );
+						m_GHost->m_DoSpoofAdd.push_back( SpoofAdd );
+						spoofLock.unlock( );
+					}
 				}
 			}
 		}
