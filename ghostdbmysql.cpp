@@ -869,7 +869,7 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 	}
 	
 	CDBBan *Ban = NULL;
-	string Query = "SELECT id, name, ip, date, gamename, admin, reason, expiredate, context FROM bans WHERE ( context = 'ttr.cloud' OR context = '" + EscOwnerName + "' ) AND ((server='" + EscServer + "' AND name='" + EscUser + "')";
+	Query = "SELECT id, name, ip, date, gamename, admin, reason, expiredate, context FROM bans WHERE ( context = 'ttr.cloud' OR context = '" + EscOwnerName + "' ) AND ((server='" + EscServer + "' AND name='" + EscUser + "')";
 	
 	if( !ip.empty( ) && !WhiteList )
 	{
