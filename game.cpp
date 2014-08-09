@@ -190,6 +190,17 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 		m_MinimumScore = 200;
 		m_MaximumScore = 99999;
 	}
+	else if( m_Map->GetMapType( ) == "legionmega1100" )
+	{
+		m_Stats = new CStatsW3MMD( this, "legionmega", "" );
+		m_MapType = "legionmega";
+		
+		// match making settings for autobalanced games
+		m_MatchMaking = true;
+		m_MatchMakingBalance = false;
+		m_MinimumScore = 1100;
+		m_MaximumScore = 99999;
+	}
 	else if( m_Map->GetMapType( ) == "eihl" )
 	{
 		m_Stats = new CStatsDOTA( this, m_Map->GetConditions( ), "eihl" );
