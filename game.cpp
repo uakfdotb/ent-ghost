@@ -737,6 +737,11 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 		{
 			m_PairedWPSChecks.push_back( PairedWPSCheck( string( ), m_GHost->m_DB->ThreadedW3MMDPlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ), m_MapType ) ) );
 		}
+
+		else
+		{
+			m_PairedGPSChecks.push_back( PairedGPSCheck( User, m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( Player->GetName( ) ) ) );
+		}
 	}
 	else if( Player && m_MapType == "castlefight" )
 	{
