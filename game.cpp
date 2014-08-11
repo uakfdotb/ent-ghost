@@ -740,7 +740,7 @@ CGamePlayer *CGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJ
 
 		else
 		{
-			m_PairedGPSChecks.push_back( PairedGPSCheck( User, m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ) ) ) );
+			m_PairedGPSChecks.push_back( PairedGPSCheck( string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( Player->GetName( ), Player->GetJoinedRealm( ) ) ) );
 		}
 	}
 	else if( Player && m_MapType == "castlefight" )
