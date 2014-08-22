@@ -78,6 +78,8 @@ string gLogFile;
 uint32_t gLogMethod;
 ofstream *gLog = NULL;
 CGHost *gGHost = NULL;
+vector<string> gLogQueue;
+uint32_t gLogLastTicks;
 boost::mutex PrintMutex;
 
 uint32_t GetTime( )
@@ -157,12 +159,35 @@ void handler()
 void CONSOLE_Print( string message )
 {
 	boost::mutex::scoped_lock printLock( PrintMutex );
-	cout << message << endl;
+	gLogQueue.push_back( message );
+	printLock.unlock( );
+}
+
+void CONSOLE_Flush( )
+{
+	vector<string> logQueue;
+	boost::mutex::scoped_lock printLock( PrintMutex );
+	gLogQueue.swap( logQueue );
+	printLock.unlock( );
+
+	if( logQueue.empty( ) )
+		return;
+
+	for( vector<string>::iterator it = logQueue.begin( ); it != logQueue.end( ); it++) {
+		cout << *it << endl;
+	}
 
 	// logging
 
 	if( !gLogFile.empty( ) )
 	{
+		time_t Now = time( NULL );
+		string Time = asctime( localtime( &Now ) );
+
+		// erase the newline
+
+		Time.erase( Time.size( ) - 1 );
+
 		if( gLogMethod == 1 )
 		{
 			ofstream Log;
@@ -170,13 +195,10 @@ void CONSOLE_Print( string message )
 
 			if( !Log.fail( ) )
 			{
-				time_t Now = time( NULL );
-				string Time = asctime( localtime( &Now ) );
-
-				// erase the newline
-
-				Time.erase( Time.size( ) - 1 );
-				Log << "[" << Time << "] " << message << endl;
+				for( vector<string>::iterator it = logQueue.begin( ); it != logQueue.end( ); it++) {
+					Log << "[" << Time << "] " << *it << endl;
+				}
+				
 				Log.close( );
 			}
 		}
@@ -184,19 +206,14 @@ void CONSOLE_Print( string message )
 		{
 			if( gLog && !gLog->fail( ) )
 			{
-				time_t Now = time( NULL );
-				string Time = asctime( localtime( &Now ) );
-
-				// erase the newline
-
-				Time.erase( Time.size( ) - 1 );
-				*gLog << "[" << Time << "] " << message << endl;
+				for( vector<string>::iterator it = logQueue.begin( ); it != logQueue.end( ); it++) {
+					*gLog << "[" << Time << "] " << *it << endl;
+				}
+				
 				gLog->flush( );
 			}
 		}
 	}
-	
-	printLock.unlock( );
 }
 
 void DEBUG_Print( string message )
@@ -1510,6 +1527,10 @@ bool CGHost :: Update( long usecBlock )
 			m_MapGameCreateRequest = NULL;
 		}
 	}
+
+	//flush log file every second
+	if( GetTicks( ) - gLogLastTicks > 1000 )
+		CONSOLE_Flush( );
 
 	return m_Exiting || AdminExit || BNETExit;
 }
