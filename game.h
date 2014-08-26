@@ -52,6 +52,7 @@ class CCallableAliasCheck;
 
 typedef pair<string,CCallableBanCheck *> PairedBanCheck;
 typedef pair<string,CCallableBanAdd *> PairedBanAdd;
+typedef pair<string,CCallableBanRemove *> PairedBanRemove;
 typedef pair<string,CCallableGamePlayerSummaryCheck *> PairedGPSCheck;
 typedef pair<string,CCallableDotAPlayerSummaryCheck *> PairedDPSCheck;
 typedef pair<string,CCallableVampPlayerSummaryCheck *> PairedVPSCheck;
@@ -77,6 +78,7 @@ protected:
 	CCallableGameAdd *m_CallableGameAdd;		// threaded database game addition in progress
 	vector<PairedBanCheck> m_PairedBanChecks;	// vector of paired threaded database ban checks in progress
 	vector<PairedBanAdd> m_PairedBanAdds;		// vector of paired threaded database ban adds in progress
+	vector<PairedBanRemove> m_PairedBanRemoves;	// vector of paired threaded database ban removes in progress
 	vector<PairedGPSCheck> m_PairedGPSChecks;	// vector of paired threaded database game player summary checks in progress
 	vector<PairedDPSCheck> m_PairedDPSChecks;	// vector of paired threaded database DotA player summary checks in progress
 	vector<PairedVPSCheck> m_PairedVPSChecks;	// vector of paired threaded database vamp player summary checks in progress

@@ -250,6 +250,9 @@ CGame :: ~CGame( )
 	for( vector<PairedBanAdd> :: iterator i = m_PairedBanAdds.begin( ); i != m_PairedBanAdds.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
+	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); ++i )
+		m_GHost->m_Callables.push_back( i->second );
+
 	for( vector<PairedGPSCheck> :: iterator i = m_PairedGPSChecks.begin( ); i != m_PairedGPSChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( i->second );
 
@@ -337,22 +340,28 @@ bool CGame :: Update( void *fd, void *send_fd )
 		if( i->second->GetReady( ) )
 		{
 			if( i->second->GetResult( ) )
-			{
-				// don't add the ban, we'll sync with it and get proper information later anyway
-				/*
-				for( vector<CBNET *> :: iterator j = m_GHost->m_BNETs.begin( ); j != m_GHost->m_BNETs.end( ); ++j )
-				{
-					if( (*j)->GetServer( ) == i->second->GetServer( ) )
-						(*j)->AddBan( i->second->GetResult( ), i->second->GetUser( ), i->second->GetIP( ), i->second->GetGameName( ), i->second->GetAdmin( ), i->second->GetReason( ) );
-				}
-				*/
-
 				SendAllChat( m_GHost->m_Language->PlayerWasBannedByPlayer( i->second->GetServer( ), i->second->GetUser( ), i->first ) );
-			}
 
 			m_GHost->m_DB->RecoverCallable( i->second );
 			delete i->second;
 			i = m_PairedBanAdds.erase( i );
+		}
+		else
+			++i;
+	}
+
+	for( vector<PairedBanRemove> :: iterator i = m_PairedBanRemoves.begin( ); i != m_PairedBanRemoves.end( ); )
+	{
+		if( i->second->GetReady( ) )
+		{
+			if( i->second->GetResult( ) )
+				SendAllChat( m_GHost->m_Language->UnbannedUser( i->second->GetUser( ) ) );
+			else
+				SendAllChat( m_GHost->m_Language->ErrorUnbanningUser( i->second->GetUser( ) ) );
+
+			m_GHost->m_DB->RecoverCallable( i->second );
+			delete i->second;
+			i = m_PairedBanRemoves.erase( i );
 		}
 		else
 			++i;
@@ -2704,6 +2713,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						SendAllChat( m_GHost->m_Language->SettingSyncLimitTo( UTIL_ToString( m_SyncLimit ) ) );
 				}
 			}
+			
+			//
+			// !DELBAN
+			// !UNBAN
+			//
+
+			else if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
+				m_PairedBanRemoves.push_back( PairedBanRemove( User, m_GHost->m_DB->ThreadedBanRemove( Payload, User + "@" + player->GetSpoofedRealm( ) ) ) );
 
 			//
 			// !UNHOST

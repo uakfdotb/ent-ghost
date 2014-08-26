@@ -1042,7 +1042,7 @@ bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, s
 	string Query = "DELETE FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
 	
 	if( EscContext != "" && EscContext != "ttr.cloud" )
-		Query += " AND admin='" + EscContext + "'";
+		Query += " AND context='" + EscContext + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1062,7 +1062,7 @@ bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user, str
 	string Query = "DELETE FROM bans WHERE name='" + EscUser + "'";
 	
 	if( EscContext != "" && EscContext != "ttr.cloud" )
-		Query += " AND admin='" + EscContext + "'";
+		Query += " AND context='" + EscContext + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
