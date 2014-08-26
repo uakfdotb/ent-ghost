@@ -145,6 +145,7 @@ private:
 	bool m_KickVote;							// if the player voted to kick a player or not
 	bool m_ForfeitVote;
 	bool m_DrawVote;
+	uint32_t m_DrawVoteTime;
 	bool m_StartVote;							// if the player voted to start or not
 	bool m_Muted;								// if the player is muted or not
 	bool m_Autoban;								// whether or not this player should be consider for autobanning
