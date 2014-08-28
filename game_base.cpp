@@ -2010,20 +2010,6 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 
 	string JoinedRealm = GetJoinedRealm( joinPlayer->GetHostCounter( ) );
 
-	if( JoinedRealm == "wc3connect" )
-	{
-		// to spoof this user, we will validate their entry key with our copy in database
-		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joining from WC3Connect; skey=" + UTIL_ToString( joinPlayer->GetEntryKey( ) ) );
-
-		if( m_GHost->m_AllowAnyConnect )
-		{
-			Player->SetSpoofed( true );
-			Player->SetSpoofedRealm( "wc3connect" );
-		}
-		else
-			m_ConnectChecks.push_back( m_GHost->m_DB->ThreadedConnectCheck( joinPlayer->GetName( ), joinPlayer->GetEntryKey( ) ) );
-	}
-
 	if( JoinedRealm.empty( ) )
 	{
 		// the player is pretending to join via LAN, which they might or might not be (i.e. it could be spoofed)
@@ -2287,6 +2273,20 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 
 	if( JoinedRealm.empty( ) )
 		Player->SetSpoofed( true );
+
+	if( JoinedRealm == "wc3connect" )
+	{
+		// to spoof this user, we will validate their entry key with our copy in database
+		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joining from WC3Connect; skey=" + UTIL_ToString( joinPlayer->GetEntryKey( ) ) );
+
+		if( m_GHost->m_AllowAnyConnect )
+		{
+			Player->SetSpoofed( true );
+			Player->SetSpoofedRealm( "wc3connect" );
+		}
+		else
+			m_ConnectChecks.push_back( m_GHost->m_DB->ThreadedConnectCheck( joinPlayer->GetName( ), joinPlayer->GetEntryKey( ) ) );
+	}
 
 	Player->SetWhoisShouldBeSent( m_GHost->m_SpoofChecks == 1 || ( m_GHost->m_SpoofChecks == 2 && AnyAdminCheck ) );
 
