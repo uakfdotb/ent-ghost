@@ -57,18 +57,18 @@ bnetprotocol.o: ghost.h includes.h util.h bnetprotocol.h
 bnlsclient.o: ghost.h includes.h util.h socket.h commandpacket.h bnlsprotocol.h bnlsclient.h
 bnlsprotocol.o: ghost.h includes.h util.h bnlsprotocol.h
 commandpacket.o: ghost.h includes.h commandpacket.h
-config.o: ghost.h includes.h config.h
+config.o: ghost.h includes.h config.h util.h
 crc32.o: ghost.h includes.h crc32.h
 csvparser.o: csvparser.h
 game.o: ghost.h includes.h util.h config.h language.h socket.h ghostdb.h bnet.h map.h packed.h savegame.h gameplayer.h gameprotocol.h game_base.h game.h stats.h statsdota.h statsw3mmd.h
 game_base.o: ghost.h includes.h util.h config.h language.h socket.h ghostdb.h bnet.h map.h packed.h savegame.h replay.h gameplayer.h gameprotocol.h game_base.h next_combination.h
-gameplayer.o: ghost.h includes.h util.h language.h socket.h commandpacket.h bnet.h map.h gameplayer.h gameprotocol.h gpsprotocol.h game_base.h gcbiprotocol.h
+gameplayer.o: ghost.h includes.h util.h language.h socket.h commandpacket.h bnet.h map.h gameplayer.h gameprotocol.h gpsprotocol.h game_base.h gcbiprotocol.h ghostdb.h
 gameprotocol.o: ghost.h includes.h util.h crc32.h gameplayer.h gameprotocol.h game_base.h
 gameslot.o: ghost.h includes.h gameslot.h
 gcbiprotocol.o: gcbiprotocol.h ghost.h util.h
 ghost.o: ghost.h includes.h util.h crc32.h sha1.h csvparser.h config.h language.h socket.h ghostdb.h ghostdbmysql.h bnet.h map.h packed.h savegame.h gameplayer.h gameprotocol.h gpsprotocol.h game_base.h game.h gcbiprotocol.h
-ghostdb.o: ghost.h includes.h util.h config.h ghostdb.h
-ghostdbmysql.o: ghost.h includes.h util.h config.h ghostdb.h ghostdbmysql.h
+ghostdb.o: ghost.h includes.h util.h config.h ghostdb.h bnet.h
+ghostdbmysql.o: ghost.h includes.h util.h config.h ghostdb.h ghostdbmysql.h bnet.h
 gpsprotocol.o: ghost.h util.h gpsprotocol.h
 language.o: ghost.h includes.h config.h language.h
 map.o: ghost.h includes.h util.h crc32.h sha1.h config.h map.h
@@ -79,5 +79,5 @@ sha1.o: sha1.h
 socket.o: ghost.h includes.h util.h socket.h
 stats.o: ghost.h includes.h stats.h
 statsdota.o: ghost.h includes.h util.h ghostdb.h gameplayer.h gameprotocol.h game_base.h stats.h statsdota.h
-statsw3mmd.o: ghost.h includes.h util.h ghostdb.h gameprotocol.h game_base.h stats.h statsw3mmd.h
+statsw3mmd.o: ghost.h includes.h util.h ghostdb.h gameprotocol.h gameplayer.h game_base.h stats.h statsw3mmd.h
 util.o: ghost.h includes.h util.h
