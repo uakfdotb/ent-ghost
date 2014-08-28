@@ -608,10 +608,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				if( (*j)->GetName( ) == (*i)->GetName( ) )
 				{
 					if( Check )
-					{
-						(*j)->SetSpoofed( true );
-						(*j)->SetSpoofedRealm( "entconnect" );
-					}
+						AddToSpoofed( (*i)->GetName( ), "entconnect", false );
 					else
 					{
 						(*j)->SetDeleteMe( true );
