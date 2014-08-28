@@ -842,7 +842,7 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 	bool WhiteList = false;
 	string Query;
 	
-	if( server == "entconnect" )
+	if( server == "wc3connect" )
 		Query = "SELECT name FROM whitelist WHERE name = '" + EscUser + "'";
 	else
 		Query = "SELECT name FROM whitelist WHERE name = '" + EscUserServer + "'";
@@ -2072,7 +2072,7 @@ bool MySQLConnectCheck( void *conn, string *error, uint32_t botid, string name, 
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
 	string EscName = MySQLEscapeString( conn, name );
 	bool Check = false;
-	string Query = "SELECT sessionkey FROM entconnect WHERE username='" + EscName + "' AND TIMESTAMPDIFF(HOUR, time, NOW()) < 10";
+	string Query = "SELECT sessionkey FROM wc3connect WHERE username='" + EscName + "' AND TIMESTAMPDIFF(HOUR, time, NOW()) < 10";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );

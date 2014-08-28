@@ -1369,6 +1369,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	
 	m_AutoMuteSpammer = CFG->GetInt( "bot_automutespammer", 1 ) == 0 ? false : true;
 	m_StatsOnJoin = CFG->GetInt( "bot_statsonjoin", 1 ) == 0 ? false : true;
+	m_AllowAnyConnect = CFG->GetInt( "bot_allowanyconnect", 0 ) == 0 ? false : true;
 	m_DisableBot = CFG->GetInt( "bot_disable", 0 ) == 0 ? false : true;
 	m_CloseSinglePlayer = CFG->GetInt( "bot_closesingleplayer", 1 ) == 0 ? false : true;
 }

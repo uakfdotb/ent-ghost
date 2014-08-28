@@ -480,7 +480,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 					if( Check )
 					{
 						(*j)->SetSpoofed( true );
-						(*j)->SetSpoofedRealm( "entconnect" );
+						(*j)->SetSpoofedRealm( "wc3connect" );
 					}
 					else
 					{
@@ -2010,11 +2010,18 @@ CGamePlayer *CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncom
 
 	string JoinedRealm = GetJoinedRealm( joinPlayer->GetHostCounter( ) );
 
-	if( JoinedRealm == "entconnect" )
+	if( JoinedRealm == "wc3connect" )
 	{
 		// to spoof this user, we will validate their entry key with our copy in database
-		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joining from EntConnect; skey=" + UTIL_ToString( joinPlayer->GetEntryKey( ) ) );
-		m_ConnectChecks.push_back( m_GHost->m_DB->ThreadedConnectCheck( joinPlayer->GetName( ), joinPlayer->GetEntryKey( ) ) );
+		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] joining from WC3Connect; skey=" + UTIL_ToString( joinPlayer->GetEntryKey( ) ) );
+
+		if( m_GHost->m_AllowAnyConnect )
+		{
+			Player->SetSpoofed( true );
+			Player->SetSpoofedRealm( "wc3connect" );
+		}
+		else
+			m_ConnectChecks.push_back( m_GHost->m_DB->ThreadedConnectCheck( joinPlayer->GetName( ), joinPlayer->GetEntryKey( ) ) );
 	}
 
 	if( JoinedRealm.empty( ) )
@@ -4878,7 +4885,7 @@ string CBaseGame :: GetJoinedRealm( uint32_t hostcounter )
 
 	if( HostCounterID == 15 )
 	{
-		JoinedRealm = "entconnect";
+		JoinedRealm = "wc3connect";
 	}
 
 	return JoinedRealm;
