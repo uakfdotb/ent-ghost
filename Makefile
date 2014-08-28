@@ -66,7 +66,7 @@ gameplayer.o: ghost.h includes.h util.h language.h socket.h commandpacket.h bnet
 gameprotocol.o: ghost.h includes.h util.h crc32.h gameplayer.h gameprotocol.h game_base.h
 gameslot.o: ghost.h includes.h gameslot.h
 gcbiprotocol.o: gcbiprotocol.h ghost.h util.h
-ghost.o: ghost.h includes.h util.h crc32.h sha1.h csvparser.h config.h language.h socket.h ghostdb.h ghostdbmysql.h bnet.h map.h packed.h savegame.h gameplayer.h gameprotocol.h gpsprotocol.h game_base.h game.h game_admin.h gcbiprotocol.h
+ghost.o: ghost.h includes.h util.h crc32.h sha1.h csvparser.h config.h language.h socket.h ghostdb.h ghostdbmysql.h bnet.h map.h packed.h savegame.h gameplayer.h gameprotocol.h gpsprotocol.h game_base.h game.h gcbiprotocol.h
 ghostdb.o: ghost.h includes.h util.h config.h ghostdb.h
 ghostdbmysql.o: ghost.h includes.h util.h config.h ghostdb.h ghostdbmysql.h
 gpsprotocol.o: ghost.h util.h gpsprotocol.h

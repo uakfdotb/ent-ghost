@@ -43,7 +43,6 @@
 #include "gpsprotocol.h"
 #include "game_base.h"
 #include "game.h"
-#include "game_admin.h"
 
 #include <signal.h>
 #include <execinfo.h> //to generate stack trace-like thing on exception
