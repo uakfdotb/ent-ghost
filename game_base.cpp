@@ -608,7 +608,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 				if( (*j)->GetName( ) == (*i)->GetName( ) )
 				{
 					if( Check )
-						AddToSpoofed( (*i)->GetName( ), "entconnect", false );
+						AddToSpoofed( "entconnect", (*i)->GetName( ), false );
 					else
 					{
 						(*j)->SetDeleteMe( true );
