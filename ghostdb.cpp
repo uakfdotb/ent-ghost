@@ -784,7 +784,7 @@ CDBSnipePlayerSummary :: ~CDBSnipePlayerSummary( )
 
 }
 
-CDBW3MMDPlayerSummary :: CDBW3MMDPlayerSummary( string nServer, string nName, string nCategory, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, double nScore ) : m_Server( nServer ), m_Name( nName ), m_Category( nCategory ), m_TotalGames( nTotalGames ), m_TotalWins( nTotalWins ), m_TotalLosses( nTotalLosses ), m_Score( nScore )
+CDBW3MMDPlayerSummary :: CDBW3MMDPlayerSummary( string nServer, string nName, string nCategory, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, double nScore, uint32_t nRank ) : m_Server( nServer ), m_Name( nName ), m_Category( nCategory ), m_TotalGames( nTotalGames ), m_TotalWins( nTotalWins ), m_TotalLosses( nTotalLosses ), m_Score( nScore ), m_Rank( nRank )
 {
 
 }

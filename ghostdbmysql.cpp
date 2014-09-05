@@ -1723,7 +1723,7 @@ CDBW3MMDPlayerSummary *MySQLW3MMDPlayerSummaryCheck( void *conn, string *error, 
 	string EscRealm = MySQLEscapeString( conn, realm );
 	string EscCategory = MySQLEscapeString( conn, category );
 	CDBW3MMDPlayerSummary *W3MMDPlayerSummary = NULL;
-	string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0) FROM w3mmd_elo_scores WHERE name='" + EscName + "' AND category = '" + EscCategory + "'";
+	string Query = "SELECT IFNULL(SUM(games), 0), IFNULL(SUM(wins), 0), IFNULL(SUM(losses), 0), IFNULL(MAX(score), 0), (SELECT COUNT(*) FROM w3mmd_elo_scores WHERE score > IFNULL(MAX(score), 0)) + 1 FROM w3mmd_elo_scores WHERE name='" + EscName + "' AND category = '" + EscCategory + "'";
 	
 	if( !realm.empty( ) )
 		Query += " AND server = '" + EscRealm + "'";
@@ -1738,7 +1738,7 @@ CDBW3MMDPlayerSummary *MySQLW3MMDPlayerSummaryCheck( void *conn, string *error, 
 		{
 			vector<string> Row = MySQLFetchRow( Result );
 			
-			if( Row.size( ) == 4 )
+			if( Row.size( ) == 5 )
 			{
 				uint32_t TotalGames = UTIL_ToUInt32( Row[0] );
 				
@@ -1747,10 +1747,11 @@ CDBW3MMDPlayerSummary *MySQLW3MMDPlayerSummaryCheck( void *conn, string *error, 
 					uint32_t TotalWins = UTIL_ToUInt32( Row[1] );
 					uint32_t TotalLosses = UTIL_ToUInt32( Row[2] );
 					double Score = UTIL_ToDouble( Row[3] );
+					int Rank = UTIL_ToUInt32( Row[4] );
 					
 					// done
 
-					W3MMDPlayerSummary = new CDBW3MMDPlayerSummary( realm, name, category, TotalGames, TotalWins, TotalLosses, Score );
+					W3MMDPlayerSummary = new CDBW3MMDPlayerSummary( realm, name, category, TotalGames, TotalWins, TotalLosses, Score, Rank );
 				}
 			}
 

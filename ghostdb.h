@@ -1266,9 +1266,10 @@ private:
 	uint32_t m_TotalWins;			// total number of dota games won
 	uint32_t m_TotalLosses;			// total number of dota games lost
 	double m_Score;
+	uint32_t m_Rank;
 
 public:
-	CDBW3MMDPlayerSummary( string nServer, string nName, string nCategory, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, double nScore );
+	CDBW3MMDPlayerSummary( string nServer, string nName, string nCategory, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, double nScore, uint32_t m_Rank );
 	~CDBW3MMDPlayerSummary( );
 
 	string GetServer( )					{ return m_Server; }
@@ -1278,6 +1279,7 @@ public:
 	uint32_t GetTotalWins( )			{ return m_TotalWins; }
 	uint32_t GetTotalLosses( )			{ return m_TotalLosses; }
 	double GetScore( )					{ return m_Score; }
+	int GetRank( )						{ return m_Rank; }
 };
 
 #endif
