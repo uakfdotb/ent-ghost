@@ -3897,8 +3897,8 @@ void CGame :: CloseGame( )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban-lihl", CustomReason, 3600 * 12, "ttr.cloud" ));
 				else if( m_MapType == "dota" || m_MapType == "dotaab" || m_MapType == "dota2" || m_MapType == "lod" || m_MapType == "cfone" || m_MapType == "lodab" )
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
-				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega_ab" || m_MapType == "civwars" || m_MapType == "legionmega_nc" )
-					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600, "ttr.cloud" ));
+				else if( m_MapType == "castlefight" || m_MapType == "castlefight2" || m_MapType == "legionmega" || m_MapType == "legionmega_ab" || m_MapType == "civwars" || m_MapType == "legionmega_nc" || m_MapType == "battleships" )
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 3, "ttr.cloud" ));
 				else
 					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 1800, "ttr.cloud" ));
 			}
