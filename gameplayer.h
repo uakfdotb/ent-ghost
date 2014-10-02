@@ -126,6 +126,7 @@ private:
 	uint32_t m_FinishedLoadingTicks;			// GetTicks when the player finished loading the game
 	uint32_t m_StartedLaggingTicks;				// GetTicks when the player started lagging
 	uint32_t m_TotalLaggingTicks;				// total ticks that the player has been lagging in the game
+	uint32_t m_LastLaggingTicks;				// GetTicks when the player last stopped lagging
 	uint32_t m_StatsSentTime;					// GetTime when we sent this player's stats to the chat (to prevent players from spamming !stats)
 	uint32_t m_StatsDotASentTime;				// GetTime when we sent this player's dota stats to the chat (to prevent players from spamming !statsdota)
 	uint32_t m_KickVoteTime;					// GetTime when this player last requested a vote kick (!votekick)
@@ -193,6 +194,7 @@ public:
 	uint32_t GetFinishedLoadingTicks( )			{ return m_FinishedLoadingTicks; }
 	uint32_t GetStartedLaggingTicks( )			{ return m_StartedLaggingTicks; }
 	uint32_t GetTotalLaggingTicks( )			{ return m_TotalLaggingTicks; }
+	uint32_t GetLastLaggingTicks( )				{ return m_LastLaggingTicks; }
 	uint32_t GetStatsSentTime( )				{ return m_StatsSentTime; }
 	uint32_t GetStatsDotASentTime( )			{ return m_StatsDotASentTime; }
 	uint32_t GetKickVoteTime( )					{ return m_KickVoteTime; }
@@ -233,6 +235,7 @@ public:
 	void SetFinishedDownloadingTime( uint32_t nFinishedDownloadingTime )			{ m_FinishedDownloadingTime = nFinishedDownloadingTime; }
 	void SetStartedLaggingTicks( uint32_t nStartedLaggingTicks )					{ m_StartedLaggingTicks = nStartedLaggingTicks; }
 	void SetTotalLaggingTicks( uint32_t nTotalLaggingTicks )						{ m_TotalLaggingTicks = nTotalLaggingTicks; }
+	void SetLastLaggingTicks( uint32_t nLastLaggingTicks )							{ m_LastLaggingTicks = nLastLaggingTicks; }
 	void SetStatsSentTime( uint32_t nStatsSentTime )								{ m_StatsSentTime = nStatsSentTime; }
 	void SetStatsDotASentTime( uint32_t nStatsDotASentTime )						{ m_StatsDotASentTime = nStatsDotASentTime; }
 	void SetKickVoteTime( uint32_t nKickVoteTime )									{ m_KickVoteTime = nKickVoteTime; }

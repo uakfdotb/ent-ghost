@@ -597,13 +597,7 @@ BYTEARRAY CGameProtocol :: SEND_W3GS_START_LAG( vector<CGamePlayer *> players, u
 				if( (*i)->GetLagging( ) )
 				{
 					packet.push_back( (*i)->GetPID( ) );
-					uint32_t TotalLaggingTicks = (*i)->GetTotalLaggingTicks( ) + GetTicks( ) - (*i)->GetStartedLaggingTicks( );
-					uint32_t LaggedForTicks = 0;
-
-					if( TotalLaggingTicks > gameTicks / 10 )
-						LaggedForTicks = TotalLaggingTicks - gameTicks / 10;
-					
-					UTIL_AppendByteArray( packet, LaggedForTicks, false );
+					UTIL_AppendByteArray( packet, (*i)->GetTotalLaggingTicks( ), false );
 				}
 			}
 		}
