@@ -1494,6 +1494,22 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		m_StartedVoteStartTime = 0;
 	}
 
+	// expire other votes
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+	{
+		if( (*i)->GetDrawVote( ) && GetTime( ) - (*i)->GetDrawVoteTime( ) > 180 )
+		{
+			(*i)->SetDrawVote( false );
+			SendChat( *i, "Your draw vote has been recalled automatically (three minutes have elapsed)." );
+		}
+		
+		if( (*i)->GetForfeitVote( ) && GetTime( ) - (*i)->GetForfeitVoteTime( ) > 180 )
+		{
+			(*i)->SetForfeitVote( false );
+			SendChat( *i, "Your forfeit vote has been recalled automatically (three minutes have elapsed)." );
+		}
+	}
+
 	// start the gameover timer if there's only one player left
 
 	if( m_Players.size( ) == 1 && m_FakePlayers.empty( ) && m_GameOverTime == 0 && ( m_GameLoading || m_GameLoaded ) && m_GHost->m_CloseSinglePlayer )

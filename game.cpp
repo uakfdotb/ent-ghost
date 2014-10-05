@@ -3735,6 +3735,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				player->SetDrawVote( true );
 			else
 				ChangedVote = false; //continue in case someone left and now we have enough votes
+
+			player->SetDrawVoteTime( GetTime( ) );
 			
 			uint32_t VotesNeeded = (uint32_t)ceil( (float) GetNumHumanPlayers( ) * 0.75 );
 			uint32_t Votes = 0;
@@ -3780,6 +3782,8 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				player->SetForfeitVote( true );
 			else
 				ChangedVote = false;
+
+			player->SetForfeitVoteTime( GetTime( ) );
 			
 			char playerSID = GetSIDFromPID( player->GetPID( ) );
 			
@@ -3788,7 +3792,6 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				char playerTeam = m_Slots[playerSID].GetTeam( );
 				
 				// whether or not all players on the team of the player who typed the command forfeited
-				bool AllVoted = true;
 				int numVoted = 0;
 				int numTotal = 0;
 				
@@ -3802,9 +3805,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						{
 							numTotal++;
 							
-							if( !(*i)->GetForfeitVote( ) )
-								AllVoted = false;
-							else
+							if( (*i)->GetForfeitVote( ) )
 								numVoted++;
 						}
 					}
@@ -3818,7 +3819,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					string ForfeitTeamString = "Sentinel/West";
 					if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge/East";
 					
-					if( AllVoted )
+					if( numVoted == numTotal || ( numTotal >= 4 && numVoted >= numTotal - 1 ) )
 					{
 						m_Stats->SetWinner( ( playerTeam + 1 ) % 2 );
 						m_ForfeitTime = GetTime( );

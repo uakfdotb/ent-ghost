@@ -145,6 +145,7 @@ private:
 	bool m_DropVote;							// if the player voted to drop the laggers or not (on the lag screen)
 	bool m_KickVote;							// if the player voted to kick a player or not
 	bool m_ForfeitVote;
+	uint32_t m_ForfeitVoteTime;
 	bool m_DrawVote;
 	uint32_t m_DrawVoteTime;
 	bool m_StartVote;							// if the player voted to start or not
@@ -214,7 +215,9 @@ public:
 	bool GetKickVote( )							{ return m_KickVote; }
 	bool GetStartVote( )						{ return m_StartVote; }
 	bool GetForfeitVote( )						{ return m_ForfeitVote; }
+	uint32_t GetForfeitVoteTime( )				{ return m_ForfeitVoteTime; }
 	bool GetDrawVote( )							{ return m_DrawVote; }
+	uint32_t GetDrawVoteTime( )					{ return m_DrawVoteTime; }
 	bool GetMuted( )							{ return m_Muted; }
 	bool GetAutoban( )							{ return m_Autoban; }
 	bool GetLeftMessageSent( )					{ return m_LeftMessageSent; }
@@ -251,7 +254,9 @@ public:
 	void SetDropVote( bool nDropVote )												{ m_DropVote = nDropVote; }
 	void SetKickVote( bool nKickVote )												{ m_KickVote = nKickVote; }
 	void SetForfeitVote( bool nForfeitVote )										{ m_ForfeitVote = nForfeitVote; }
+	void SetForfeitVoteTime( uint32_t nForfeitVoteTime )							{ m_ForfeitVoteTime = nForfeitVoteTime; }
 	void SetDrawVote( bool nDrawVote )												{ m_DrawVote = nDrawVote; }
+	void SetDrawVoteTime( uint32_t nDrawVoteTime )									{ m_DrawVoteTime = nDrawVoteTime; }
 	void SetStartVote( bool nStartVote )											{ m_StartVote = nStartVote; }
 	void SetMuted( bool nMuted )													{ m_Muted = nMuted; m_MutedTicks = GetTicks( ); m_MutedAuto = false; }
 	void SetAutoban( bool nAutoban )												{ m_Autoban = nAutoban; }
