@@ -3812,6 +3812,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				}
 			
 				m_ForfeitTeam = playerTeam;
+
+				uint32_t votesNeeded = numTotal;
+				if( numTotal >= 4 )
+					votesNeeded = numTotal - 1;
 				
 				// observers cannot forfeit!
 				if( m_ForfeitTeam == 0 || m_ForfeitTeam == 1 )
@@ -3819,7 +3823,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					string ForfeitTeamString = "Sentinel/West";
 					if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge/East";
 					
-					if( numVoted == numTotal || ( numTotal >= 4 && numVoted >= numTotal - 1 ) )
+					if( numVoted == numTotal || numVoted >= votesNeeded )
 					{
 						m_Stats->SetWinner( ( playerTeam + 1 ) % 2 );
 						m_ForfeitTime = GetTime( );
@@ -3833,7 +3837,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					else if( ChangedVote )
 					{
 						SendAllChat( "[" + player->GetName( ) + "] has voted to forfeit." );
-						SendAllChat( UTIL_ToString( numVoted ) + "/" + UTIL_ToString( numTotal ) + " players on the " + ForfeitTeamString + " have voted to forfeit." );
+						SendAllChat( UTIL_ToString( numVoted ) + "/" + UTIL_ToString( numTotal ) + " players on the " + ForfeitTeamString + " have voted to forfeit (" + UTIL_ToString( votesNeeded ) + "/" + UTIL_ToString( numTotal ) + " needed to pass)." );
 					}
 				}
 			}

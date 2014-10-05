@@ -1500,13 +1500,13 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		if( (*i)->GetDrawVote( ) && GetTime( ) - (*i)->GetDrawVoteTime( ) > 180 )
 		{
 			(*i)->SetDrawVote( false );
-			SendChat( *i, "Your draw vote has been recalled automatically (three minutes have elapsed)." );
+			SendAllChat( "Player [" + (*i)->GetName( ) + "]'s draw vote has been recalled automatically (three minutes have elapsed)." );
 		}
 		
 		if( (*i)->GetForfeitVote( ) && GetTime( ) - (*i)->GetForfeitVoteTime( ) > 180 )
 		{
 			(*i)->SetForfeitVote( false );
-			SendChat( *i, "Your forfeit vote has been recalled automatically (three minutes have elapsed)." );
+			SendAllChat( "Player [" + (*i)->GetName( ) + "]'s forfeit vote has been recalled automatically (three minutes have elapsed)." );
 		}
 	}
 
