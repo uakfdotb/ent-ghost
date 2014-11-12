@@ -293,8 +293,11 @@ void CPotentialPlayer :: SendBannedInfo( CDBBan *Ban, string type )
 		IP.push_back( 0 );
 		IP.push_back( 0 );
 		IP.push_back( 0 );
-	
-		m_Socket->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( 1, "BANNED", IP, IP ) );
+
+		if( type == "banned" )
+			m_Socket->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( 1, "BANNED", IP, IP ) );
+		else if( type == "score" )
+			m_Socket->PutBytes( m_Protocol->SEND_W3GS_PLAYERINFO( 1, "LOW SCORE", IP, IP ) );
 	
 		// send a map check packet to the new player
 	
